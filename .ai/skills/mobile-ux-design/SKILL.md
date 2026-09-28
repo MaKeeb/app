@@ -9,7 +9,7 @@ People use a keyboard thousands of times a day, often one-handed, while looking 
 
 ## Principles
 
-1. **Protect muscle memory.** Keys never move between modes or while settings load. The key area has a fixed height per preferences (`KeyboardMetrics`), so letters, symbols, emoji and clipboard all fill the same area. Don't animate layout changes, and don't reflow keys when suggestions change.
+1. **Protect muscle memory.** Keys never move between modes or while settings load. The key area has a fixed height per preferences (`KeyboardMetrics`), so letters, symbols, emoji and clipboard all fill the same area. Letters, symbols and more symbols share one row structure (the number row stays on every page), the field's bottom row, and shift's slot and backspace; only characters and mode labels change (`ModeSwitchGeometryTest`). Reach extra modes by long-press on an existing key (`Key.longPressAction`), never with a key that shifts its row. Don't animate layout changes, and don't reflow keys when suggestions change.
 2. **Feedback on touch down, commit on release.** The pressed state, preview, haptic and click happen on down (`TouchListener.onKeyDown`). Text commits on up, so a user who slides to a neighbouring key fixes a miss. Down-to-feedback must fit in one frame.
 3. **No dead zones.** Every point of the key area belongs to a key: `LayoutGeometry.keyAt` falls back to the nearest key in the row. Gaps are only visual.
 4. **Everything automatic can be undone.** One Backspace undoes an autocorrection or a double-space period. If you add an automatic behaviour, add its undo in the same change.

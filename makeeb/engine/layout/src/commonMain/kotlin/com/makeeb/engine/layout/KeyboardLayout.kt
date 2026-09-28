@@ -48,6 +48,11 @@ data class Key(
     val hint: String? = null,
     /** A small line under the label, e.g. the letters on a phone-pad digit. */
     val caption: String? = null,
+    /**
+     * What holding the key does in place of [action]: the globe key lists the input methods, the
+     * symbols pages' ABC key opens the number pad. Takes precedence over [alternates].
+     */
+    val longPressAction: KeyAction? = null,
 ) {
     /** The label to draw for the current shift state. Only letter keys change case. */
     fun displayLabel(shift: ShiftState): String =

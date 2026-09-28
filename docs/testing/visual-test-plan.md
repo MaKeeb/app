@@ -38,9 +38,9 @@ Legend: **A** = Android, **i** = iOS, **auto** = captured by the scripts, **manu
 | --- | --- | --- | --- | --- | --- |
 | VT-05 | Shift one-shot | Tap shift once | Filled arrow, key lit to the letter-key tone, letters uppercase | auto | auto |
 | VT-06 | Caps lock | Double-tap shift | Caps-lock glyph (filled arrow with bar), letters uppercase | auto | auto |
-| VT-07 | Symbols | Tap `?123` | Digits, `@#$_&-+()/`, `=\<` key, `ABC` bottom-left; same height as letters | auto | auto |
-| VT-08 | More symbols | Tap `=\<` | Maths and currency rows (~ • √ π ÷ × ¶ ∆, £ ¢ € ¥ ^ ° = { }), `?123` key | auto | auto |
-| VT-09 | Number row | Settings → Number row on, back to Try it | Digit row above the letters, 80% row height, no digit hints, total height grows by 0.8 rows | auto | auto |
+| VT-07 | Symbols | Tap `?123` | Digits, `@#$_&-+()/`, `=\<` key, `ABC` bottom-left; same rows as letters: the bottom row, backspace and the `=\<`/shift slot don't move (holding `ABC` opens the number pad) | auto | auto |
+| VT-08 | More symbols | Tap `=\<` | Maths and currency rows (~ • √ π ÷ × ¶ ∆, £ ¢ € ¥ ^ ° = { }), `?123` key; no key shared with symbols moves | auto | auto |
+| VT-09 | Number row | Settings → Number row on, back to Try it | Digit row above the letters, 80% row height, no digit hints, total height grows by 0.8 rows; both symbols pages keep the same digit row and row heights | auto | auto |
 | VT-10 | Key preview | Press and hold `g` | Enlarged `g` bubble above the key, inside the keyboard | auto | auto (host capture) |
 | VT-11 | Top-row preview | Press and hold `q` | Bubble overlaps the strip and never leaves the keyboard's bounds (iOS cannot draw above the keyboard) | auto | auto (host capture) |
 | VT-12 | Alternates popup | Long-press `e` | Popup row (`3 é è ê ë ē ė ę`), first option highlighted, clamped inside the keyboard | auto | auto (host capture) |

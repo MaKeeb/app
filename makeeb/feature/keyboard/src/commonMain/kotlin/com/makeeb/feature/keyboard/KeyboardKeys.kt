@@ -124,7 +124,7 @@ private fun KeyCell(placed: PlacedKey, icon: KeyIcon?, label: String, pressed: B
     val caption = key.caption
     val fontSize = when {
         key.style == KeyStyle.Character && label.length <= 2 -> dims.keyTextSize
-        // Four characters ("1234", ".com") only fit a one-unit key a size down.
+        // Four characters (".com", "?123") only fit their key a size down.
         label.length >= 4 -> dims.modifierTextSize * 0.85f
         else -> dims.modifierTextSize
     }

@@ -37,17 +37,30 @@ class LayoutGeometry(
         val usableWidth = (width - 2 * horizontalInset).coerceAtLeast(0f)
         val unitWidth = if (layout.unitsPerRow > 0f) usableWidth / layout.unitsPerRow else 0f
         layout.rows.forEachIndexed { rowIndex, row ->
-            // A row wider than the layout (Dvorak's bottom row) is compressed to fit.
-            val rowUnit = if (row.units > layout.unitsPerRow) usableWidth / row.units else unitWidth
             var x = horizontalInset + ((layout.unitsPerRow - row.units) / 2 * unitWidth).coerceAtLeast(0f)
             val top = rowEdges[rowIndex]
             val bottom = rowEdges[rowIndex + 1]
-            row.keys.forEach { key ->
-                val keyWidth = key.width * rowUnit
+            row.keys.zip(keyUnits(row)).forEach { (key, units) ->
+                val keyWidth = units * unitWidth
                 add(PlacedKey(key, rowIndex, KeyBounds(x, top, x + keyWidth, bottom)))
                 x += keyWidth
             }
         }
+    }
+
+    /**
+     * Each key's width in units. A row wider than the layout (Dvorak's bottom row) is compressed to
+     * fit by narrowing only its character keys: shift and backspace keep their size, so they sit
+     * exactly where the symbols pages have theirs.
+     */
+    private fun keyUnits(row: KeyRow): List<Float> {
+        val available = layout.unitsPerRow
+        if (row.units <= available) return row.keys.map { it.width }
+        val fixed = row.keys.filter { it.style != KeyStyle.Character }.sumOf { it.width.toDouble() }.toFloat()
+        val flexible = row.units - fixed
+        if (flexible <= 0f || fixed >= available) return row.keys.map { it.width * available / row.units }
+        val scale = (available - fixed) / flexible
+        return row.keys.map { if (it.style == KeyStyle.Character) it.width * scale else it.width }
     }
 
     private val rows: List<List<PlacedKey>> = keys.groupBy { it.row }.values.toList() // keys are built row by row

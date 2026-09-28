@@ -507,6 +507,55 @@ final class KeyboardVisualTests: XCTestCase {
         return CGPoint(x: element.frame.midX, y: element.frame.midY)
     }
 
+    /// Letters → symbols → more symbols in the Text, E-mail and URL fields, and in the Text field
+    /// with the number row on: every key the pages share must stay where it is (compare the
+    /// captures side by side). Mode keys are found by their `key-…` identifiers, so this runs
+    /// whatever the pages' geometry. Needs Full Access for the quick-settings tile (test12a).
+    func test14_modeSwitch() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("MS")
+        capturePages("MS-text")
+        // Holding ABC on the symbols page opens the number pad (it has no 1234 key); the pad's
+        // ABC, bottom-left, returns to letters.
+        tap(point("key-?123", or: key("MODE")), pause: 0.6)
+        coordinate(point("key-ABC", or: key("MODE"))).press(forDuration: 0.8)
+        Thread.sleep(forTimeInterval: 0.4)
+        save("MS-text-numberpad")
+        tap(point("key-ABC", or: CGPoint(x: screenWidth / 8, y: key("MODE").y)), pause: 0.8)
+        for (label, name) in [("E-mail", "email"), ("URL", "url")] {
+            focus(label)
+            settle(on: label, stock: false)
+            capturePages("MS-\(name)")
+        }
+        focus("Text")
+        settle(on: "Text", stock: false)
+        toggleNumberRow(numberRowBefore: false)
+        assertMaKeebVisible("MS-numberrow", numberRow: true)
+        capturePages("MS-text-numberrow", numberRow: true)
+        toggleNumberRow(numberRowBefore: true)
+        assertMaKeebVisible("MS-restored")
+    }
+
+    /// Captures `<name>-letters`, `-symbols` and `-more`, then returns to letters with ABC.
+    func capturePages(_ name: String, numberRow: Bool = false) {
+        save("\(name)-letters")
+        tap(point("key-?123", or: key("MODE", numberRow: numberRow)), pause: 0.6)
+        save("\(name)-symbols")
+        tap(point("key-=\\<", or: key("SHIFT", numberRow: numberRow)), pause: 0.6)
+        save("\(name)-more")
+        tap(point("key-ABC", or: key("MODE", numberRow: numberRow)), pause: 0.8)
+    }
+
+    /// Flips the number row through the quick-settings panel and returns to the keys.
+    func toggleNumberRow(numberRowBefore: Bool) {
+        let keysArea: CGFloat = 54 * (numberRowBefore ? 4.8 : 4) + 4
+        tap(point("strip-settings", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - keysArea - strip / 2)), pause: 1.0)
+        tap(point("quick-Number row", or: CGPoint(x: 52, y: keyboardBottom - 122)), pause: 1.2)
+        let newKeysArea: CGFloat = 54 * (numberRowBefore ? 4 : 4.8) + 4
+        tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - newKeysArea + 20)), pause: 1.0)
+    }
+
     /// The app icon on the home screen (the page holding MaKeeb), in the current appearance.
     func test13_homeIcon() {
         XCUIDevice.shared.press(.home)

@@ -30,11 +30,11 @@ class LayoutTest {
         assertEquals(listOf(",", "."), bottomTexts(LetterVariant.Text))
         assertEquals(listOf("@", "."), bottomTexts(LetterVariant.Email))
         assertEquals(listOf("/", ".", ".com"), bottomTexts(LetterVariant.Url))
-        // Symbols stay the same whatever the field.
-        assertEquals(
-            provider.layout(KeyboardMode.Symbols, LayoutOptions()).rows,
-            provider.layout(KeyboardMode.Symbols, LayoutOptions(variant = LetterVariant.Url)).rows,
-        )
+        // The symbols pages keep the field's bottom row; the rows above don't depend on the field.
+        val textSymbols = provider.layout(KeyboardMode.Symbols, LayoutOptions())
+        val urlSymbols = provider.layout(KeyboardMode.Symbols, LayoutOptions(variant = LetterVariant.Url))
+        assertEquals(textSymbols.rows.dropLast(1), urlSymbols.rows.dropLast(1))
+        assertEquals(listOf("/", ".", ".com"), urlSymbols.rows.last().keys.mapNotNull { (it.action as? KeyAction.Text)?.text })
     }
 
     @Test
@@ -59,12 +59,24 @@ class LayoutTest {
     }
 
     @Test
-    fun theSymbolsPageOpensTheNumberPad() {
-        val symbols = provider.layout(KeyboardMode.Symbols, LayoutOptions())
-        assertEquals(10f, symbols.unitsPerRow)
-        assertTrue(symbols.rows.last().keys.any { it.action == KeyAction.SwitchMode(KeyboardMode.Numeric) })
+    fun holdingABCOnTheSymbolsPagesOpensTheNumberPad() {
+        listOf(KeyboardMode.Symbols, KeyboardMode.SymbolsMore).forEach { mode ->
+            val layout = provider.layout(mode, LayoutOptions())
+            assertEquals(10f, layout.unitsPerRow)
+            val abc = layout.rows.last().keys.first()
+            assertEquals(KeyAction.SwitchMode(KeyboardMode.Letters), abc.action, "$mode: a tap goes back to letters")
+            assertEquals(KeyAction.SwitchMode(KeyboardMode.Numeric), abc.longPressAction, "$mode: holding opens the pad")
+            assertTrue(layout.rows.flatMap { it.keys }.none { it.action == KeyAction.SwitchMode(KeyboardMode.Numeric) }, "no 1234 key")
+        }
         val numeric = provider.layout(KeyboardMode.Numeric, LayoutOptions())
         assertTrue(numeric.rows.flatMap { it.keys }.any { it.action == KeyAction.SwitchMode(KeyboardMode.Letters) }, "and back")
+    }
+
+    @Test
+    fun theGlobeKeyListsInputMethodsWhenHeld() {
+        val globe = provider.layout(KeyboardMode.Letters, LayoutOptions(switchKey = true)).rows.last().keys
+            .single { it.action == KeyAction.NextInputMethod }
+        assertEquals(KeyAction.ShowInputMethodPicker, globe.longPressAction)
     }
 
     @Test

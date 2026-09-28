@@ -170,6 +170,44 @@ class TouchControllerTest {
     }
 
     @Test
+    fun holdingABCOnTheSymbolsPageOpensTheNumberPadAndATapGoesBackToLetters() = runTest {
+        val touch = controller()
+        touch.geometry = LayoutGeometry(
+            BuiltInLayoutProvider().layout(KeyboardMode.Symbols, LayoutOptions()),
+            width = 1000f,
+            rowHeight = 100f,
+        )
+        val abc = touch.geometry!!.keys.first { it.key.action == KeyAction.SwitchMode(KeyboardMode.Letters) }.bounds
+        touch.down(1, abc.centerX, abc.centerY)
+        touch.up(1, abc.centerX, abc.centerY)
+        touch.down(2, abc.centerX, abc.centerY)
+        advanceTimeBy(400)
+        runCurrent()
+        touch.up(2, abc.centerX, abc.centerY)
+        assertEquals(
+            listOf<KeyAction>(KeyAction.SwitchMode(KeyboardMode.Letters), KeyAction.SwitchMode(KeyboardMode.Numeric)),
+            actions,
+            "the hold opens the pad, and releasing it does nothing more",
+        )
+    }
+
+    @Test
+    fun holdingTheGlobeKeyShowsTheInputMethodPicker() = runTest {
+        val touch = controller()
+        touch.geometry = LayoutGeometry(
+            BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions(switchKey = true)),
+            width = 1000f,
+            rowHeight = 100f,
+        )
+        val globe = touch.geometry!!.keys.single { it.key.action == KeyAction.NextInputMethod }.bounds
+        touch.down(1, globe.centerX, globe.centerY)
+        advanceTimeBy(400)
+        runCurrent()
+        touch.up(1, globe.centerX, globe.centerY)
+        assertEquals(listOf<KeyAction>(KeyAction.ShowInputMethodPicker), actions)
+    }
+
+    @Test
     fun backspaceFiresImmediatelyThenRepeats() = runTest {
         val touch = controller()
         val backspace = geometry.keys.first { it.key.action == KeyAction.Backspace }.bounds

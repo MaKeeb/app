@@ -55,12 +55,13 @@ class RowBuilder {
         keys += Key(KeyAction.Backspace, "⌫", width, KeyStyle.Modifier)
     }
 
-    fun mode(mode: KeyboardMode, label: String, width: Float = 1.5f) {
-        keys += Key(KeyAction.SwitchMode(mode), label, width, KeyStyle.Modifier)
+    fun mode(mode: KeyboardMode, label: String, width: Float = 1.5f, longPress: KeyAction? = null) {
+        keys += Key(KeyAction.SwitchMode(mode), label, width, KeyStyle.Modifier, longPressAction = longPress)
     }
 
+    /** Holding it lists the input methods, like the system switcher. */
     fun globe(width: Float = 1f) {
-        keys += Key(KeyAction.NextInputMethod, "🌐", width, KeyStyle.Modifier)
+        keys += Key(KeyAction.NextInputMethod, "🌐", width, KeyStyle.Modifier, longPressAction = KeyAction.ShowInputMethodPicker)
     }
 
     fun emoji(width: Float = 1f) {

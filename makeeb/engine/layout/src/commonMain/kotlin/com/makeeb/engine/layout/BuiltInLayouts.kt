@@ -1,5 +1,6 @@
 package com.makeeb.engine.layout
 
+import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
 
 /**
@@ -72,7 +73,7 @@ internal object BuiltInLayouts {
         }
         // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
         return keyboardLayout(id, KeyboardMode.Letters, widthUnits = 10f) {
-            if (options.numberRow) row(heightWeight = NUMBER_ROW_HEIGHT_WEIGHT) { chars(topRowDigits) }
+            if (options.numberRow) numberRow()
             val alternates = alternatesFor(id)
             row {
                 chars(top, alternates, hints = if (options.numberRow) emptyMap() else digitHints(top))
@@ -84,22 +85,36 @@ internal object BuiltInLayouts {
                 if (id == "azerty") text("'", alternates = listOf("’", "\""))
                 backspace()
             }
-            bottomRow(KeyboardMode.Symbols, "?123", options, options.variant)
+            bottomRow(KeyboardMode.Symbols, "?123", options)
         }
     }
 
-    fun symbols(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols", KeyboardMode.Symbols) {
-        row { chars("1234567890") }
+    /**
+     * Both symbols pages follow the letters page's row structure, so switching pages moves no key
+     * they share: the same rows at the same heights (with the number row, its digits stay on top at
+     * the same 0.8 weight), shift's slot and backspace at the same size and place, and the field's
+     * bottom row. Only characters and the mode keys' labels change.
+     */
+    fun symbols(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols", KeyboardMode.Symbols, widthUnits = 10f) {
+        if (options.numberRow) {
+            numberRow()
+            // The digits keep their short row, which frees a row for the most used "more" symbols
+            // (and < >). `~` and `|` sit where they are on the more-symbols page.
+            row { chars("~=|%<>[]{}") }
+        } else {
+            row { chars(topRowDigits) }
+        }
         row { chars("@#\$_&-+()/") }
         row {
             mode(KeyboardMode.SymbolsMore, "=\\<")
             chars("*\"':;!?")
             backspace()
         }
-        bottomRow(KeyboardMode.Letters, "ABC", options, numberPadKey = true)
+        symbolsBottomRow(options)
     }
 
-    fun symbolsMore(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols-more", KeyboardMode.SymbolsMore) {
+    fun symbolsMore(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols-more", KeyboardMode.SymbolsMore, widthUnits = 10f) {
+        if (options.numberRow) numberRow()
         row { chars("~`|•√π÷×¶∆") }
         row { chars("£¢€¥^°={}\\") }
         row {
@@ -107,8 +122,18 @@ internal object BuiltInLayouts {
             chars("%©®™✓[]")
             backspace()
         }
-        bottomRow(KeyboardMode.Letters, "ABC", options)
+        symbolsBottomRow(options)
     }
+
+    /** The optional digit row, shorter than the others; identical on every page that shows it. */
+    private fun LayoutBuilder.numberRow() = row(heightWeight = NUMBER_ROW_HEIGHT_WEIGHT) { chars(topRowDigits) }
+
+    /**
+     * ABC back to letters. Holding it opens the number pad, as the symbols page's 1234 key did
+     * (Gboard's), without a key of its own that would shift the bottom row.
+     */
+    private fun LayoutBuilder.symbolsBottomRow(options: LayoutOptions) =
+        bottomRow(KeyboardMode.Letters, "ABC", options, modeLongPress = KeyAction.SwitchMode(KeyboardMode.Numeric))
 
     fun numeric(): KeyboardLayout = keyboardLayout("numeric", KeyboardMode.Numeric) {
         row { chars("123"); text("-") }
@@ -139,35 +164,35 @@ internal object BuiltInLayouts {
         digits.forEach { digit -> text(digit.toString(), caption = keypadLetters[digit]) }
 
     /**
-     * `?123 | globe-or-emoji | , | space | . | enter`, with field-specific keys for e-mail and URL
-     * fields and a number-pad key on the symbols page: always ten units wide.
+     * `mode | globe-or-emoji | , | space | . | enter`, with field-specific keys for e-mail and URL
+     * fields: always ten units wide. Letters and both symbols pages share it, so only the mode
+     * key's label and target change between them.
      */
     private fun LayoutBuilder.bottomRow(
         modeTarget: KeyboardMode,
         modeLabel: String,
         options: LayoutOptions,
-        variant: LetterVariant = LetterVariant.Text,
-        numberPadKey: Boolean = false,
+        modeLongPress: KeyAction? = null,
     ) = row {
-        mode(modeTarget, modeLabel)
+        mode(modeTarget, modeLabel, longPress = modeLongPress)
         if (options.switchKey) globe() else emoji()
-        when (variant) {
+        when (options.variant) {
             LetterVariant.Text -> {
                 text(",", alternates = listOf(";", ":"))
-                // The symbols page opens the number pad, as on Gboard; the space bar gives up a unit.
-                if (numberPadKey) mode(KeyboardMode.Numeric, "1234", width = 1f)
-                space(width = if (numberPadKey) 3f else 4f)
+                space()
                 text(".", alternates = listOf("?", "!", "'", "\"", "-", "…"))
             }
+            // The symbols pages have no comma or ellipsis of their own: in these fields they are
+            // alternates of the full stop.
             LetterVariant.Email -> {
                 text("@")
                 space()
-                text(".", alternates = listOf("-", "_", ","))
+                text(".", alternates = listOf("-", "_", ",", "…"))
             }
             LetterVariant.Url -> {
                 text("/")
                 space(width = 3f)
-                text(".", alternates = listOf("-", "_", ":"))
+                text(".", alternates = listOf("-", "_", ":", ",", "…"))
                 text(".com", alternates = listOf(".net", ".org", ".io", ".co.uk"))
             }
         }

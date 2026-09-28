@@ -7,9 +7,13 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 16 |
-| [In progress](doing/_doing.md) | 0 |
+| [In progress](doing/_doing.md) | 1 |
 | [In review](review/_review.md) | 44 |
 | [Done](done/_done.md) | 5 |
+
+## In progress
+
+- [APP-133](doing/133-keys-stay-put-between-letters-and-symbols.md): Keys stay put between letters and symbols
 
 ## In review
 

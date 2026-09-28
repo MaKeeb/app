@@ -209,8 +209,7 @@ class TouchController(
     private fun startLongPressTimer(id: Long, pointer: Pointer) {
         pointer.timer?.cancel()
         val key = pointer.placed.key
-        val hasLongPress = key.action == KeyAction.NextInputMethod || key.alternates.isNotEmpty()
-        if (!hasLongPress) return
+        if (key.longPressAction == null && key.alternates.isEmpty()) return
         pointer.timer = scope.launch {
             delay(config.longPressMillis)
             onLongPress(id)
@@ -220,10 +219,11 @@ class TouchController(
     private fun onLongPress(id: Long) {
         val pointer = pointers[id] ?: return
         val placed = pointer.placed
+        val longPressAction = placed.key.longPressAction
         when {
-            placed.key.action == KeyAction.NextInputMethod -> {
+            longPressAction != null -> {
                 pointer.mode = Mode.Consumed
-                listener.onAction(KeyAction.ShowInputMethodPicker)
+                listener.onAction(longPressAction)
             }
             placed.key.alternates.isNotEmpty() && popup == null -> {
                 pointer.mode = Mode.Alternates

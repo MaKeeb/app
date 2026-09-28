@@ -10,11 +10,11 @@ data class LayoutOptions(
     val numberRow: Boolean = false,
     /** Draw a globe key: iOS always asks for one, Android only without a system switcher. */
     val switchKey: Boolean = false,
-    /** Field-specific keys on the letters layout's bottom row. */
+    /** Field-specific keys on the bottom row, which letters and both symbols pages share. */
     val variant: LetterVariant = LetterVariant.Text,
 )
 
-/** Letters layouts adapted to the field, like the platform keyboards do. */
+/** Bottom rows adapted to the field, like the platform keyboards do. */
 enum class LetterVariant {
     Text,
 
