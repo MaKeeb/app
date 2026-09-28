@@ -21,6 +21,31 @@ internal object BuiltInLayouts {
         'z' to "žźż",
     )
 
+    /** German letters first on QWERTZ, as a German keyboard offers them. */
+    private val germanAlternates: Map<Char, String> = latinAlternates + mapOf(
+        'a' to "äàáâæãåā",
+        'o' to "öóòôõøœō",
+        'u' to "üúùûū",
+        's' to "ßśš",
+    )
+
+    /** French letters first on AZERTY. */
+    private val frenchAlternates: Map<Char, String> = latinAlternates + mapOf(
+        'a' to "àâæáäãåā",
+        'c' to "çćč",
+        'e' to "éèêëēėę",
+        'i' to "îïíìīį",
+        'o' to "ôœöóòõøō",
+        'u' to "ùûüúū",
+        'y' to "ÿý",
+    )
+
+    private fun alternatesFor(layoutId: String): Map<Char, String> = when (layoutId) {
+        "qwertz" -> germanAlternates
+        "azerty" -> frenchAlternates
+        else -> latinAlternates
+    }
+
     private val topRowDigits = "1234567890"
 
     private fun digitHints(topRow: String): Map<Char, String> =
@@ -48,13 +73,14 @@ internal object BuiltInLayouts {
         // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
         return keyboardLayout(id, KeyboardMode.Letters, widthUnits = 10f) {
             if (options.numberRow) row(heightWeight = NUMBER_ROW_HEIGHT_WEIGHT) { chars(topRowDigits) }
+            val alternates = alternatesFor(id)
             row {
-                chars(top, latinAlternates, hints = if (options.numberRow) emptyMap() else digitHints(top))
+                chars(top, alternates, hints = if (options.numberRow) emptyMap() else digitHints(top))
             }
-            row { chars(middle, latinAlternates) }
+            row { chars(middle, alternates) }
             row {
                 shift()
-                chars(bottom, latinAlternates)
+                chars(bottom, alternates)
                 if (id == "azerty") text("'", alternates = listOf("’", "\""))
                 backspace()
             }

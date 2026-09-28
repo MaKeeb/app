@@ -48,6 +48,17 @@ class LayoutTest {
     }
 
     @Test
+    fun alternatesFollowTheLayoutsLanguage() {
+        fun alternates(layout: String, char: Char) =
+            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout)).characterKeys.getValue(char).alternates
+        assertEquals("à", alternates("qwerty", 'a').first())
+        assertEquals("ä", alternates("qwertz", 'a').first())
+        assertEquals("ß", alternates("qwertz", 's').first())
+        assertEquals(listOf("3", "é"), alternates("azerty", 'e').take(2), "digit hint, then French")
+        assertEquals("ç", alternates("azerty", 'c').first())
+    }
+
+    @Test
     fun theSymbolsPageOpensTheNumberPad() {
         val symbols = provider.layout(KeyboardMode.Symbols, LayoutOptions())
         assertEquals(10f, symbols.unitsPerRow)

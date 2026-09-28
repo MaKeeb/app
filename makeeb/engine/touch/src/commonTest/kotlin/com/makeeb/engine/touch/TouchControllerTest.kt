@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.testTimeSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -34,6 +35,7 @@ class TouchControllerTest {
             }
         },
         config = TouchConfig(overflowAbove = 50f),
+        timeSource = testTimeSource,
     ).also { it.geometry = geometry }
 
     private fun centre(char: Char) = geometry.keyFor(char)!!.bounds.let { it.centerX to it.centerY }
@@ -118,6 +120,29 @@ class TouchControllerTest {
         touch.up(1, backspace.centerX, backspace.centerY)
         assertTrue(actions.size >= 4, "got ${actions.size}")
         assertTrue(actions.all { it == KeyAction.Backspace })
+    }
+
+    @Test
+    fun aQuickFlickUpOpensTheAlternatesAndReleasingTypesTheFirst() = runTest {
+        val touch = controller()
+        val e = geometry.keyFor('e')!!.bounds
+        touch.down(1, e.centerX, e.centerY)
+        touch.move(1, e.centerX, e.centerY - 25f)
+        assertNotNull(touch.state.value.popup, "the flick opens the popup without waiting")
+        touch.up(1, e.centerX, e.centerY - 25f)
+        assertEquals(listOf<KeyAction>(KeyAction.Text("3")), actions, "the top row's digit")
+    }
+
+    @Test
+    fun aSlowMoveUpIsNotAFlick() = runTest {
+        val touch = controller()
+        val a = geometry.keyFor('a')!!.bounds
+        touch.down(1, a.centerX, a.centerY)
+        advanceTimeBy(300)
+        touch.move(1, a.centerX, a.centerY - 25f)
+        assertEquals(null, touch.state.value.popup)
+        touch.up(1, a.centerX, a.centerY - 25f)
+        assertEquals(listOf<KeyAction>(KeyAction.Text("a")), actions)
     }
 
     @Test

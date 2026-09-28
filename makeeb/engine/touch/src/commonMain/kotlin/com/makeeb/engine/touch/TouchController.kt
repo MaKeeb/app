@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 interface TouchListener {
     /** A finger landed on [key]: play click/haptic feedback. */
@@ -37,10 +40,11 @@ class TouchController(
     private val scope: CoroutineScope,
     private val listener: TouchListener,
     var config: TouchConfig = TouchConfig(),
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
     private enum class Mode { Tap, Alternates, Repeating, CursorSlide, Consumed }
 
-    private class Pointer(var placed: PlacedKey, val downX: Float) {
+    private class Pointer(var placed: PlacedKey, val downX: Float, val downY: Float, val downAt: TimeMark) {
         var mode = Mode.Tap
         var lastX = downX
         var slide = 0f
@@ -73,7 +77,7 @@ class TouchController(
     fun down(id: Long, x: Float, y: Float) {
         val placed = geometry?.keyAt(x, y) ?: return
         pointers[id]?.timer?.cancel()
-        val pointer = Pointer(placed, x)
+        val pointer = Pointer(placed, x, y, timeSource.markNow())
         pointers[id] = pointer
         listener.onKeyDown(placed.key)
 
@@ -112,6 +116,10 @@ class TouchController(
                     pointer.timer?.cancel()
                     pointer.mode = Mode.CursorSlide
                     pointer.lastX = x
+                } else if (action is KeyAction.Text && isFlickUp(pointer, x, y)) {
+                    // A quick upward flick opens the alternates at once, like a long press.
+                    pointer.timer?.cancel()
+                    onLongPress(id)
                 } else if (action is KeyAction.Text) {
                     // Sliding onto a neighbouring character key retargets the touch.
                     val under = geometry?.keyAt(x, y)
@@ -172,6 +180,13 @@ class TouchController(
         popup = null
         publish()
     }
+
+    /** Fast and mostly vertical: a slower slide up is a correction to the key above. */
+    private fun isFlickUp(pointer: Pointer, x: Float, y: Float): Boolean =
+        pointer.placed.key.alternates.isNotEmpty() &&
+            pointer.downY - y >= config.swipeUpDistance &&
+            abs(x - pointer.downX) < config.swipeUpDistance &&
+            pointer.downAt.elapsedNow() <= config.swipeUpWindowMillis.milliseconds
 
     private fun startLongPressTimer(id: Long, pointer: Pointer) {
         pointer.timer?.cancel()

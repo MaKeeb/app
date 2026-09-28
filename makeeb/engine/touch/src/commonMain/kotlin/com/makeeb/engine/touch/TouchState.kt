@@ -45,6 +45,9 @@ data class TouchConfig(
     val cursorWordStep: Float = 36f,
     /** How far above the key area popups may go (the suggestion strip height). */
     val overflowAbove: Float = 44f,
+    /** An upward flick at least this long, within [swipeUpWindowMillis], opens the alternates. */
+    val swipeUpDistance: Float = 20f,
+    val swipeUpWindowMillis: Long = 250,
 ) {
     companion object {
         /** Defaults scaled for a display with [density] pixels per dp/pt. */
@@ -52,6 +55,7 @@ data class TouchConfig(
             cursorSlideStart = 24f * density,
             cursorStep = 14f * density,
             cursorWordStep = 36f * density,
+            swipeUpDistance = 20f * density,
             overflowAbove = overflowAbove,
         )
     }
