@@ -16,6 +16,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.max
 
 interface TouchListener {
     /** A finger landed on [key]: play click/haptic feedback. */
@@ -216,11 +217,24 @@ class TouchController(
         )
     }
 
+    /**
+     * A bubble wider and taller than the key, centred over it so it shows around the finger, and
+     * kept inside the key area horizontally (edge keys) and at most [TouchConfig.overflowAbove]
+     * into the strip (top row).
+     */
     private fun previewFor(placed: PlacedKey): KeyPreview {
         val b = placed.bounds
-        val height = (b.bottom - b.top) * 1.1f
+        val width = b.width * PREVIEW_WIDTH_SCALE
+        val height = (b.bottom - b.top) * PREVIEW_HEIGHT_SCALE
+        val areaWidth = geometry?.width ?: (b.centerX + width)
+        val left = (b.centerX - width / 2).coerceIn(0f, max(0f, areaWidth - width))
         val top = (b.top - height).coerceAtLeast(-config.overflowAbove)
-        val bounds = KeyBounds(b.left, top, b.right, top + height)
-        return KeyPreview(placed, placed.key.displayLabel(shift), bounds)
+        return KeyPreview(placed, placed.key.displayLabel(shift), KeyBounds(left, top, left + width, top + height))
+    }
+
+    private companion object {
+        /** Gboard- and iOS-like proportions: clearly larger than the key under the finger. */
+        const val PREVIEW_WIDTH_SCALE = 1.4f
+        const val PREVIEW_HEIGHT_SCALE = 1.25f
     }
 }

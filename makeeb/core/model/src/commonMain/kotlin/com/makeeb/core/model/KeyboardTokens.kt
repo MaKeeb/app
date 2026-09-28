@@ -14,4 +14,6 @@ object KeyboardTokens {
      */
     const val KEY_SYMBOL_POINT_SIZE = 22f
 
+    /** Label size in the key-press preview (sp / pt): larger than the key's own label. */
+    const val PREVIEW_TEXT_SIZE = 32f
 }

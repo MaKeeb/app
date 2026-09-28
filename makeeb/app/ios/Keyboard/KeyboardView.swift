@@ -65,10 +65,12 @@ final class KeyboardView: UIView {
             drawKey(key, palette: palette)
         }
         if let preview = render.preview {
-            let frame = keyAreaRect(preview.frame).insetBy(dx: 2, dy: 0)
-            UIColor(argb: palette.popup).setFill()
-            UIBezierPath(roundedRect: frame, cornerRadius: 8).fill()
-            drawText(preview.label, in: frame, size: 26, color: UIColor(argb: palette.onPopup))
+            let frame = keyAreaRect(preview.frame)
+            withShadow {
+                UIColor(argb: palette.popup).setFill()
+                UIBezierPath(roundedRect: frame, cornerRadius: 10).fill()
+            }
+            drawText(preview.label, in: frame, size: CGFloat(KeyboardTokens.shared.PREVIEW_TEXT_SIZE), color: UIColor(argb: palette.onPopup), weight: .medium)
         }
         if let popup = render.popup {
             drawPopup(popup, palette: palette)
@@ -166,11 +168,22 @@ final class KeyboardView: UIView {
         }
     }
 
+    /// Lifts previews and popups off the keys, as on the system keyboard (light keys are white on white).
+    private func withShadow(_ draw: () -> Void) {
+        guard let context = UIGraphicsGetCurrentContext() else { return draw() }
+        context.saveGState()
+        context.setShadow(offset: CGSize(width: 0, height: 2), blur: 8, color: UIColor.black.withAlphaComponent(0.3).cgColor)
+        draw()
+        context.restoreGState()
+    }
+
     private func drawPopup(_ popup: RenderPopup, palette: KeyboardPalette) {
         guard let first = popup.cells.first, let last = popup.cells.last else { return }
         let outer = keyAreaRect(first).union(keyAreaRect(last))
-        UIColor(argb: palette.popup).setFill()
-        UIBezierPath(roundedRect: outer, cornerRadius: 8).fill()
+        withShadow {
+            UIColor(argb: palette.popup).setFill()
+            UIBezierPath(roundedRect: outer, cornerRadius: 8).fill()
+        }
         for (index, cell) in popup.cells.enumerated() {
             let frame = keyAreaRect(cell).insetBy(dx: 3, dy: 3)
             let selected = index == Int(popup.selected)

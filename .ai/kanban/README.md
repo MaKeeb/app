@@ -6,13 +6,14 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 33 |
+| [Ready to start](todo/_todo.md) | 32 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 26 |
+| [In review](review/_review.md) | 27 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
 
+- [APP-2](review/002-key-press-preview-popup.md): Key press preview popup
 - [APP-4](review/004-shift-and-caps-lock.md): Shift and caps lock
 - [APP-5](review/005-auto-capitalization.md): Auto-capitalization
 - [APP-6](review/006-field-aware-layouts-and-action-key.md): Field-aware layouts and action key
@@ -43,7 +44,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 ## Ready to start
 
 - [APP-1](todo/001-key-grid-with-multitouch-and-rollover.md): Key grid with multitouch and rollover
-- [APP-2](todo/002-key-press-preview-popup.md): Key press preview popup
 - [APP-3](todo/003-long-press-alternate-characters.md): Long-press alternate characters
 - [APP-7](todo/007-haptic-and-sound-feedback.md): Haptic and sound feedback
 - [APP-8](todo/008-backspace-repeat-and-word-delete.md): Backspace repeat and word delete

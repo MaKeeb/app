@@ -50,6 +50,24 @@ class TouchControllerTest {
     }
 
     @Test
+    fun previewIsLargerThanTheKeyCentredAndKeptInsideTheArea() = runTest {
+        val touch = controller()
+        val g = geometry.keyFor('g')!!.bounds
+        touch.down(1, g.centerX, g.centerY)
+        val bubble = touch.state.value.preview!!.bounds
+        assertTrue(bubble.width > g.width * 1.3f && bubble.bottom - bubble.top > (g.bottom - g.top) * 1.2f)
+        assertEquals(g.centerX, bubble.centerX, absoluteTolerance = 0.5f)
+        assertEquals(g.top, bubble.bottom, absoluteTolerance = 0.5f)
+        touch.up(1, g.centerX, g.centerY)
+
+        val q = geometry.keyFor('q')!!.bounds
+        touch.down(2, q.centerX, q.centerY)
+        val edge = touch.state.value.preview!!.bounds
+        assertEquals(0f, edge.left, absoluteTolerance = 0.5f) // clamped at the left edge
+        assertTrue(edge.top >= -50f, "at most overflowAbove into the strip")
+    }
+
+    @Test
     fun slidingToANeighbourCommitsTheNeighbour() = runTest {
         val touch = controller()
         val (qx, qy) = centre('q')

@@ -31,9 +31,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.makeeb.core.model.ImeAction
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyIcon
+import com.makeeb.core.model.KeyboardTokens
 import com.makeeb.core.model.ShiftState
 import com.makeeb.engine.layout.KeyBounds
 import com.makeeb.engine.layout.KeyStyle
@@ -162,12 +164,11 @@ private fun PreviewBubble(preview: KeyPreview) {
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = dims.keyGap / 2)
-                .shadow(6.dp, RoundedCornerShape(dims.keyCornerRadius))
-                .background(colors.popup, RoundedCornerShape(dims.keyCornerRadius)),
+                .shadow(8.dp, RoundedCornerShape(dims.keyCornerRadius + 2.dp))
+                .background(colors.popup, RoundedCornerShape(dims.keyCornerRadius + 2.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(preview.label, color = colors.onPopup, fontSize = dims.keyTextSize, fontWeight = FontWeight.Medium)
+            Text(preview.label, color = colors.onPopup, fontSize = KeyboardTokens.PREVIEW_TEXT_SIZE.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

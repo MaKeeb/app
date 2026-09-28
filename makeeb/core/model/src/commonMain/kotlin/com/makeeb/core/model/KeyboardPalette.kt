@@ -48,7 +48,7 @@ data class KeyboardPalette(
             onKey = 0xFFE9ECF2,
             onAccentKey = 0xFF0B0E22,
             hint = 0xFF9199A8,
-            popup = 0xFF363B46,
+            popup = 0xFF5B6376,
             onPopup = 0xFFE9ECF2,
             popupSelected = 0xFF7B90FF,
             onPopupSelected = 0xFF0B0E22,
