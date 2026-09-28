@@ -42,6 +42,8 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
             cursorSlideByWord = settings.getBoolean(Keys.CURSOR_SLIDE_BY_WORD, defaults.cursorSlideByWord),
             keyPressHaptics = settings.getBoolean(Keys.HAPTICS, defaults.keyPressHaptics),
             keyPressSound = settings.getBoolean(Keys.SOUND, defaults.keyPressSound),
+            hapticIntensity = settings.getFloat(Keys.HAPTIC_INTENSITY, defaults.hapticIntensity).coerceIn(0f, 1f),
+            soundVolume = settings.getFloat(Keys.SOUND_VOLUME, defaults.soundVolume).coerceIn(0f, 1f),
             keyPopupPreview = settings.getBoolean(Keys.POPUP_PREVIEW, defaults.keyPopupPreview),
             numberRow = settings.getBoolean(Keys.NUMBER_ROW, defaults.numberRow),
             heightScale = settings.getFloat(Keys.HEIGHT_SCALE, defaults.heightScale)
@@ -64,6 +66,8 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putBoolean(Keys.CURSOR_SLIDE_BY_WORD, cursorSlideByWord)
         settings.putBoolean(Keys.HAPTICS, keyPressHaptics)
         settings.putBoolean(Keys.SOUND, keyPressSound)
+        settings.putFloat(Keys.HAPTIC_INTENSITY, hapticIntensity)
+        settings.putFloat(Keys.SOUND_VOLUME, soundVolume)
         settings.putBoolean(Keys.POPUP_PREVIEW, keyPopupPreview)
         settings.putBoolean(Keys.NUMBER_ROW, numberRow)
         settings.putFloat(Keys.HEIGHT_SCALE, heightScale)
@@ -87,6 +91,8 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         const val CURSOR_SLIDE_BY_WORD = "typing.cursor_slide_by_word"
         const val HAPTICS = "feedback.haptics"
         const val SOUND = "feedback.sound"
+        const val HAPTIC_INTENSITY = "feedback.haptic_intensity"
+        const val SOUND_VOLUME = "feedback.sound_volume"
         const val POPUP_PREVIEW = "feedback.popup_preview"
         const val NUMBER_ROW = "layout.number_row"
         const val HEIGHT_SCALE = "layout.height_scale"

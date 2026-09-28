@@ -14,6 +14,10 @@ data class KeyboardPreferences(
     // Feedback
     val keyPressHaptics: Boolean = true,
     val keyPressSound: Boolean = false,
+    /** Vibration strength, 0..1. */
+    val hapticIntensity: Float = 0.5f,
+    /** Click volume, 0..1 (Android; iOS has no volume for key clicks). */
+    val soundVolume: Float = 0.5f,
     val keyPopupPreview: Boolean = true,
     // Layout
     val numberRow: Boolean = false,

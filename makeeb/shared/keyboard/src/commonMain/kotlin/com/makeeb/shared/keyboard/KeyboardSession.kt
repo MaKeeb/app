@@ -198,7 +198,7 @@ class KeyboardSession(
             KeyAction.Enter -> KeyFeedbackType.Return
             else -> if (key.style == KeyStyle.Modifier) KeyFeedbackType.Modifier else KeyFeedbackType.Standard
         }
-        if (prefs.keyPressHaptics) ports.haptics.keyPress(type)
-        if (prefs.keyPressSound) ports.sound.keyPress(type)
+        if (prefs.keyPressHaptics) ports.haptics.keyPress(type, prefs.hapticIntensity)
+        if (prefs.keyPressSound) ports.sound.keyPress(type, prefs.soundVolume)
     }
 }

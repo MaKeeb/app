@@ -10,7 +10,10 @@ import com.makeeb.engine.input.InputEngine
 import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
 import com.makeeb.platform.clipboard.Clip
-import com.makeeb.platform.feedback.NoFeedback
+import com.makeeb.core.settings.KeyboardPreferences
+import com.makeeb.platform.feedback.HapticFeedback
+import com.makeeb.platform.feedback.KeyFeedbackType
+import com.makeeb.platform.feedback.SoundFeedback
 import com.makeeb.testing.FakeKeyboardHost
 import com.makeeb.testing.FakePreferencesRepository
 import com.makeeb.testing.FakeSystemClipboard
@@ -26,13 +29,34 @@ class KeyboardSessionTest {
     private val clipboard = FakeSystemClipboard()
     private val catalog = BundledEmojiCatalog()
 
-    private fun TestScope.session(): KeyboardSession {
-        val prefs = FakePreferencesRepository()
+    private val haptics = mutableListOf<Pair<KeyFeedbackType, Float>>()
+    private val sounds = mutableListOf<Pair<KeyFeedbackType, Float>>()
+
+    private fun TestScope.session(preferences: KeyboardPreferences = KeyboardPreferences()): KeyboardSession {
+        val prefs = FakePreferencesRepository(preferences)
         val engine = InputEngine(BuiltInLayoutProvider(), DictionarySuggestionEngine(StarterDictionaries.english()), prefs.preferences)
         return KeyboardSession(
             engine, prefs, catalog, EmojiRecents(), ClipboardHistory(),
-            KeyboardPorts(clipboard, NoFeedback, NoFeedback), backgroundScope,
+            KeyboardPorts(
+                clipboard,
+                haptics = HapticFeedback { type, intensity -> haptics += type to intensity },
+                sound = SoundFeedback { type, volume -> sounds += type to volume },
+            ),
+            backgroundScope,
         )
+    }
+
+    @Test
+    fun keyFeedbackUsesTheChosenStrengthAndVolume() = runTest {
+        val session = session(KeyboardPreferences(keyPressHaptics = true, hapticIntensity = 0.8f, keyPressSound = true, soundVolume = 0.3f))
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        session.setKeysAreaSize(1000f, 216f)
+        runCurrent()
+        val g = session.geometry.value!!.keyFor('g')!!.bounds
+        session.touch.down(1, g.centerX, g.centerY)
+        session.touch.up(1, g.centerX, g.centerY)
+        assertEquals(listOf(KeyFeedbackType.Standard to 0.8f), haptics)
+        assertEquals(listOf(KeyFeedbackType.Standard to 0.3f), sounds)
     }
 
     @Test

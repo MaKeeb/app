@@ -66,7 +66,25 @@ fun SettingsContent(
         }
         SettingsSection("Feedback") {
             SwitchRow("Vibrate on keypress", preferences.keyPressHaptics, { v -> onUpdate { it.copy(keyPressHaptics = v) } })
-            SwitchRow("Sound on keypress", preferences.keyPressSound, { v -> onUpdate { it.copy(keyPressSound = v) } })
+            if (preferences.keyPressHaptics) {
+                SliderRow(
+                    title = "Vibration strength",
+                    value = preferences.hapticIntensity,
+                    onValueChange = { v -> onUpdate { it.copy(hapticIntensity = v) } },
+                    valueRange = 0.1f..1f,
+                    valueLabel = "${(preferences.hapticIntensity * 100).roundToInt()}%",
+                )
+            }
+            SwitchRow("Sound on keypress", preferences.keyPressSound, { v -> onUpdate { it.copy(keyPressSound = v) } }, subtitle = "Quiet in silent mode and Do Not Disturb")
+            if (preferences.keyPressSound) {
+                SliderRow(
+                    title = "Sound volume",
+                    value = preferences.soundVolume,
+                    onValueChange = { v -> onUpdate { it.copy(soundVolume = v) } },
+                    valueRange = 0.1f..1f,
+                    valueLabel = "${(preferences.soundVolume * 100).roundToInt()}%",
+                )
+            }
             SwitchRow("Popup on keypress", preferences.keyPopupPreview, { v -> onUpdate { it.copy(keyPopupPreview = v) } })
         }
         SettingsSection("Appearance") {

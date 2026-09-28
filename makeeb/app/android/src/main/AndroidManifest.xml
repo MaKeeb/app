@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Key vibration at the user's chosen strength (a normal permission, granted at install).
+         No INTERNET: typing never touches the network. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:name=".MaKeebApplication"
         android:allowBackup="false"

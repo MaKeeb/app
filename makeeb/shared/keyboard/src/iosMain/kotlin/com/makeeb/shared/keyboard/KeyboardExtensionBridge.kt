@@ -40,7 +40,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         val ports = KeyboardPorts(
             clipboard = PasteboardSystemClipboard(hasAccess = { controller.hasFullAccess }),
             // Haptics need Full Access in a keyboard extension.
-            haptics = HapticFeedback { type -> if (controller.hasFullAccess) impact.keyPress(type) },
+            haptics = HapticFeedback { type, intensity -> if (controller.hasFullAccess) impact.keyPress(type, intensity) },
             sound = InputClickSoundFeedback(),
             clipboardAvailable = { controller.hasFullAccess },
         )

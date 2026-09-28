@@ -26,7 +26,7 @@ import com.makeeb.shared.keyboard.KeyboardSession
 import com.makeeb.shared.surface.KeyboardSurface
 import com.makeeb.platform.clipboard.AndroidSystemClipboard
 import com.makeeb.platform.feedback.AudioManagerSoundFeedback
-import com.makeeb.platform.feedback.ViewHapticFeedback
+import com.makeeb.platform.feedback.VibratorHapticFeedback
 import com.makeeb.platform.host.ImeServiceKeyboardHost
 import com.makeeb.platform.host.InputConnectionTextHost
 import com.makeeb.platform.host.toEditorAttributes
@@ -67,7 +67,7 @@ class MaKeebInputMethodService :
         keyboardHost = ImeServiceKeyboardHost(this)
         val ports = KeyboardPorts(
             clipboard = AndroidSystemClipboard(this),
-            haptics = ViewHapticFeedback { inputView },
+            haptics = VibratorHapticFeedback(this),
             sound = AudioManagerSoundFeedback(this),
         )
         session = get { parametersOf(ports, scope) }

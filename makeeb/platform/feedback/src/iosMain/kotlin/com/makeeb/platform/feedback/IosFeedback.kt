@@ -9,14 +9,13 @@ import platform.UIKit.UIImpactFeedbackStyle
  * root installs this only when `hasFullAccess` is true.
  */
 class ImpactHapticFeedback : HapticFeedback {
-    private val light = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleLight)
-    private val medium = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleMedium)
+    private val generator = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleMedium)
 
-    override fun keyPress(type: KeyFeedbackType) {
-        when (type) {
-            KeyFeedbackType.Standard, KeyFeedbackType.Space -> light.impactOccurred()
-            KeyFeedbackType.Delete, KeyFeedbackType.Return, KeyFeedbackType.Modifier -> medium.impactOccurred()
-        }
+    /** One generator at the user's strength; delete, return and function keys a little firmer. */
+    override fun keyPress(type: KeyFeedbackType, intensity: Float) {
+        if (intensity <= 0f) return
+        val firmer = type == KeyFeedbackType.Delete || type == KeyFeedbackType.Return || type == KeyFeedbackType.Modifier
+        generator.impactOccurredWithIntensity((if (firmer) intensity * 1.25f else intensity).coerceIn(0f, 1f).toDouble())
     }
 }
 
@@ -26,7 +25,8 @@ class ImpactHapticFeedback : HapticFeedback {
  * it follows the user's Keyboard Clicks setting.
  */
 class InputClickSoundFeedback : SoundFeedback {
-    override fun keyPress(type: KeyFeedbackType) {
-        UIDevice.currentDevice.playInputClick()
+    /** iOS offers no click volume; the silent switch and system volume govern it. */
+    override fun keyPress(type: KeyFeedbackType, volume: Float) {
+        if (volume > 0f) UIDevice.currentDevice.playInputClick()
     }
 }
