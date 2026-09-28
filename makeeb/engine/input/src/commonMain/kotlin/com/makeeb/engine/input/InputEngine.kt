@@ -148,6 +148,10 @@ class InputEngine(
         val output = if (current.shift.isUppercase) text.uppercase() else text
         if (output.length == 1 && output[0] in CORRECTING_PUNCTUATION && current.composing.isNotEmpty()) {
             commitSeparator(output)
+        } else if (output.length == 1 && output[0] in CORRECTING_PUNCTUATION && followsWordAndSpace(current.editor)) {
+            // "word " + "," → "word, ": punctuation belongs against the word, the space after it.
+            host.replaceBeforeCursor(1, "$output ")
+            afterEdit(composing = "", consumeOneShot = true)
         } else {
             host.commitText(output)
             afterEdit(composing = TextBoundaries.trailingWord(current.composing + output), consumeOneShot = true)
@@ -278,6 +282,13 @@ class InputEngine(
         if (composing.isEmpty()) return punctuationShortcuts(editor, textBefore)
         val context = TypingContext(composing, TextBoundaries.previousWords(textBefore, count = 2))
         return suggestionEngine.suggest(context).suggestions
+    }
+
+    /** The previous key was a space that ended a word, in running text. */
+    private fun followsWordAndSpace(editor: EditorAttributes): Boolean {
+        if (lastSpace == null || editor.fieldType != FieldType.Text) return false
+        val before = host.textBeforeCursor(2)
+        return before.length == 2 && before[1] == ' ' && before[0].isLetterOrDigit()
     }
 
     /**

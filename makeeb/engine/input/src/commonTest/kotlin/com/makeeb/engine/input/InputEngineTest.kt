@@ -140,6 +140,29 @@ class InputEngineTest {
     }
 
     @Test
+    fun punctuationTypedAfterAWordAndSpaceTakesTheSpacesPlace() {
+        val host = start()
+        type("hi ,")
+        assertEquals("Hi, ", host.text)
+        type("teh .")
+        assertEquals("Hi, the. ", host.text, "also right after an autocorrection")
+        assertEquals(ShiftState.OneShot, engine.state.value.shift)
+    }
+
+    @Test
+    fun punctuationIsNotSwappedAwayFromOtherSpaces() {
+        val url = start(attributes = EditorAttributes(fieldType = FieldType.Uri, capitalization = Capitalization.None))
+        type("a .")
+        assertEquals("a .", url.text, "not outside running text")
+
+        val text = start()
+        type("hi ")
+        engine.onKey(KeyAction.MoveCursor(0)) // any other key in between: the space was deliberate
+        type(",")
+        assertEquals("Hi ,", text.text)
+    }
+
+    @Test
     fun noPunctuationShortcutsOutsideRunningText() {
         start(attributes = EditorAttributes(fieldType = FieldType.Email))
         type("me ")

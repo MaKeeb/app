@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 31 |
+| [Ready to start](todo/_todo.md) | 30 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 28 |
+| [In review](review/_review.md) | 29 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -35,6 +35,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-129](review/129-ios-settings-reach-the-keyboard-number-row.md): iOS: settings reach the keyboard (number row)
 - [APP-130](review/130-install-on-a-physical-iphone.md): Install on a physical iPhone
 - [APP-10](review/010-optional-number-row.md): Optional number row
+- [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts
 - [APP-63](review/063-clipboard-history.md): Clipboard history
 - [APP-122](review/122-run-the-shared-test-suite-on-the-ios-simulator.md): Run the shared test suite on the iOS simulator
@@ -66,7 +67,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-110](todo/110-memory-mapped-dictionary-format.md): Memory-mapped dictionary format
 - [APP-111](todo/111-ios-extension-memory-budget.md): iOS extension memory budget
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
-- [APP-11](todo/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
 - [APP-42](todo/042-emoji-suggestions.md): Emoji suggestions
