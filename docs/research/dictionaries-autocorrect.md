@@ -448,6 +448,8 @@ cost(literal) = Σ spatial(tᵢ, typed keyᵢ) + λ · (−ln P_unk(typed))
 | Typos with the intended word in the strip | 41.0% | 76.1% |
 | Key cost on the JVM, p50 / p95 | 9 / 26 µs | 5 / 81 µs |
 
+**Stage 3 core (2026-09-29):** candidates from the plain edit walk, rescored with LatinIME's weighted edit costs over the layout's key positions (`WeightedEdits`) plus a frequency LM term; autocorrect needs the best to beat the literal by a margin (0.8, +0.3 for ≤3 letters, +0.5 for targets below frequency 100) and passes the don't-correct rules. Typos fixed 72.6%, false corrections 0.0%, typo target in the strip 80.8%, keystroke savings 34.7%, unknown names and slang changed 1 of 27 (margin 0.4 fixed ~1 point more but changed 6).
+
 Stage 0's policy only corrects whitelisted typos (`KnownTypos`), and random neighbour-key substitutions never produce those, so the typo-fix rate is 0%. Stage 3 has to raise it without raising the false-correction rate. On device, the pack raised per-key main-thread cost on the Pixel 6 Pro (debug build) from p50 1.9 ms / p95 2.4–3.0 ms to p50 3.1–3.4 ms / p95 5.4–8.7 ms. The first 50 keys, before the JIT warms up, reached p95 17 ms. Almost all of that is the unweighted edit-distance walk: 12–16k DP rows for a 6+ letter word with two allowed edits. That walk is what Stage 3's bounded beam search, run off the main thread (§6.10), replaces.
 
 ### 6.9 Swipe typing (pointer only)

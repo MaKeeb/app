@@ -56,6 +56,7 @@ class TypingHarness(
         val clean = cleanPass(words)
         val completion = completionPass(words)
         val noisy = noisyPass(words)
+        val unknown = UNKNOWN_WORDS.filter { dictionary.lookup(it) == null }
         return HarnessReport(
             sentences = sentences.size,
             words = clean.words,
@@ -69,6 +70,8 @@ class TypingHarness(
             falseCorrectionsInNoisyPass = noisy.cleanChanged,
             cleanWordsInNoisyPass = noisy.cleanWords,
             keyMicros = completion.keyMicros.sorted(),
+            unknownWords = unknown.size,
+            unknownChanged = unknownPass(unknown),
             substitutionRate = substitutionRate,
             seed = seed,
         )
@@ -161,6 +164,17 @@ class TypingHarness(
         return Noisy(typos, fixed, inStrip, cleanWords, cleanChanged)
     }
 
+    /**
+     * Names, brands and slang the lexicon lacks, typed in lower case mid-sentence so no capital
+     * protects them: how many does autocorrect change? The "autocorrupt" count.
+     */
+    private fun unknownPass(words: List<String>): List<Pair<String, String>> = words.mapNotNull { word ->
+        val host = startSentence()
+        commit(host, "with")
+        val result = commit(host, word)
+        (word to result).takeUnless { result.equals(word, ignoreCase = true) }
+    }
+
     private fun startSentence(): FakeTextHost =
         FakeTextHost().also { engine.startInput(it, FakeKeyboardHost(), EditorAttributes()) }
 
@@ -193,6 +207,13 @@ class TypingHarness(
 
         private val WORD = Regex("[A-Za-z]+(?:'[A-Za-z]+)*")
 
+        /** Words people type that a lexicon lacks; the ones the pack knows are skipped. */
+        val UNKNOWN_WORDS = listOf(
+            "kiraly", "makeeb", "zoltan", "gyula", "szia", "kotlin", "tiktok", "okhttp", "xcode", "figma",
+            "brb", "hmu", "yeet", "doggo", "bestie", "vibing", "ngl", "tbh", "omw", "lmao",
+            "anyaa", "nokia", "shein", "grindr", "venmo", "zelle", "lyft", "insta", "selfies", "wifi",
+        )
+
         fun words(sentence: String): List<String> = WORD.findAll(sentence).map { it.value }.toList()
 
         fun corpus(): List<String> {
@@ -216,6 +237,8 @@ data class HarnessReport(
     val falseCorrectionsInNoisyPass: Int,
     val cleanWordsInNoisyPass: Int,
     val keyMicros: List<Long>,
+    val unknownWords: Int,
+    val unknownChanged: List<Pair<String, String>>,
     val substitutionRate: Double,
     val seed: Long,
 ) {
@@ -235,6 +258,7 @@ data class HarnessReport(
             |  fixed by autocorrect: ${pct(typoFixRate)} ($typosFixed)
             |  target in the strip: ${pct(typoInStripRate)} ($typosInStrip)
             |  false corrections on the untouched words: $falseCorrectionsInNoisyPass of $cleanWordsInNoisyPass
+            |unknown words (names, slang) changed by autocorrect: ${unknownChanged.size} of $unknownWords ${unknownChanged.joinToString { "${it.first}→${it.second}" }}
             |key cost on the JVM (engine + suggestions): p50 ${percentile(50)} µs, p95 ${percentile(95)} µs, max ${keyMicros.lastOrNull() ?: 0} µs
         """.trimMargin()
     }

@@ -27,10 +27,10 @@ Replace likely typos on space or punctuation using edit distance, keyboard proxi
 
 ## Tasks
 
-- [ ] Keyboard-aware typo costs and a margin over the typed word
+- [x] Keyboard-aware typo costs and a margin over the typed word
 - [ ] Tap points from the touch layer
 - [ ] The strength setting, and the pause for languages without a dictionary
 
 ## Progress
 
-Damerau edit distance + frequency; applied on space and punctuation. Missing: keyboard-proximity weighting, aggressiveness setting, per-language off switch. Since APP-135 (2026-09-28): only known typos are corrected and never with the caret inside a word; the real rework follows docs/research/dictionaries-autocorrect.md (stage 3). The AOSP en_US pack is mapped since APP-110 (2026-09-28).
+Stage 3 core done (2026-09-29): corrections are costed as typing errors with LatinIME's weights and the letters layout's key positions (neighbour slips cheap, far keys costlier with distance, skipped letters cheaper than extra ones, doubled letters forgiven), plus how rare the word is; autocorrect only when that beats keeping the typed word by a margin, only against a full lexicon, never for digits, capitals, capitalised words mid-sentence (names), never into a proper noun from lower case, and with bigger margins for short words and rare targets. Harness (AOSP en_US): typos fixed 0% → 72.6%, false corrections 0, unknown names/slang changed 1 of 27, strip has the target for 80.8% of typos. Pixel 6 Pro: "hwllo wirld … kiraly … kitcgen" → "Hello world … kiraly … kitchen". Still to do: aggressiveness setting and per-language switch (after the language work merges), real tap points instead of key centres, suggestions off the main thread.

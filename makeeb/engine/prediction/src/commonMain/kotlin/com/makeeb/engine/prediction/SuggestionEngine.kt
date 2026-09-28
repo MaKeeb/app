@@ -8,6 +8,10 @@ data class TypingContext(
     val composing: String,
     /** Complete words before it, oldest first (for next-word prediction). */
     val previousWords: List<String> = emptyList(),
+    /** Where the letters sit on the layout in use, so neighbouring-key slips cost less. */
+    val keys: KeyPositions? = null,
+    /** The word starts a sentence: a capital there doesn't mean a name. */
+    val atSentenceStart: Boolean = true,
 )
 
 data class Prediction(

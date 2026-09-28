@@ -78,4 +78,38 @@ class DictionarySuggestionEngineTest {
         assertNull(engine.suggest(TypingContext("its")).autoCorrection, "a word in its own right")
         assertNull(engine.suggest(TypingContext("ill")).autoCorrection)
     }
+
+    /** A full lexicon stand-in: typo correction only runs against one. */
+    private fun lexicon(vararg words: Pair<String, Int>) = object : TrieDictionary("en", words.map { WordEntry(it.first, it.second) }) {
+        override val isComprehensive = true
+    }
+
+    private val qwerty = KeyPositions { char ->
+        val rows = listOf("qwertyuiop" to 0f, "asdfghjkl" to 0.5f, "zxcvbnm" to 1.5f)
+        rows.withIndex().firstNotNullOfOrNull { (row, keys) -> keys.first.indexOf(char).takeIf { it >= 0 }?.let { (keys.second + it + 0.5f) to (row + 0.5f) } }
+    }
+
+    @Test
+    fun aNeighbouringKeySlipInACommonWordIsCorrected() {
+        val engine = DictionarySuggestionEngine(lexicon("hello" to 200, "help" to 190, "world" to 180, "jello" to 60))
+        assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "w is next to e")
+        assertEquals("world", engine.suggest(TypingContext("wirld", keys = qwerty)).autoCorrection, "i is next to o")
+    }
+
+    @Test
+    fun unknownWordsThatAreNotNearMissesStay() {
+        val engine = DictionarySuggestionEngine(lexicon("hello" to 200, "kitchen" to 150, "karaoke" to 60))
+        assertNull(engine.suggest(TypingContext("kiraly", keys = qwerty)).autoCorrection, "a name, not a slip")
+        assertNull(engine.suggest(TypingContext("Kitcheb", keys = qwerty, atSentenceStart = false)).autoCorrection, "capitalised mid-sentence: a name")
+        assertNull(engine.suggest(TypingContext("HWLLO", keys = qwerty)).autoCorrection, "capitals")
+        assertNull(engine.suggest(TypingContext("hwll0", keys = qwerty)).autoCorrection, "digits")
+    }
+
+    @Test
+    fun aDistantSubstitutionInARareWordIsOnlyASuggestion() {
+        val engine = DictionarySuggestionEngine(lexicon("karaoke" to 40))
+        val prediction = engine.suggest(TypingContext("karaoxe", keys = qwerty))
+        assertNull(prediction.autoCorrection)
+        assertTrue(prediction.suggestions.any { it.text == "karaoke" }, "still one tap away")
+    }
 }

@@ -13,6 +13,13 @@ data class WordMatch(val entry: WordEntry, val edits: Int)
 interface Dictionary {
     val languageTag: String
 
+    /**
+     * A full lexicon for its language, so a word it lacks is most likely misspelt. False for
+     * starter lists and personal dictionaries: autocorrecting against those turns real words into
+     * listed ones.
+     */
+    val isComprehensive: Boolean get() = false
+
     fun lookup(word: String): WordEntry?
 
     /** Words starting with [prefix], most frequent first. */

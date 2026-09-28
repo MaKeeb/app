@@ -3,11 +3,13 @@ package com.makeeb.engine.prediction
 import com.makeeb.core.model.Suggestion
 import com.makeeb.engine.dictionary.Dictionary
 import com.makeeb.engine.dictionary.MutableDictionary
+import com.makeeb.engine.dictionary.WordEntry
 
 /**
- * Completions and spelling corrections from word lists, ranked by frequency minus an edit
- * penalty. This is the baseline; key-proximity weighting and n-gram next-word prediction build
- * on it (board: `proximity-correction`, APP-38).
+ * Completions and spelling corrections from word lists. Corrections are costed as typing errors
+ * ([WeightedEdits], keyboard-aware) plus how unlikely the word is, the noisy-channel model of
+ * docs/research/dictionaries-autocorrect.md §6.5; autocorrect needs the best one to beat the typed
+ * word by a margin. Next-word prediction builds on it (board: APP-38).
  */
 class DictionarySuggestionEngine(
     private val main: Dictionary,
@@ -21,6 +23,9 @@ class DictionarySuggestionEngine(
         if (typed.isEmpty()) return Prediction.Empty
 
         val candidates = HashMap<String, Suggestion>()
+        var best: String? = null
+        var bestCost = Float.MAX_VALUE
+        var bestFrequency = 0
         fun offer(word: String, kind: Suggestion.Kind, score: Double) {
             val key = word.lowercase()
             val existing = candidates[key]
@@ -40,9 +45,16 @@ class DictionarySuggestionEngine(
             }
             val maxEdits = maxEditsFor(typed)
             if (maxEdits > 0) {
-                dictionary.corrections(typed, maxEdits, limit * 3).forEach { match ->
+                // Candidates within plain edits, then costed as typing errors (WeightedEdits).
+                dictionary.corrections(typed, maxEdits, CORRECTION_CANDIDATES).forEach { match ->
                     if (match.edits > 0) {
-                        offer(match.entry.word, Suggestion.Kind.Correction, normalise(match.entry.frequency) - EDIT_PENALTY * match.edits)
+                        val cost = WeightedEdits.distance(typed, match.entry.word, context.keys) + LM_WEIGHT * lmCost(match.entry.frequency)
+                        if (cost < bestCost && mayCorrectTo(match.entry, typed)) {
+                            bestCost = cost
+                            best = match.entry.word
+                            bestFrequency = match.entry.frequency
+                        }
+                        offer(match.entry.word, Suggestion.Kind.Correction, -cost.toDouble())
                     }
                 }
             }
@@ -56,7 +68,11 @@ class DictionarySuggestionEngine(
         // Keys fold accents and apostrophes, so a typed form that isn't a word itself finds the
         // one it lacks them for: "im" → "I'm", "cafe" → "café". "its", "were", "ill" are words.
         val refolded = exact?.word?.takeIf { !it.equals(typed, ignoreCase = true) }?.let { matchCase(it, typed) }
-        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised
+        // A real typo: the best candidate must beat keeping the typed word by a margin (§6.5, §6.7).
+        // Only against a full lexicon: with a starter list, "not listed" doesn't mean misspelt.
+        val typo = best?.takeIf { main.isComprehensive && exact == null && mayCorrect(context) && bestCost + margin(typed, bestFrequency) < literalCost() }
+            ?.let { matchCase(it, typed) }
+        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
         autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         val ranked = candidates.values.sortedByDescending { it.score }
 
@@ -86,13 +102,54 @@ class DictionarySuggestionEngine(
         else -> word
     }
 
+    /**
+     * LatinIME's "never autocorrect" cases that apply to a word the dictionary doesn't know:
+     * digits, capitals beyond the first letter ("NASA", "iOS"), and a capitalised word mid-sentence,
+     * which is most likely a name. Field and user settings are the input engine's to check.
+     */
+    private fun mayCorrect(context: TypingContext): Boolean {
+        val typed = context.composing
+        if (typed.length < 2 || typed.any { it.isDigit() }) return false
+        if (typed.drop(1).any { it.isUpperCase() }) return false
+        return !(typed.first().isUpperCase() && !context.atSentenceStart)
+    }
+
+    /** A lower-case word never becomes a name ("zelle" is not "Belle"); a capitalised one may. */
+    private fun mayCorrectTo(target: WordEntry, typed: String): Boolean =
+        target.word == target.word.lowercase() || typed.first().isUpperCase()
+
+    /**
+     * Short words need a clearer win (a slip in "if" makes many other words), and so do rare
+     * targets: people type rare words on purpose more often than they mistype them.
+     */
+    private fun margin(typed: String, targetFrequency: Int): Float =
+        MARGIN + (if (typed.length <= 3) SHORT_WORD_MARGIN else 0f) + (if (targetFrequency < RARE_FREQUENCY) RARE_TARGET_MARGIN else 0f)
+
+    /** The cost of a word from its frequency: 0 for the commonest, [LM_RANGE] for the rarest. */
+    private fun lmCost(frequency: Int): Float = (MAX_FREQUENCY - frequency.coerceIn(0, MAX_FREQUENCY)) * LM_RANGE / MAX_FREQUENCY
+
+    /** Keeping the typed word as it is: an unknown word, as unlikely as the rarest known one. */
+    private fun literalCost(): Float = LM_WEIGHT * LM_RANGE
+
     /** "London", "I": a capital first letter and nothing else in capitals. */
     private fun String.isTitleCase(): Boolean = first().isUpperCase() && drop(1).none(Char::isUpperCase)
 
     private companion object {
         const val EXACT_BONUS = 0.5
         const val COMPLETION_PENALTY = 0.05
-        const val EDIT_PENALTY = 0.5
+        const val CORRECTION_CANDIDATES = 24
+        const val MAX_FREQUENCY = 255
+        const val LM_RANGE = 2.0f
+        const val LM_WEIGHT = 1.1214f
+        const val RARE_FREQUENCY = 100
+        const val RARE_TARGET_MARGIN = 0.5f
+        /**
+         * How much better than the typed word a correction must be. Tuned on the typing harness
+         * (2026-09-29): 0.8 keeps ~73% of neighbour-key typos fixed while leaving 26 of 27 unknown
+         * names and slang words alone; 0.4 fixed ~1 point more and changed 6.
+         */
+        const val MARGIN = 0.8f
+        const val SHORT_WORD_MARGIN = 0.3f
         const val MIN_LEARNED_LENGTH = 2
     }
 }

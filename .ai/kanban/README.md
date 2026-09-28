@@ -6,14 +6,15 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 10 |
-| [In progress](doing/_doing.md) | 1 |
+| [Ready to start](todo/_todo.md) | 9 |
+| [In progress](doing/_doing.md) | 2 |
 | [In review](review/_review.md) | 52 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
 
 - [APP-14](doing/014-data-driven-layout-engine.md): Data-driven layout engine
+- [APP-35](doing/035-autocorrect.md): Autocorrect
 
 ## In review
 
@@ -73,7 +74,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 ## Ready to start
 
 - [APP-17](todo/017-fast-language-switching.md): Fast language switching
-- [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard

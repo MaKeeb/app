@@ -22,6 +22,8 @@ class DeferredDictionary(private val fallback: Dictionary) : Dictionary {
 
     override val languageTag: String get() = current.languageTag
 
+    override val isComprehensive: Boolean get() = current.isComprehensive
+
     override fun lookup(word: String): WordEntry? = current.lookup(word)
 
     override fun completions(prefix: String, limit: Int): List<WordEntry> = current.completions(prefix, limit)

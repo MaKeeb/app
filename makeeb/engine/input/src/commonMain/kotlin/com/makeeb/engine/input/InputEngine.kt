@@ -16,6 +16,7 @@ import com.makeeb.engine.layout.KeyboardLayout
 import com.makeeb.engine.layout.LetterVariant
 import com.makeeb.engine.layout.LayoutOptions
 import com.makeeb.engine.layout.LayoutProvider
+import com.makeeb.engine.prediction.KeyPositions
 import com.makeeb.engine.prediction.SuggestionEngine
 import com.makeeb.engine.prediction.TypingContext
 import com.makeeb.platform.host.KeyboardHost
@@ -279,7 +280,7 @@ class InputEngine(
         // Never with the caret inside a word: "T|he" + "ok " is not the word "Tok".
         val insideWord = host.textAfterCursor(1).firstOrNull()?.isLetterOrDigit() == true
         fun correctionFor(word: String) = word.takeIf { it.isNotEmpty() && it != rejectedCorrection && autoCorrectEnabled() && !insideWord }
-            ?.let { suggestionEngine.suggest(TypingContext(it)).autoCorrection }
+            ?.let { suggestionEngine.suggest(typingContext(it, host.textBeforeCursor(CONTEXT_LENGTH))).autoCorrection }
             ?.takeIf { it != word }
         var word = state.value.composing
         var correction = correctionFor(word)
@@ -419,12 +420,46 @@ class InputEngine(
     private fun suggestionsFor(editor: EditorAttributes, prefs: KeyboardPreferences, composing: String, textBefore: String): List<Suggestion> {
         if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword) return emptyList()
         if (composing.isEmpty()) return punctuationShortcuts(editor, textBefore)
-        val context = TypingContext(composing, TextBoundaries.previousWords(textBefore, count = 2))
-        val words = suggestionEngine.suggest(context).suggestions
+        val words = suggestionEngine.suggest(typingContext(composing, textBefore)).suggestions
         val emoji = composing.takeIf { prefs.emojiSuggestions && it.length >= MIN_EMOJI_WORD }?.let(emojiForWord)
             ?: return words
         // The third slot: the best word keeps the middle, the next best stays one tap away.
         return words.take(2) + Suggestion(emoji, Suggestion.Kind.Emoji)
+    }
+
+    /** What the suggestion engine needs about [composing], the word ending [textBefore]. */
+    private fun typingContext(composing: String, textBefore: String): TypingContext {
+        val before = if (textBefore.endsWith(composing)) textBefore.dropLast(composing.length) else textBefore
+        return TypingContext(
+            composing = composing,
+            previousWords = TextBoundaries.previousWords(textBefore, count = 2),
+            keys = letterKeys(),
+            atSentenceStart = TextBoundaries.isSentenceStart(before),
+        )
+    }
+
+    private var letterKeysLayout: KeyboardLayout? = null
+    private var letterKeys: KeyPositions? = null
+
+    /** Key centres of the letters layout last shown, in key widths and rows, for key-aware typo costs. */
+    private fun letterKeys(): KeyPositions? {
+        val layout = state.value.layout
+        if (layout.mode == KeyboardMode.Letters && layout != letterKeysLayout) {
+            letterKeysLayout = layout
+            val centres = HashMap<Char, Pair<Float, Float>>()
+            var top = 0f
+            for (row in layout.rows) {
+                var x = ((layout.unitsPerRow - row.units) / 2).coerceAtLeast(0f)
+                for (key in row.keys) {
+                    val text = (key.action as? KeyAction.Text)?.text
+                    if (text != null && text.length == 1) centres[text[0].lowercaseChar()] = (x + key.width / 2) to (top + row.heightWeight / 2)
+                    x += key.width
+                }
+                top += row.heightWeight
+            }
+            letterKeys = KeyPositions { centres[it] }
+        }
+        return letterKeys
     }
 
     /** The previous key was a space that ended a word, in running text. */

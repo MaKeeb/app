@@ -30,6 +30,8 @@ class MappedDictionary(
 
     override val languageTag: String = pack.languageTag
 
+    override val isComprehensive: Boolean get() = true
+
     val wordCount: Int get() = pack.wordCount
 
     private val region = pack.region
