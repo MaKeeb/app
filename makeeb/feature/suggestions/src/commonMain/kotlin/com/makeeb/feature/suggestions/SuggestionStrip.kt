@@ -20,12 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.makeeb.core.model.Suggestion
-import com.makeeb.core.model.inStripOrder
+import com.makeeb.core.model.bestStripSlot
+import com.makeeb.core.model.stripSlots
 import com.makeeb.ui.theme.KeyboardTheme
 
 /**
- * The strip above the keys: suggestions while typing, otherwise the [toolbar]. The best
- * suggestion sits in the middle, where the thumb rests.
+ * The strip above the keys: suggestions while typing (punctuation right after a word), otherwise
+ * the [toolbar]. The best suggestion always sits in the middle slot, where the thumb rests.
  */
 @Composable
 fun SuggestionStrip(
@@ -40,9 +41,16 @@ fun SuggestionStrip(
             toolbar()
             return@Row
         }
-        val ordered = suggestions.take(3).inStripOrder()
-        ordered.forEachIndexed { index, suggestion ->
-            if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().padding(vertical = 10.dp).background(colors.divider))
+        val slots = suggestions.stripSlots()
+        val best = suggestions.bestStripSlot()
+        slots.forEachIndexed { index, suggestion ->
+            if (index > 0 && suggestion != null && slots[index - 1] != null) {
+                Box(Modifier.width(1.dp).fillMaxHeight().padding(vertical = 10.dp).background(colors.divider))
+            }
+            if (suggestion == null) {
+                Box(Modifier.weight(1f).fillMaxHeight())
+                return@forEachIndexed
+            }
             Box(
                 Modifier.weight(1f).fillMaxHeight().clickable { onSuggestion(suggestion) },
                 contentAlignment = Alignment.Center,
@@ -51,7 +59,7 @@ fun SuggestionStrip(
                     text = suggestion.text,
                     color = colors.onKey,
                     fontSize = 17.sp,
-                    fontWeight = if (suggestion == suggestions.first()) FontWeight.SemiBold else FontWeight.Normal,
+                    fontWeight = if (index == best) FontWeight.SemiBold else FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = 8.dp),

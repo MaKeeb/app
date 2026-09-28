@@ -20,7 +20,7 @@ object StarterDictionaries {
         210: people into year your good some could them see other than then now look only come its over think also
         195: back after use two how our work first well way even new want because any these give day most us
         180: is are was were been has had did does said made went got thing things really very much many more
-        165: hello thanks thank please sorry yes okay great today tomorrow tonight morning night week weekend
+        165: hello thanks thank please sorry yes ok okay great today tomorrow tonight morning night week weekend
         150: love home call meet later soon maybe sure right left keyboard typing message phone email
         135: where why here should must might need feel try ask let keep start seem help talk turn show hear
         120: world life hand part place case point government company number group problem fact

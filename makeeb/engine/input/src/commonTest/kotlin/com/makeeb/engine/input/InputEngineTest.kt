@@ -128,6 +128,41 @@ class InputEngineTest {
     }
 
     @Test
+    fun punctuationShortcutsFollowAWordAndTakeTheSpace() {
+        val host = start()
+        type("hi ")
+        val shortcuts = engine.state.value.suggestions
+        assertEquals(listOf(",", ".", "?", "!"), shortcuts.map { it.text })
+        engine.onSuggestionSelected(shortcuts.first { it.text == "." })
+        assertEquals("Hi. ", host.text)
+        assertEquals(ShiftState.OneShot, engine.state.value.shift)
+        assertTrue(engine.state.value.suggestions.isEmpty(), "no shortcuts right after punctuation")
+    }
+
+    @Test
+    fun noPunctuationShortcutsOutsideRunningText() {
+        start(attributes = EditorAttributes(fieldType = FieldType.Email))
+        type("me ")
+        assertTrue(engine.state.value.suggestions.isEmpty())
+        start(attributes = EditorAttributes(imeAction = ImeAction.Search))
+        type("cats ")
+        assertTrue(engine.state.value.suggestions.isEmpty(), "search queries aren't sentences")
+    }
+
+    @Test
+    fun capsLockCapitalisesSuggestionsAndLeavingItRestoresThem() {
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        engine.onKey(KeyAction.Shift)
+        time += 100.milliseconds
+        engine.onKey(KeyAction.Shift)
+        type("h")
+        assertTrue(engine.state.value.suggestions.isNotEmpty())
+        assertTrue(engine.state.value.suggestions.all { it.text == it.text.uppercase() })
+        engine.onKey(KeyAction.Shift) // caps lock off
+        assertTrue(engine.state.value.suggestions.any { it.text != it.text.uppercase() })
+    }
+
+    @Test
     fun doubleTapShiftLocksCaps() {
         val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
         engine.onKey(KeyAction.Shift)

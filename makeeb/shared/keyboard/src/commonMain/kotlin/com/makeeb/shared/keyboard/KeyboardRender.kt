@@ -4,7 +4,8 @@ import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyIcon
 import com.makeeb.core.model.KeyboardPalette
 import com.makeeb.core.model.KeyboardPanel
-import com.makeeb.core.model.inStripOrder
+import com.makeeb.core.model.bestStripSlot
+import com.makeeb.core.model.stripSlots
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.ThemeMode
 import com.makeeb.engine.input.KeyboardState
@@ -22,7 +23,7 @@ import com.makeeb.engine.touch.TouchState
 data class KeyboardRender(
     /** Empty while a panel replaces the keys. */
     val keys: List<RenderKey>,
-    /** At most three, already in strip order (best in the middle). */
+    /** The strip's cells left to right ([stripSlots]); an empty string is an empty slot. */
     val suggestions: List<String>,
     val preview: RenderPreview?,
     val popup: RenderPopup?,
@@ -31,6 +32,8 @@ data class KeyboardRender(
     val panel: KeyboardPanel = KeyboardPanel.Keys,
     /** The strip's buttons when [suggestions] is empty; [StripAction.Settings] sits apart, at the end. */
     val stripActions: List<StripAction> = emptyList(),
+    /** The cell of [suggestions] drawn in bold (the best word), or -1. */
+    val bestSuggestion: Int = -1,
 ) {
     fun palette(systemDark: Boolean): KeyboardPalette = when (theme) {
         ThemeMode.System -> if (systemDark) KeyboardPalette.Dark else KeyboardPalette.Light
@@ -88,12 +91,13 @@ object KeyboardRenderer {
         }
         return KeyboardRender(
             keys = keys,
-            suggestions = if (showingKeys) state.suggestions.take(3).inStripOrder().map { it.text } else emptyList(),
+            suggestions = if (showingKeys) state.suggestions.stripSlots().map { it?.text.orEmpty() } else emptyList(),
             preview = touch.preview?.takeIf { showingKeys }?.let { RenderPreview(it.label, it.bounds.toRect()) },
             popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected) },
             theme = preferences.theme,
             panel = state.panel,
             stripActions = stripActions(state, canOpenSettings),
+            bestSuggestion = if (showingKeys) state.suggestions.bestStripSlot() else -1,
         )
     }
 

@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 32 |
+| [Ready to start](todo/_todo.md) | 31 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 27 |
+| [In review](review/_review.md) | 28 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -17,6 +17,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-4](review/004-shift-and-caps-lock.md): Shift and caps lock
 - [APP-5](review/005-auto-capitalization.md): Auto-capitalization
 - [APP-6](review/006-field-aware-layouts-and-action-key.md): Field-aware layouts and action key
+- [APP-33](review/033-suggestion-strip.md): Suggestion strip
 - [APP-36](review/036-one-tap-autocorrect-undo.md): One-tap autocorrect undo
 - [APP-58](review/058-emoji-panel.md): Emoji panel
 - [APP-84](review/084-works-fully-offline.md): Works fully offline
@@ -52,7 +53,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-14](todo/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-15](todo/015-latin-layout-variants.md): Latin layout variants
 - [APP-17](todo/017-fast-language-switching.md): Fast language switching
-- [APP-33](todo/033-suggestion-strip.md): Suggestion strip
 - [APP-34](todo/034-word-completion.md): Word completion
 - [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs

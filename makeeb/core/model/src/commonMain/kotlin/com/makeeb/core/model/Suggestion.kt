@@ -22,12 +22,23 @@ data class Suggestion(
 
         /** A candidate from a swipe (glide) gesture. */
         Gesture,
+
+        /** Punctuation offered right after a word and a space; it takes the space's place. */
+        Punctuation,
     }
 }
 
 /**
- * Strip order for up to three suggestions, best in the middle where the thumb rests:
- * `[best, second, third]` → `[second, best, third]`. Every renderer uses this.
+ * The strip's cells, left to right; every renderer uses this. Words fill three fixed slots with
+ * the best in the middle, where the thumb rests, and missing ones stay empty (null) so the best
+ * never moves: `[best, second, third]` → `[second, best, third]`. Punctuation shows in order.
  */
-fun List<Suggestion>.inStripOrder(): List<Suggestion> =
-    if (size >= 3) listOf(this[1], this[0], this[2]) + drop(3) else this
+fun List<Suggestion>.stripSlots(): List<Suggestion?> = when {
+    isEmpty() -> emptyList()
+    all { it.kind == Suggestion.Kind.Punctuation } -> this
+    else -> listOf(getOrNull(1), this[0], getOrNull(2))
+}
+
+/** Which of [stripSlots] is the best suggestion, drawn in bold; -1 for punctuation. */
+fun List<Suggestion>.bestStripSlot(): Int =
+    if (isEmpty() || all { it.kind == Suggestion.Kind.Punctuation }) -1 else 1

@@ -58,4 +58,21 @@ class KeyboardRendererTest {
             KeyboardRenderer.stripActions(KeyboardState(layout = globeLayout), canOpenSettings = true),
         )
     }
+
+    @Test
+    fun theBestSuggestionKeepsTheMiddleSlotAndPunctuationShowsInOrder() {
+        fun render(vararg suggestions: Suggestion) =
+            KeyboardRenderer.render(KeyboardState(layout = layout, suggestions = suggestions.toList()), TouchState(), null, KeyboardPreferences())
+
+        val one = render(Suggestion("best", Suggestion.Kind.Completion))
+        assertEquals(listOf("", "best", ""), one.suggestions)
+        assertEquals(1, one.bestSuggestion)
+
+        val two = render(Suggestion("Okay", Suggestion.Kind.Completion), Suggestion("Ok", Suggestion.Kind.Typed))
+        assertEquals(listOf("Ok", "Okay", ""), two.suggestions)
+
+        val punctuation = render(*listOf(",", ".", "?", "!").map { Suggestion(it, Suggestion.Kind.Punctuation) }.toTypedArray())
+        assertEquals(listOf(",", ".", "?", "!"), punctuation.suggestions)
+        assertEquals(-1, punctuation.bestSuggestion)
+    }
 }

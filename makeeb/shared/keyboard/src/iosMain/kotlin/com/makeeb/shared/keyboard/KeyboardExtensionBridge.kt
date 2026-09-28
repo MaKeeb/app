@@ -2,7 +2,7 @@ package com.makeeb.shared.keyboard
 
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardPanel
-import com.makeeb.core.model.inStripOrder
+import com.makeeb.core.model.stripSlots
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.engine.emoji.Emoji
 import com.makeeb.platform.clipboard.PasteboardSystemClipboard
@@ -86,7 +86,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
 
     /** [stripIndex] is the position in [KeyboardRender.suggestions]. */
     fun selectSuggestion(stripIndex: Int) {
-        val suggestion = session.engine.state.value.suggestions.take(3).inStripOrder().getOrNull(stripIndex) ?: return
+        val suggestion = session.engine.state.value.suggestions.stripSlots().getOrNull(stripIndex) ?: return
         session.onSuggestion(suggestion)
     }
 

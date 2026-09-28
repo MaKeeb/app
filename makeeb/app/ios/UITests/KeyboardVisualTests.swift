@@ -257,6 +257,8 @@ final class KeyboardVisualTests: XCTestCase {
         type("hi. ok")
         expect("VT-16", "Text", "Hi. Ok")
         save("I-VT-16-makeeb")
+        type(" ") // a word and a space: the strip offers punctuation
+        save("I-VT-16-punctuation-makeeb")
     }
 
     func test04_fieldTypes() {

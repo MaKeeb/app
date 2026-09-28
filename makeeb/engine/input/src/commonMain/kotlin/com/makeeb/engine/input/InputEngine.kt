@@ -127,8 +127,15 @@ class InputEngine(
     }
 
     fun onSuggestionSelected(suggestion: Suggestion) {
-        val word = state.value.composing
         pendingRevert = null
+        if (suggestion.kind == Suggestion.Kind.Punctuation) {
+            // "word " + "," → "word, ": the shortcut takes the space's place.
+            if (host.textBeforeCursor(1) == " ") host.replaceBeforeCursor(1, suggestion.text + " ")
+            else host.commitText(suggestion.text + " ")
+            afterEdit(composing = "")
+            return
+        }
+        val word = state.value.composing
         rejectedCorrection = null
         host.replaceBeforeCursor(word.length, suggestion.text + " ")
         learn(suggestion.text)
@@ -217,6 +224,8 @@ class InputEngine(
             }
             current.copy(shift = next)
         }
+        // Caps lock turns suggestions to capitals, and leaving it turns them back.
+        if (state.value.composing.isNotEmpty()) resyncWithHost()
     }
 
     private fun switchMode(mode: KeyboardMode) {
@@ -247,10 +256,11 @@ class InputEngine(
                 consumeOneShot -> ShiftState.Off
                 else -> current.shift
             }
+            val suggestions = suggestionsFor(current.editor, prefs, composing, textBefore)
             current.copy(
                 composing = composing,
                 shift = shift,
-                suggestions = suggestionsFor(current.editor, prefs, composing, textBefore),
+                suggestions = if (shift == ShiftState.Locked) suggestions.map { it.copy(text = it.text.uppercase()) } else suggestions,
             )
         }
     }
@@ -264,9 +274,21 @@ class InputEngine(
         }
 
     private fun suggestionsFor(editor: EditorAttributes, prefs: KeyboardPreferences, composing: String, textBefore: String): List<Suggestion> {
-        if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword || composing.isEmpty()) return emptyList()
+        if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword) return emptyList()
+        if (composing.isEmpty()) return punctuationShortcuts(editor, textBefore)
         val context = TypingContext(composing, TextBoundaries.previousWords(textBefore, count = 2))
         return suggestionEngine.suggest(context).suggestions
+    }
+
+    /**
+     * After a word and one space in running text, the punctuation most likely to follow. Not in
+     * search or go fields: queries and addresses aren't sentences.
+     */
+    private fun punctuationShortcuts(editor: EditorAttributes, textBefore: String): List<Suggestion> {
+        val afterWord = textBefore.length >= 2 && textBefore.last() == ' ' && textBefore[textBefore.length - 2].isLetterOrDigit()
+        val runningText = editor.fieldType == FieldType.Text && editor.imeAction != ImeAction.Search && editor.imeAction != ImeAction.Go
+        if (!runningText || !afterWord) return emptyList()
+        return PUNCTUATION_SHORTCUTS.map { Suggestion(it, Suggestion.Kind.Punctuation) }
     }
 
     private fun autoCorrectEnabled(): Boolean {
@@ -301,5 +323,6 @@ class InputEngine(
         val DOUBLE_SPACE_WINDOW = 800.milliseconds
         val DOUBLE_TAP_WINDOW = 350.milliseconds
         val CORRECTING_PUNCTUATION = setOf('.', ',', '!', '?', ';', ':')
+        val PUNCTUATION_SHORTCUTS = listOf(",", ".", "?", "!")
     }
 }

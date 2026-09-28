@@ -77,14 +77,15 @@ final class KeyboardView: UIView {
         }
     }
 
+    /// Cells come from the shared `stripSlots`: an empty string is an empty slot, so the best word
+    /// keeps the middle.
     private func drawSuggestions(_ suggestions: [String], palette: KeyboardPalette) {
-        guard !suggestions.isEmpty else { return }
+        guard !suggestions.isEmpty, let best = render?.bestSuggestion else { return }
         let width = bounds.width / CGFloat(suggestions.count)
-        for (index, text) in suggestions.enumerated() {
+        for (index, text) in suggestions.enumerated() where !text.isEmpty {
             let cell = CGRect(x: CGFloat(index) * width, y: 0, width: width, height: stripHeight)
-            let isBest = suggestions.count >= 3 ? index == 1 : index == 0
-            drawText(text, in: cell, size: 17, color: UIColor(argb: palette.onKey), weight: isBest ? .semibold : .regular)
-            if index > 0 {
+            drawText(text, in: cell, size: 17, color: UIColor(argb: palette.onKey), weight: index == Int(best) ? .semibold : .regular)
+            if index > 0 && !suggestions[index - 1].isEmpty {
                 UIColor(argb: palette.divider).setFill()
                 UIRectFill(CGRect(x: cell.minX, y: 10, width: 1, height: stripHeight - 20))
             }
@@ -257,7 +258,7 @@ final class KeyboardView: UIView {
 
         var elements: [UIAccessibilityElement] = []
         let count = render.suggestions.count
-        for (index, suggestion) in render.suggestions.enumerated() {
+        for (index, suggestion) in render.suggestions.enumerated() where !suggestion.isEmpty {
             let element = UIAccessibilityElement(accessibilityContainer: self)
             element.accessibilityLabel = suggestion
             element.accessibilityHint = "Suggestion"
