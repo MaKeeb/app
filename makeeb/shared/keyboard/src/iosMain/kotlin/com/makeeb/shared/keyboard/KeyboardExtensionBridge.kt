@@ -5,6 +5,7 @@ import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.stripSlots
 import com.makeeb.core.settings.KeyboardSignals
 import com.makeeb.core.settings.PreferencesRepository
+import com.makeeb.core.settings.QuickSetting
 import com.makeeb.engine.emoji.Emoji
 import com.makeeb.platform.clipboard.PasteboardSystemClipboard
 import com.makeeb.platform.feedback.HapticFeedback
@@ -44,9 +45,13 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
             haptics = HapticFeedback { type, intensity -> if (controller.hasFullAccess) impact.keyPress(type, intensity) },
             sound = InputClickSoundFeedback(),
             clipboardAvailable = { controller.hasFullAccess },
+            // Without Full Access the App Group is read-only to the extension.
+            settingsWritable = { controller.hasFullAccess },
         )
         session = get { parametersOf(ports, scope) }
         session.density = 1f // UIKit lays out in points, the unit KeyboardMetrics is written in
+        // iPhone screens are flat to the edge: keys run as close to it as the system keyboard's.
+        session.sideInset = 0f
     }
 
     /** Total keyboard height in points for the current preferences on a screen [screenHeight] tall. */
@@ -99,7 +104,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     fun observe(onRender: (KeyboardRender) -> Unit): RenderSubscription {
         val job = scope.launch {
             combine(session.engine.state, session.touch.state, session.geometry, session.preferences) { state, touch, geometry, prefs ->
-                KeyboardRenderer.render(state, touch, geometry, prefs, session.canOpenSettings)
+                KeyboardRenderer.render(state, touch, geometry, prefs)
             }.combine(combine(session.emojiRecentsState, session.clipboardEntries) { _, _ -> }) { render, _ -> render }
                 .collect(onRender)
         }
@@ -157,6 +162,23 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
 
     // endregion
 
+    // region Quick settings panel
+
+    /** False without Full Access: the panel shows the settings but says why it can't change them. */
+    val quickSettingsEditable: Boolean get() = session.quickSettingsEditable
+
+    val quickSettings: List<QuickSettingItem>
+        get() {
+            val prefs = session.preferences.value
+            return QuickSetting.entries.map { QuickSettingItem(it.ordinal, it.title, it.valueLabel(prefs), it.isOn(prefs), it != QuickSetting.Theme) }
+        }
+
+    fun toggleQuickSetting(id: Int) {
+        QuickSetting.entries.getOrNull(id)?.let(session::toggle)
+    }
+
+    // endregion
+
     private companion object {
         const val RECENTS_TAB_ICON = "🕘"
     }
@@ -166,6 +188,9 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         scope.cancel()
     }
 }
+
+/** A quick-settings tile as the iOS panel shows it; [isSwitch] is false for choices (the theme). */
+data class QuickSettingItem(val id: Int, val title: String, val value: String, val on: Boolean, val isSwitch: Boolean)
 
 /** A clipboard entry as the iOS panel shows it. */
 data class ClipItem(val id: Long, val text: String, val pinned: Boolean)

@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 20 |
+| [Ready to start](todo/_todo.md) | 19 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 39 |
+| [In review](review/_review.md) | 40 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -32,6 +32,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-85](review/085-incognito-mode.md): Incognito mode
 - [APP-86](review/086-password-field-handling.md): Password-field handling
 - [APP-93](review/093-guided-setup.md): Guided setup
+- [APP-94](review/094-settings-app-with-in-keyboard-quick-settings.md): Settings app with in-keyboard quick settings
 - [APP-104](review/104-shared-input-engine.md): Shared input engine
 - [APP-105](review/105-shared-touch-engine.md): Shared touch engine
 - [APP-106](review/106-compose-ime-host-android.md): Compose IME host (Android)
@@ -61,7 +62,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-34](todo/034-word-completion.md): Word completion
 - [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
-- [APP-94](todo/094-settings-app-with-in-keyboard-quick-settings.md): Settings app with in-keyboard quick settings
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-109](todo/109-editor-text-mirror.md): Editor text mirror
 - [APP-110](todo/110-memory-mapped-dictionary-format.md): Memory-mapped dictionary format

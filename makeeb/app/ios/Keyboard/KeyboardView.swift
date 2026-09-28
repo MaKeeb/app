@@ -98,14 +98,23 @@ final class KeyboardView: UIView {
     /// The toolbar in an empty strip; the button of an open panel is lit.
     private func drawStripActions(_ render: KeyboardRender, palette: KeyboardPalette) {
         for (action, frame) in stripActionFrames() {
-            let open = (action == .emoji && render.panel == .emoji) || (action == .clipboard && render.panel == .clipboard)
-                || (action == .incognito && render.incognito)
+            let open = isLit(action, render)
             let color = UIColor(argb: open ? palette.accentKey : palette.hint)
             let configuration = UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
             guard let symbol = UIImage(systemName: stripSymbol(action), withConfiguration: configuration)?
                 .withTintColor(color, renderingMode: .alwaysOriginal) else { continue }
             symbol.draw(in: CGRect(x: frame.midX - symbol.size.width / 2, y: frame.midY - symbol.size.height / 2,
                                    width: symbol.size.width, height: symbol.size.height))
+        }
+    }
+
+    /// A panel's button while it is open; incognito while it is on.
+    private func isLit(_ action: StripAction, _ render: KeyboardRender) -> Bool {
+        switch action {
+        case .emoji: return render.panel == .emoji
+        case .clipboard: return render.panel == .clipboard
+        case .incognito: return render.incognito
+        default: return render.panel == .settings
         }
     }
 
@@ -138,7 +147,7 @@ final class KeyboardView: UIView {
         case .emoji: return "Emoji"
         case .clipboard: return "Clipboard"
         case .incognito: return "Incognito"
-        default: return "MaKeeb settings"
+        default: return "Quick settings"
         }
     }
 
@@ -278,7 +287,7 @@ final class KeyboardView: UIView {
             let element = UIAccessibilityElement(accessibilityContainer: self)
             element.accessibilityLabel = stripLabel(action)
             element.accessibilityIdentifier = "strip-" + action.name.lowercased()
-            element.accessibilityTraits = action == .incognito && render.incognito ? [.button, .selected] : .button
+            element.accessibilityTraits = isLit(action, render) ? [.button, .selected] : .button
             element.accessibilityFrameInContainerSpace = frame
             elements.append(element)
         }

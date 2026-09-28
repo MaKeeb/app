@@ -14,6 +14,8 @@ enum class KeyboardPanel {
     Keys,
     Emoji,
     Clipboard,
+    /** Quick settings: a few common preferences, changed without leaving the keyboard. */
+    Settings,
 }
 
 enum class ShiftState {

@@ -15,4 +15,7 @@ class SettingsViewModel(
     val letterLayouts: List<LayoutInfo> = layouts.letterLayouts
 
     fun update(transform: (KeyboardPreferences) -> KeyboardPreferences) = repository.update(transform)
+
+    /** The keyboard's quick settings write too; on iOS from another process. */
+    fun reload() = repository.reload()
 }

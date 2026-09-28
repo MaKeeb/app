@@ -9,6 +9,7 @@ final class KeyboardViewController: UIInputViewController {
     private let keyboardView = KeyboardView()
     private lazy var emojiPanel = EmojiPanelView(bridge: bridge)
     private lazy var clipboardPanel = ClipboardPanelView(bridge: bridge)
+    private lazy var quickSettingsPanel = QuickSettingsPanelView(bridge: bridge)
     private var shownPanel: KeyboardPanel = .keys
     private var heightConstraint: NSLayoutConstraint?
 
@@ -54,18 +55,26 @@ final class KeyboardViewController: UIInputViewController {
             if keyboardView.render == nil { LaunchTrace.mark("first render") }
             keyboardView.render = render
             showPanel(for: render)
+            // Quick settings can change the height (number row) while the keyboard is up.
+            let height = preferredHeight()
+            if let constraint = heightConstraint, constraint.constant != height { constraint.constant = height }
         }
     }
 
-    /// Emoji and clipboard replace the keys below the strip; the strip stays for its toolbar.
+    /// Emoji, clipboard and quick settings replace the keys below the strip; the strip stays for its toolbar.
     private func showPanel(for render: KeyboardRender) {
         let palette = render.palette(systemDark: traitCollection.userInterfaceStyle == .dark)
         if render.panel != shownPanel {
             shownPanel = render.panel
-            for panel in [emojiPanel, clipboardPanel] as [UIView] where panel.superview != nil {
+            for panel in [emojiPanel, clipboardPanel, quickSettingsPanel] as [UIView] where panel.superview != nil {
                 panel.removeFromSuperview()
             }
-            let panel: UIView? = render.panel == .emoji ? emojiPanel : render.panel == .clipboard ? clipboardPanel : nil
+            let panel: UIView? = switch render.panel {
+            case .emoji: emojiPanel
+            case .clipboard: clipboardPanel
+            case .settings: quickSettingsPanel
+            default: nil
+            }
             if let panel {
                 panel.translatesAutoresizingMaskIntoConstraints = false
                 view.addSubview(panel)
@@ -82,6 +91,8 @@ final class KeyboardViewController: UIInputViewController {
             emojiPanel.update(palette: palette)
         } else if render.panel == .clipboard {
             clipboardPanel.update(palette: palette)
+        } else if render.panel == .settings {
+            quickSettingsPanel.update(palette: palette)
         }
     }
 

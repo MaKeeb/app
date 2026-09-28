@@ -1,6 +1,9 @@
 package com.makeeb.core.settings
 
-/** User-facing keyboard settings. Written by the companion app, read by the keyboard. */
+/**
+ * User-facing keyboard settings. The companion app writes them all; the keyboard reads them and
+ * writes only the few its quick-settings panel offers ([QuickSetting]).
+ */
 data class KeyboardPreferences(
     // Typing
     val autoCapitalize: Boolean = true,

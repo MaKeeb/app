@@ -6,6 +6,7 @@ import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.Suggestion
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.PreferencesRepository
+import com.makeeb.core.settings.QuickSetting
 import com.makeeb.engine.clipboard.ClipboardEntry
 import com.makeeb.engine.clipboard.ClipboardHistory
 import com.makeeb.engine.emoji.Emoji
@@ -40,6 +41,11 @@ class KeyboardPorts(
     val sound: SoundFeedback,
     /** False where the OS withholds the clipboard (iOS without Full Access). */
     val clipboardAvailable: () -> Boolean = { true },
+    /**
+     * False where the keyboard may only read settings: without Full Access an iOS extension's
+     * App Group is read-only, so quick settings could not reach the companion app.
+     */
+    val settingsWritable: () -> Boolean = { true },
 )
 
 /**
@@ -49,14 +55,14 @@ class KeyboardPorts(
  */
 class KeyboardSession(
     val engine: InputEngine,
-    preferences: PreferencesRepository,
+    private val preferencesRepository: PreferencesRepository,
     val emojiCatalog: EmojiCatalog,
     private val emojiRecents: EmojiRecents,
     private val clipboardHistory: ClipboardHistory,
     private val ports: KeyboardPorts,
     private val scope: CoroutineScope,
 ) {
-    val preferences: StateFlow<KeyboardPreferences> = preferences.preferences
+    val preferences: StateFlow<KeyboardPreferences> = preferencesRepository.preferences
     val emojiRecentsState: StateFlow<List<Emoji>> = emojiRecents.recents
     val clipboardEntries: StateFlow<List<ClipboardEntry>> = clipboardHistory.entries
     val clipboardAvailable: Boolean get() = ports.clipboardAvailable()
@@ -80,6 +86,16 @@ class KeyboardSession(
         set(value) {
             field = value
             touch.config = TouchConfig.forDensity(value, overflowAbove = KeyboardMetrics.STRIP_HEIGHT * value)
+            rebuildGeometry()
+        }
+
+    /**
+     * Space beside the outermost keys, in dp/pt ([density] scales it). Android keeps
+     * [KeyboardMetrics.SIDE_INSET] for curved display edges; iOS sets 0, like the system keyboard.
+     */
+    var sideInset: Float = KeyboardMetrics.SIDE_INSET
+        set(value) {
+            field = value
             rebuildGeometry()
         }
 
@@ -143,15 +159,24 @@ class KeyboardSession(
             StripAction.Emoji -> KeyboardPanel.Emoji
             StripAction.Clipboard -> KeyboardPanel.Clipboard
             StripAction.Incognito -> return engine.setIncognito(!engine.state.value.manualIncognito)
-            StripAction.Settings -> return openSettings()
+            StripAction.Settings -> KeyboardPanel.Settings
         }
         showPanel(if (engine.state.value.panel == panel) KeyboardPanel.Keys else panel)
+    }
+
+    /** Whether the quick-settings panel can change anything; see [KeyboardPorts.settingsWritable]. */
+    val quickSettingsEditable: Boolean get() = ports.settingsWritable()
+
+    /** A quick-settings tile: writes through to the shared preferences, so the companion app sees it too. */
+    fun toggle(setting: QuickSetting) {
+        if (quickSettingsEditable) preferencesRepository.update(setting::next)
     }
 
     fun hideKeyboard() {
         keyboardHost?.hideKeyboard()
     }
 
+    /** Whether the quick-settings panel can open the companion app (Android; iOS extensions can't). */
     val canOpenSettings: Boolean get() = keyboardHost?.canOpenSettings ?: false
 
     fun openSettings() {
@@ -176,7 +201,7 @@ class KeyboardSession(
         val layout = engine.state.value.layout
         if (width <= 0f || height <= 0f || layout.rows.isEmpty()) return
         geometryLayout = layout
-        val geometry = LayoutGeometry(layout, width, height / layout.totalHeightWeight, KeyboardMetrics.SIDE_INSET * density)
+        val geometry = LayoutGeometry(layout, width, height / layout.totalHeightWeight, sideInset * density)
         mutableGeometry.value = geometry
         touch.geometry = geometry
     }

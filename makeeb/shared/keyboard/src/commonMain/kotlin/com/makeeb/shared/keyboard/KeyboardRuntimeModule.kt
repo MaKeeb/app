@@ -37,7 +37,7 @@ val keyboardRuntimeModule = module {
     factory { (ports: KeyboardPorts, scope: CoroutineScope) ->
         KeyboardSession(
             engine = get(),
-            preferences = get(),
+            preferencesRepository = get(),
             emojiCatalog = get(),
             emojiRecents = get(),
             clipboardHistory = get(),

@@ -16,6 +16,7 @@ kotlin {
             implementation(project(":feature:suggestions"))
             implementation(project(":feature:emoji"))
             implementation(project(":feature:clipboard"))
+            implementation(project(":feature:settings"))
         }
     }
 }

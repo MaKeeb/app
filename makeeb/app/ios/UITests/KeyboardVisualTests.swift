@@ -20,7 +20,7 @@ final class KeyboardVisualTests: XCTestCase {
     let screenWidth: CGFloat = 402
     let keyboardBottom: CGFloat = 800
     let strip: CGFloat = 44
-    let sideInset: CGFloat = 10
+    let sideInset: CGFloat = 0 // iOS keys run to the edge (KeyboardExtensionBridge)
 
     override func setUp() {
         continueAfterFailure = true
@@ -438,6 +438,73 @@ final class KeyboardVisualTests: XCTestCase {
         XCTAssertTrue(globe.exists, "MaKeeb draws its own globe key")
         save("I-GLOBE-key")
         heldCapture("I-GLOBE-list", at: CGPoint(x: globe.frame.midX, y: globe.frame.midY), hold: 2.5)
+    }
+
+    /// Simulators are disposable: turn on Full Access for MaKeeb through the Settings app, so the
+    /// quick-settings tiles (App Group writes) can be exercised.
+    func test12a_enableFullAccess() {
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        for step in ["General", "Keyboard", "Keyboards"] {
+            // iOS 27 titles the Keyboard page "Keyboards" too: the row is the lowest match.
+            let matches = settings.staticTexts.matching(identifier: step)
+            XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 10), step)
+            matches.allElementsBoundByIndex.max { $0.frame.minY < $1.frame.minY }?.tap()
+            Thread.sleep(forTimeInterval: 1)
+        }
+        let makeeb = settings.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'MaKeeb'")).firstMatch
+        XCTAssertTrue(makeeb.waitForExistence(timeout: 10))
+        makeeb.tap()
+        let toggle = settings.switches["Allow Full Access"].firstMatch
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        if (toggle.value as? String) != "1" {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+            let allow = settings.alerts.buttons["Allow"].firstMatch
+            if allow.waitForExistence(timeout: 5) { allow.tap() }
+        }
+        Thread.sleep(forTimeInterval: 1)
+        results["full-access"] = String(describing: toggle.value)
+        settings.terminate()
+    }
+
+    /// The strip's gear opens quick settings in place of the keys. With Full Access a tile writes
+    /// the preference and the keyboard follows at once (number row); without, tiles are read-only.
+    func test12b_quickSettings() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("QS")
+        save("I-QUICK-keys")
+        // The extension's elements can reach accessibility late after a cold start; the fallbacks
+        // are the same points from the shared geometry (gear at the strip's trailing end, first tile).
+        let gear = point("strip-settings", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - 220 - strip / 2))
+        tap(gear, pause: 1.0)
+        save("I-QUICK-panel")
+        let tile = app.buttons["quick-Number row"].firstMatch
+        let tilePoint = point("quick-Number row", or: CGPoint(x: 52, y: keyboardBottom - 122))
+        results["QS-editable"] = tile.exists ? (tile.isEnabled ? "yes" : "no") : "unknown"
+        tap(tilePoint, pause: 1.2)
+        results["QS-number-row-after-tap"] = String(describing: tile.exists ? tile.value : nil)
+        save("I-QUICK-numberrow")
+        // ABC in the panel header, 20pt below the (now taller) key area's top.
+        tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - (54 * 4.8 + 4) + 20)), pause: 1.0)
+        assertMaKeebVisible("QS-numberrow", numberRow: true)
+        save("I-QUICK-keys-numberrow")
+        // Back to the default, through the panel again (the strip sits higher with the number row).
+        tap(point("strip-settings", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - 54 * 4.8 - 4 - strip / 2)), pause: 1.0)
+        tap(point("quick-Number row", or: CGPoint(x: 52, y: keyboardBottom - 122)), pause: 1.2)
+        save("I-QUICK-restored")
+        tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - 220 + 20)), pause: 1.0)
+        assertMaKeebVisible("QS-restored")
+    }
+
+    /// The centre of the element with [identifier], or [fallback] when accessibility doesn't have it yet.
+    func point(_ identifier: String, or fallback: CGPoint) -> CGPoint {
+        let element = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+        guard element.waitForExistence(timeout: 8) else {
+            results["fallback-\(identifier)"] = "geometry"
+            return fallback
+        }
+        return CGPoint(x: element.frame.midX, y: element.frame.midY)
     }
 
     func test08_companion() {

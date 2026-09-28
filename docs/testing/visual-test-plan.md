@@ -12,7 +12,7 @@ A repeatable pass over everything the keyboard shows, on Android and iOS, with t
 Every case lists its own expectations. These apply to all of them:
 
 1. **Nothing overlaps system UI.** On Android the bottom row clears the navigation-bar buttons (back/hide, keyboard switcher) by at least the gap Gboard leaves. On iOS the keyboard ends above the system globe/dictation bar and the home indicator.
-2. **No key touches a screen edge.** The outermost keys keep the side inset (10dp/pt) and are not clipped by curved edges or rounded corners.
+2. **No key touches a screen edge.** Android keeps a 10dp side inset for curved edges; iOS keys run to the key gap (3pt), like the system keyboard. Nothing is clipped by curved edges or rounded corners.
 3. **Constant height.** Letters, symbols, number pad, emoji and clipboard all occupy the same key-area height; switching never makes the app underneath jump.
 4. **Icons are icons.** Function keys show real glyphs (no Unicode arrows, emoji or tofu), sized like the stock keyboard's, not squashed or clipped.
 5. **Readable.** Labels and icons have at least 4.5:1 contrast against their key. Function keys are visibly distinct from letter keys in both themes. The accent (return) key stands out.

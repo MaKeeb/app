@@ -47,9 +47,16 @@ class ImeServiceKeyboardHost(private val service: InputMethodService) : Keyboard
 
     override val canOpenSettings: Boolean = true
 
+    /** Opens the companion app on its Settings tab, reusing the app's task if it is open. */
     override fun openSettings() {
         val intent = service.packageManager.getLaunchIntentForPackage(service.packageName) ?: return
-        service.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        service.startActivity(intent.putExtra(EXTRA_OPEN_SETTINGS, true))
         service.requestHideSelf(0)
+    }
+
+    companion object {
+        /** Boolean extra on the companion's launch intent: show the Settings tab. */
+        const val EXTRA_OPEN_SETTINGS = "com.makeeb.extra.OPEN_SETTINGS"
     }
 }

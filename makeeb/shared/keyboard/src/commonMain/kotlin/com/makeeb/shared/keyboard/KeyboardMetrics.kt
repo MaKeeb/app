@@ -13,7 +13,7 @@ object KeyboardMetrics {
     const val STRIP_HEIGHT = 44f
     const val BOTTOM_PADDING = 4f
 
-    /** Space beside the outermost keys; clears curved display edges and rounded corners. */
+    /** Space beside the outermost keys on Android; clears curved display edges. iOS uses none. */
     const val SIDE_INSET = 10f
     private const val BASE_ROW_HEIGHT = 54f
     private const val BASE_ROWS = 4f

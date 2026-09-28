@@ -78,7 +78,6 @@ object KeyboardRenderer {
         touch: TouchState,
         geometry: LayoutGeometry?,
         preferences: KeyboardPreferences,
-        canOpenSettings: Boolean = false,
     ): KeyboardRender {
         val showingKeys = state.panel == KeyboardPanel.Keys
         val keys = geometry?.keys.orEmpty().takeIf { showingKeys }.orEmpty().map { placed ->
@@ -104,7 +103,7 @@ object KeyboardRenderer {
             darkFromMinute = preferences.darkFromMinute,
             darkUntilMinute = preferences.darkUntilMinute,
             panel = state.panel,
-            stripActions = stripActions(state, canOpenSettings),
+            stripActions = stripActions(state),
             bestSuggestion = if (showingKeys) state.suggestions.bestStripSlot() else -1,
             incognito = state.incognito,
         )
@@ -112,14 +111,14 @@ object KeyboardRenderer {
 
     /**
      * The strip's toolbar. Emoji only when the bottom row has no emoji key (it carries a globe key
-     * instead); settings only where the platform lets the keyboard open the companion app.
+     * instead). Settings opens the quick-settings panel.
      */
-    fun stripActions(state: KeyboardState, canOpenSettings: Boolean): List<StripAction> = buildList {
+    fun stripActions(state: KeyboardState): List<StripAction> = buildList {
         val emojiKey = KeyAction.ShowPanel(KeyboardPanel.Emoji)
         if (state.layout.rows.none { row -> row.keys.any { it.action == emojiKey } }) add(StripAction.Emoji)
         add(StripAction.Clipboard)
         add(StripAction.Incognito)
-        if (canOpenSettings) add(StripAction.Settings)
+        add(StripAction.Settings)
     }
 
     private fun KeyBounds.toRect() =

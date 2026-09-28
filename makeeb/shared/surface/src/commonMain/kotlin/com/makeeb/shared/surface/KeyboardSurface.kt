@@ -23,6 +23,7 @@ import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.feature.clipboard.ClipboardPanel
 import com.makeeb.feature.emoji.EmojiPanel
 import com.makeeb.feature.keyboard.KeyboardKeys
+import com.makeeb.feature.settings.QuickSettingsPanel
 import com.makeeb.feature.suggestions.StripButton
 import com.makeeb.feature.suggestions.SuggestionStrip
 import com.makeeb.ui.theme.KeyboardIcons
@@ -55,19 +56,22 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                 modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
             ) {
                 // Hiding and switching keyboards live in the system navigation bar on Android 10+.
-                val actions = KeyboardRenderer.stripActions(state, session.canOpenSettings)
-                actions.filter { it != StripAction.Settings }.forEach { action ->
-                    val active = when (action) {
+                val actions = KeyboardRenderer.stripActions(state)
+                val active = { action: StripAction ->
+                    when (action) {
                         StripAction.Emoji -> state.panel == KeyboardPanel.Emoji
                         StripAction.Clipboard -> state.panel == KeyboardPanel.Clipboard
                         StripAction.Incognito -> state.incognito
-                        StripAction.Settings -> false
+                        StripAction.Settings -> state.panel == KeyboardPanel.Settings
                     }
-                    StripButton(action.icon(), action.description(), onClick = { session.perform(action) }, active = active)
+                }
+                actions.filter { it != StripAction.Settings }.forEach { action ->
+                    StripButton(action.icon(), action.description(), onClick = { session.perform(action) }, active = active(action))
                 }
                 Spacer(Modifier.weight(1f))
                 if (StripAction.Settings in actions) {
-                    StripButton(KeyboardIcons.Settings, "MaKeeb settings", onClick = { session.perform(StripAction.Settings) })
+                    val settings = StripAction.Settings
+                    StripButton(settings.icon(), settings.description(), onClick = { session.perform(settings) }, active = active(settings))
                 }
             }
 
@@ -105,6 +109,14 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                         modifier = area,
                     )
                 }
+                KeyboardPanel.Settings -> QuickSettingsPanel(
+                    preferences = preferences,
+                    editable = session.quickSettingsEditable,
+                    onToggle = session::toggle,
+                    onOpenApp = session::openSettings.takeIf { session.canOpenSettings },
+                    onClose = { session.showPanel(KeyboardPanel.Keys) },
+                    modifier = area,
+                )
             }
         }
     }
@@ -121,5 +133,5 @@ private fun StripAction.description() = when (this) {
     StripAction.Emoji -> "Emoji"
     StripAction.Clipboard -> "Clipboard"
     StripAction.Incognito -> "Incognito"
-    StripAction.Settings -> "MaKeeb settings"
+    StripAction.Settings -> "Quick settings"
 }

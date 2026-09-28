@@ -10,7 +10,9 @@ import com.makeeb.engine.input.InputEngine
 import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
 import com.makeeb.platform.clipboard.Clip
+import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.settings.KeyboardPreferences
+import com.makeeb.core.settings.QuickSetting
 import com.makeeb.platform.feedback.HapticFeedback
 import com.makeeb.platform.feedback.KeyFeedbackType
 import com.makeeb.platform.feedback.SoundFeedback
@@ -23,6 +25,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class KeyboardSessionTest {
@@ -32,8 +35,13 @@ class KeyboardSessionTest {
     private val haptics = mutableListOf<Pair<KeyFeedbackType, Float>>()
     private val sounds = mutableListOf<Pair<KeyFeedbackType, Float>>()
 
-    private fun TestScope.session(preferences: KeyboardPreferences = KeyboardPreferences()): KeyboardSession {
-        val prefs = FakePreferencesRepository(preferences)
+    private lateinit var prefs: FakePreferencesRepository
+
+    private fun TestScope.session(
+        preferences: KeyboardPreferences = KeyboardPreferences(),
+        settingsWritable: Boolean = true,
+    ): KeyboardSession {
+        prefs = FakePreferencesRepository(preferences)
         val engine = InputEngine(BuiltInLayoutProvider(), DictionarySuggestionEngine(StarterDictionaries.english()), prefs.preferences)
         return KeyboardSession(
             engine, prefs, catalog, EmojiRecents(), ClipboardHistory(),
@@ -41,6 +49,7 @@ class KeyboardSessionTest {
                 clipboard,
                 haptics = HapticFeedback { type, intensity -> haptics += type to intensity },
                 sound = SoundFeedback { type, volume -> sounds += type to volume },
+                settingsWritable = { settingsWritable },
             ),
             backgroundScope,
         )
@@ -89,5 +98,38 @@ class KeyboardSessionTest {
         session.onEmoji(catalog.emojis(EmojiCategory.SmileysAndPeople).first())
         assertTrue(session.engine.state.value.incognito)
         assertTrue(session.emojiRecentsState.value.isEmpty())
+    }
+
+    @Test
+    fun theSettingsButtonTogglesTheQuickSettingsPanel() = runTest {
+        val session = session()
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        session.perform(StripAction.Settings)
+        assertEquals(KeyboardPanel.Settings, session.engine.state.value.panel)
+        session.perform(StripAction.Settings)
+        assertEquals(KeyboardPanel.Keys, session.engine.state.value.panel)
+    }
+
+    @Test
+    fun aQuickSettingWritesThroughAndTheLayoutFollowsWithThePanelStillOpen() = runTest {
+        val session = session(KeyboardPreferences(numberRow = false))
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        runCurrent()
+        val rowsBefore = session.engine.state.value.layout.rows.size
+        session.perform(StripAction.Settings)
+        session.toggle(QuickSetting.NumberRow)
+        runCurrent()
+        assertTrue(prefs.preferences.value.numberRow, "stored, so the companion app sees it")
+        assertEquals(rowsBefore + 1, session.engine.state.value.layout.rows.size)
+        assertEquals(KeyboardPanel.Settings, session.engine.state.value.panel, "the panel stays open for more changes")
+    }
+
+    @Test
+    fun quickSettingsAreReadOnlyWhereTheKeyboardCannotWriteSettings() = runTest {
+        val session = session(KeyboardPreferences(keyPressSound = false), settingsWritable = false)
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        assertFalse(session.quickSettingsEditable)
+        session.toggle(QuickSetting.Sound)
+        assertFalse(prefs.preferences.value.keyPressSound)
     }
 }

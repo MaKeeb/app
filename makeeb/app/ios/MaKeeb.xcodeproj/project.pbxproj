@@ -18,6 +18,7 @@
 		A2BDDFCA2A48EF478248E75B /* MaKeebKeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7DC4D9107E37609CB1287AE1 /* MaKeebKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B1D98902F4336F5E91E38B0A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */; };
 		C115A8D3ABFAE3FF61DBF3B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EB90F42D3112441D0CFA919 /* Assets.xcassets */; };
+		C4A85C91E499D1B86295B47F /* QuickSettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */; };
 		EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +71,7 @@
 		AFAA5A64B875CCE1F9B12B1B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C09514377D45359E63E8A13E /* ClipboardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelView.swift; sourceTree = "<group>"; };
 		CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardProbeTests.swift; sourceTree = "<group>"; };
+		E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSettingsPanelView.swift; sourceTree = "<group>"; };
 		EA9AF842D9BEF0AB40B5C460 /* MaKeeb.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MaKeeb.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPanelView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -94,6 +96,7 @@
 				0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */,
 				87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */,
 				10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */,
+				E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */,
 			);
 			path = Keyboard;
 			sourceTree = "<group>";
@@ -331,6 +334,7 @@
 				981F37B40A19EB8AF0FF5410 /* KeyboardView.swift in Sources */,
 				633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */,
 				EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */,
+				C4A85C91E499D1B86295B47F /* QuickSettingsPanelView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
