@@ -7,8 +7,8 @@ import com.makeeb.core.model.KeyboardPanel
 @DslMarker
 annotation class LayoutDsl
 
-fun keyboardLayout(id: String, mode: KeyboardMode, block: LayoutBuilder.() -> Unit): KeyboardLayout =
-    KeyboardLayout(id, mode, LayoutBuilder().apply(block).rows)
+fun keyboardLayout(id: String, mode: KeyboardMode, widthUnits: Float? = null, block: LayoutBuilder.() -> Unit): KeyboardLayout =
+    KeyboardLayout(id, mode, LayoutBuilder().apply(block).rows, widthUnits)
 
 @LayoutDsl
 class LayoutBuilder {

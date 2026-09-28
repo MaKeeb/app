@@ -9,9 +9,14 @@ data class KeyboardLayout(
     val id: String,
     val mode: KeyboardMode,
     val rows: List<KeyRow>,
+    /** The layout's standard row width; wider rows (Dvorak's bottom row) are compressed to it. */
+    val widthUnits: Float? = null,
 ) {
-    /** The widest row. Narrower rows are centred, e.g. the `asdf` row on QWERTY. */
-    val unitsPerRow: Float = rows.maxOfOrNull { it.units } ?: 0f
+    /**
+     * Key units across the keyboard: [widthUnits], or the widest row. Narrower rows are centred,
+     * e.g. the `asdf` row on QWERTY.
+     */
+    val unitsPerRow: Float = widthUnits ?: rows.maxOfOrNull { it.units } ?: 0f
 
     /** Sum of row height weights: a layout with a number row is 4.8 rows tall, not 5. */
     val totalHeightWeight: Float = rows.sumOf { it.heightWeight.toDouble() }.toFloat()

@@ -30,15 +30,23 @@ internal object BuiltInLayouts {
         LayoutInfo("qwerty", "QWERTY"),
         LayoutInfo("qwertz", "QWERTZ"),
         LayoutInfo("azerty", "AZERTY"),
+        LayoutInfo("dvorak", "Dvorak"),
+        LayoutInfo("colemak", "Colemak"),
+        LayoutInfo("workman", "Workman"),
     )
 
     fun letters(id: String, options: LayoutOptions): KeyboardLayout {
         val (top, middle, bottom) = when (id) {
             "qwertz" -> Triple("qwertzuiop", "asdfghjkl", "yxcvbnm")
             "azerty" -> Triple("azertyuiop", "qsdfghjklm", "wxcvbn")
+            // Dvorak keeps its punctuation on the top row; ';' lives on the symbols page.
+            "dvorak" -> Triple("',.pyfgcrl", "aoeuidhtns", "qjkxbmwvz")
+            "colemak" -> Triple("qwfpgjluy", "arstdhneio", "zxcvbkm")
+            "workman" -> Triple("qdrwbjfup", "ashtgyneoi", "zxmcvkl")
             else -> Triple("qwertyuiop", "asdfghjkl", "zxcvbnm")
         }
-        return keyboardLayout(id, KeyboardMode.Letters) {
+        // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
+        return keyboardLayout(id, KeyboardMode.Letters, widthUnits = 10f) {
             if (options.numberRow) row(heightWeight = NUMBER_ROW_HEIGHT_WEIGHT) { chars(topRowDigits) }
             row {
                 chars(top, latinAlternates, hints = if (options.numberRow) emptyMap() else digitHints(top))

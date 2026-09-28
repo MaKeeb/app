@@ -38,6 +38,16 @@ class LayoutTest {
     }
 
     @Test
+    fun everyLetterLayoutHasTheWholeAlphabetInsideTheKeyboard() {
+        provider.letterLayouts.forEach { info ->
+            val layout = provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = info.id))
+            assertEquals(('a'..'z').toSet(), layout.characterKeys.keys.filter { it in 'a'..'z' }.toSet(), info.id)
+            val geometry = LayoutGeometry(layout, width = 1000f, rowHeight = 50f, horizontalInset = 20f)
+            assertTrue(geometry.keys.all { it.bounds.left >= 19.9f && it.bounds.right <= 980.1f }, "${info.id} fits")
+        }
+    }
+
+    @Test
     fun theSymbolsPageOpensTheNumberPad() {
         val symbols = provider.layout(KeyboardMode.Symbols, LayoutOptions())
         assertEquals(10f, symbols.unitsPerRow)

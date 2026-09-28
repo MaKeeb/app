@@ -28,4 +28,4 @@ Symbol and 'more symbols' pages plus a dedicated number pad shown automatically 
 
 ## Progress
 
-Symbols, more symbols, number pad, phone pad; the number pad opens automatically for number fields and by hand from the symbols page's 1234 key (as on Gboard), ABC returns to letters. Unit-tested; visual check with the next layout batch.
+Symbols, more symbols, number pad, phone pad; the number pad opens automatically for number fields and by hand from the symbols page's 1234 key (as on Gboard), ABC returns to letters. Verified on the Pixel 6 Pro (the 1234 label fits on one line).

@@ -161,7 +161,8 @@ final class KeyboardView: UIView {
             drawText(caption, in: frame.offsetBy(dx: 0, dy: 13), size: 9, color: UIColor(argb: palette.hint), weight: .semibold)
         } else {
             let isCharacter = !key.isModifier && !key.isAccent && key.label.count <= 2
-            drawText(key.label, in: frame, size: isCharacter ? 22 : 15, color: foreground)
+            // Four characters ("1234", ".com") only fit a one-unit key a size down.
+            drawText(key.label, in: frame, size: isCharacter ? 22 : key.label.count >= 4 ? 13 : 15, color: foreground)
         }
         if let hint = key.hint {
             let hintRect = CGRect(x: frame.maxX - 14, y: frame.minY + 2, width: 12, height: 12)

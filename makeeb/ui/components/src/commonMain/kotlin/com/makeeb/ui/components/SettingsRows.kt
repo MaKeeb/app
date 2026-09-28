@@ -2,12 +2,15 @@ package com.makeeb.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -84,7 +87,11 @@ fun SliderRow(
     }
 }
 
-/** A single choice among a few options, shown as a segmented button row. */
+/**
+ * A single choice: a segmented button row for up to three options, wrapping chips beyond that
+ * (segments would be too narrow for their labels on a phone).
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> ChoiceRow(
     title: String,
@@ -96,13 +103,21 @@ fun <T> ChoiceRow(
 ) {
     Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         RowText(title, null, Modifier.padding(bottom = 8.dp))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            options.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = option == selected,
-                    onClick = { onSelect(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                ) { Text(label(option)) }
+        if (options.size <= MAX_SEGMENTS) {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                options.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = option == selected,
+                        onClick = { onSelect(option) },
+                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                    ) { Text(label(option)) }
+                }
+            }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.forEach { option ->
+                    FilterChip(selected = option == selected, onClick = { onSelect(option) }, label = { Text(label(option)) })
+                }
             }
         }
     }
@@ -117,3 +132,5 @@ private fun RowText(title: String, subtitle: String?, modifier: Modifier) {
         }
     }
 }
+
+private const val MAX_SEGMENTS = 3

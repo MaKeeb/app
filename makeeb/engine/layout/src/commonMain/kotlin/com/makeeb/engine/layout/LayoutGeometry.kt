@@ -37,11 +37,13 @@ class LayoutGeometry(
         val usableWidth = (width - 2 * horizontalInset).coerceAtLeast(0f)
         val unitWidth = if (layout.unitsPerRow > 0f) usableWidth / layout.unitsPerRow else 0f
         layout.rows.forEachIndexed { rowIndex, row ->
-            var x = horizontalInset + (layout.unitsPerRow - row.units) / 2 * unitWidth
+            // A row wider than the layout (Dvorak's bottom row) is compressed to fit.
+            val rowUnit = if (row.units > layout.unitsPerRow) usableWidth / row.units else unitWidth
+            var x = horizontalInset + ((layout.unitsPerRow - row.units) / 2 * unitWidth).coerceAtLeast(0f)
             val top = rowEdges[rowIndex]
             val bottom = rowEdges[rowIndex + 1]
             row.keys.forEach { key ->
-                val keyWidth = key.width * unitWidth
+                val keyWidth = key.width * rowUnit
                 add(PlacedKey(key, rowIndex, KeyBounds(x, top, x + keyWidth, bottom)))
                 x += keyWidth
             }
