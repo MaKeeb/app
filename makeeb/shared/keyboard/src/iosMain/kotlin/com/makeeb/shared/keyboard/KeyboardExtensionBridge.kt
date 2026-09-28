@@ -3,6 +3,7 @@ package com.makeeb.shared.keyboard
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.stripSlots
+import com.makeeb.core.settings.KeyboardSignals
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.engine.emoji.Emoji
 import com.makeeb.platform.clipboard.PasteboardSystemClipboard
@@ -57,6 +58,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     fun viewWillAppear() {
         // The companion app writes preferences from another process.
         preferences.reload()
+        KeyboardSignals.recordShown(controller.hasFullAccess)
         session.start(textHost, keyboardHost, controller.textDocumentProxy.toEditorAttributes())
     }
 
