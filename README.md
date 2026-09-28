@@ -50,6 +50,10 @@ To run on a device, copy `makeeb/app/ios/Config/Local.xcconfig.example` to `Loca
 
 To see the board as a kanban, open it with the [kanban](https://github.com/fonix232/kanban) skill's dashboard.
 
+## License
+
+MaKeeb is MIT-licensed (see [LICENSE](LICENSE)). Bundled third-party data, such as the AOSP English word list, keeps its own licence and notice in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Research
 
 - [Open-source keyboards survey](docs/research/open-source-keyboards.md): what exists, feature catalogue and priorities.

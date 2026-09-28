@@ -29,4 +29,4 @@ Switch enabled languages/layouts via a language key, spacebar swipe or long-pres
 
 ## Progress
 
-Not started.
+Decided 2026-09-29: long-press alternates follow the language, not the layout; other languages download during setup.

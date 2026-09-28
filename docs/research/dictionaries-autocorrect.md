@@ -673,6 +673,8 @@ Check where the bundled pack lives on iOS so it is not duplicated between the ap
 
 ### 10.7 Open decisions for the user
 
+**Decided 2026-09-29:** MIT licence; share-alike (CC BY-SA) packs are acceptable; packs are hosted on GitHub; English ships in the app and other languages download during setup, like Gboard. Offensive words stay blocked by default.
+
 1. **App licence.** Apache-2.0 (recommended), MIT, MPL-2.0 or GPL-3.0 with an app-store exception (§9.1). This gates everything that follows.
 2. **Share-alike data.** Should bundled packs be attribution-only (recommended)? Are CC BY-SA packs acceptable as optional downloads?
 3. **GPL-only languages.** Should GPL-licensed optional packs be offered from MaKeeb's own server (not via the App Store bundle), after legal review?

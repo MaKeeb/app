@@ -6,6 +6,11 @@ MaKeeb is a third-party on-screen keyboard for Android and iOS, built with Kotli
 
 - Core keyboard features only. No AI/LLM features: no generative rewriting, AI replies, tone changers or chat assistants. Statistical prediction, autocorrect, user learning and swipe decoding are core typing and are in scope.
 - The feature list and its status live on the board: `.ai/kanban`, one Markdown card per feature (the `kanban` skill).
+- Decisions (2026-09-29, the user):
+  - **Licence: MIT** (`LICENSE`). Third-party data and code carry their notices in `THIRD_PARTY_NOTICES.md`. GPL code or data never ships (App Store). Share-alike (CC BY-SA) data is acceptable; a pack built from it is CC BY-SA.
+  - **Dictionaries:** English ships in the app. Other languages are packs hosted on GitHub, downloaded during setup (like Gboard) and later from settings.
+  - **Layouts:** JSON data based on AOSP (`docs/research/layout-formats.md`). Long-press alternates follow the language, not the layout.
+  - **iOS emoji memory:** pinned as is (18 pt panel emoji, recycle on hide); emoji are secondary.
 - Research that drives decisions: `docs/research/open-source-keyboards.md`, `docs/research/platform-apis.md`, `docs/research/feature-candidates.json`. They are dated snapshots (2026-09-27); recheck before relying on a version number or limit.
 
 ## Layout

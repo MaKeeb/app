@@ -44,4 +44,4 @@ Offline-first Android keyboards have users download files in a browser and impor
 
 ## Progress
 
-Needs the memory-mapped format (see foundation card).
+Decided 2026-09-29: English ships in the app; other languages are packs hosted on GitHub (release assets), downloaded during setup like Gboard and later from settings. Share-alike (CC BY-SA) packs are acceptable. The MKD format and the mapped reader exist since APP-110.
