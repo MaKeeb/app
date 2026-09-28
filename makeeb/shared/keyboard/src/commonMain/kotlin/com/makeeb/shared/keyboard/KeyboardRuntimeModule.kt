@@ -28,8 +28,16 @@ val keyboardRuntimeModule = module {
     single { UserDictionary(languageTag = "en") }
     single<SuggestionEngine> { DictionarySuggestionEngine(main = get(), user = get<UserDictionary>()) }
     single<GestureDecoder> { KeySequenceGestureDecoder(dictionary = get()) }
-    single { InputEngine(layouts = get(), suggestionEngine = get(), preferences = get<PreferencesRepository>().preferences) }
     single<EmojiCatalog> { BundledEmojiCatalog() }
+    single {
+        val emoji = get<EmojiCatalog>()
+        InputEngine(
+            layouts = get(),
+            suggestionEngine = get(),
+            preferences = get<PreferencesRepository>().preferences,
+            emojiForWord = { word -> emoji.forWord(word)?.value },
+        )
+    }
     single { EmojiRecents() }
     single { ClipboardHistory() }
 

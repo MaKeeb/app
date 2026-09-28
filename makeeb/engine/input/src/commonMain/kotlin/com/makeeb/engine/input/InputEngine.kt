@@ -40,6 +40,8 @@ class InputEngine(
     private val suggestionEngine: SuggestionEngine,
     private val preferences: StateFlow<KeyboardPreferences>,
     private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
+    /** The emoji a whole typed word names, for the strip ("pizza" → 🍕); none by default. */
+    private val emojiForWord: (String) -> String? = { null },
 ) {
     private var host: TextHost = DetachedTextHost
     private var keyboardHost: KeyboardHost? = null
@@ -216,6 +218,14 @@ class InputEngine(
 
     fun onSuggestionSelected(suggestion: Suggestion) {
         pendingRevert = null
+        if (suggestion.kind == Suggestion.Kind.Emoji) {
+            confirmMirror()
+            // The emoji takes the word's place, like any suggestion.
+            host.replaceBeforeCursor(state.value.composing.length, suggestion.text + " ")
+            rejectedCorrection = null
+            afterEdit(composing = "")
+            return
+        }
         if (suggestion.kind == Suggestion.Kind.Punctuation) {
             // "word " + "," → "word, ": the shortcut takes the space's place.
             if (host.textBeforeCursor(1) == " ") host.replaceBeforeCursor(1, suggestion.text + " ")
@@ -410,7 +420,11 @@ class InputEngine(
         if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword) return emptyList()
         if (composing.isEmpty()) return punctuationShortcuts(editor, textBefore)
         val context = TypingContext(composing, TextBoundaries.previousWords(textBefore, count = 2))
-        return suggestionEngine.suggest(context).suggestions
+        val words = suggestionEngine.suggest(context).suggestions
+        val emoji = composing.takeIf { prefs.emojiSuggestions && it.length >= MIN_EMOJI_WORD }?.let(emojiForWord)
+            ?: return words
+        // The third slot: the best word keeps the middle, the next best stays one tap away.
+        return words.take(2) + Suggestion(emoji, Suggestion.Kind.Emoji)
     }
 
     /** The previous key was a space that ended a word, in running text. */
@@ -464,5 +478,7 @@ class InputEngine(
         val DOUBLE_TAP_WINDOW = 350.milliseconds
         val CORRECTING_PUNCTUATION = setOf('.', ',', '!', '?', ';', ':')
         val PUNCTUATION_SHORTCUTS = listOf(",", ".", "?", "!")
+        /** Short words name too many emoji by accident ("i", "ok"…). */
+        const val MIN_EMOJI_WORD = 3
     }
 }

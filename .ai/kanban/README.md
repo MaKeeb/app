@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 13 |
+| [Ready to start](todo/_todo.md) | 12 |
 | [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 49 |
+| [In review](review/_review.md) | 50 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
@@ -58,6 +58,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-10](review/010-optional-number-row.md): Optional number row
 - [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts
+- [APP-42](review/042-emoji-suggestions.md): Emoji suggestions
 - [APP-59](review/059-emoji-search.md): Emoji search
 - [APP-63](review/063-clipboard-history.md): Clipboard history
 - [APP-66](review/066-sensitive-clip-protection.md): Sensitive clip protection
@@ -78,7 +79,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
-- [APP-42](todo/042-emoji-suggestions.md): Emoji suggestions
 - [APP-64](todo/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 - [APP-77](todo/077-keyboard-height-and-size.md): Keyboard height and size
 - [APP-81](todo/081-screen-reader-support.md): Screen reader support

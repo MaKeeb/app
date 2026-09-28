@@ -30,4 +30,10 @@ interface EmojiCatalog {
 
     /** The emoji with exactly this [value], or null. */
     fun find(value: String): Emoji?
+
+    /**
+     * The emoji [word] names: an exact name first, then an exact keyword, the most used on a tie
+     * ("pizza" → 🍕, "love" → 😍). Null when nothing matches exactly.
+     */
+    fun forWord(word: String): Emoji?
 }

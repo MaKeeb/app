@@ -155,7 +155,12 @@ class KeyboardSession(
         rebuildGeometry()
     }
 
-    fun onSuggestion(suggestion: Suggestion) = engine.onSuggestionSelected(suggestion)
+    fun onSuggestion(suggestion: Suggestion) {
+        engine.onSuggestionSelected(suggestion)
+        if (suggestion.kind == Suggestion.Kind.Emoji && !engine.state.value.incognito) {
+            emojiCatalog.find(suggestion.text)?.let(emojiRecents::record)
+        }
+    }
 
     fun onKey(action: KeyAction) = engine.onKey(action)
 

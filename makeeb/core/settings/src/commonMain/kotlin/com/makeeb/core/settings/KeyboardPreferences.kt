@@ -10,6 +10,8 @@ data class KeyboardPreferences(
     val doubleSpacePeriod: Boolean = true,
     val autoCorrect: Boolean = true,
     val showSuggestions: Boolean = true,
+    /** Offer the emoji a typed word names ("pizza" → 🍕) in the suggestion strip. */
+    val emojiSuggestions: Boolean = true,
     /** Holding delete speeds up, then erases whole words. */
     val holdDeleteWords: Boolean = true,
     /** Sliding on the space bar moves the caret a word at a time instead of a character. */

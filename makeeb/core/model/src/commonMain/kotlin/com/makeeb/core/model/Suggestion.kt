@@ -25,18 +25,24 @@ data class Suggestion(
 
         /** Punctuation offered right after a word and a space; it takes the space's place. */
         Punctuation,
+
+        /** An emoji the typed word names ("pizza" → 🍕); it replaces the word. */
+        Emoji,
     }
 }
 
 /**
  * The strip's cells, left to right; every renderer uses this. Words fill three fixed slots with
  * the best in the middle, where the thumb rests, and missing ones stay empty (null) so the best
- * never moves: `[best, second, third]` → `[second, best, third]`. Punctuation shows in order.
+ * never moves: `[best, second, third]` → `[second, best, third]`. An emoji suggestion always takes
+ * the right-hand slot. Punctuation shows in order.
  */
-fun List<Suggestion>.stripSlots(): List<Suggestion?> = when {
-    isEmpty() -> emptyList()
-    all { it.kind == Suggestion.Kind.Punctuation } -> this
-    else -> listOf(getOrNull(1), this[0], getOrNull(2))
+fun List<Suggestion>.stripSlots(): List<Suggestion?> {
+    if (isEmpty()) return emptyList()
+    if (all { it.kind == Suggestion.Kind.Punctuation }) return this
+    val emoji = firstOrNull { it.kind == Suggestion.Kind.Emoji }
+    val words = filter { it.kind != Suggestion.Kind.Emoji }
+    return listOf(words.getOrNull(1), words.getOrNull(0), emoji ?: words.getOrNull(2))
 }
 
 /** Which of [stripSlots] is the best suggestion, drawn in bold; -1 for punctuation. */

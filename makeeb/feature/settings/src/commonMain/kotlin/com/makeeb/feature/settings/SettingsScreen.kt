@@ -130,6 +130,7 @@ private fun settingsSections(
                 switch("Double-space period", preferences.doubleSpacePeriod, "full stop dot space", "Tap space twice to end a sentence") { p, v -> p.copy(doubleSpacePeriod = v) },
                 switch("Autocorrect", preferences.autoCorrect, "spelling correction typo fix", "Backspace right after a correction undoes it") { p, v -> p.copy(autoCorrect = v) },
                 switch("Show suggestions", preferences.showSuggestions, "prediction words strip completion") { p, v -> p.copy(showSuggestions = v) },
+                switch("Emoji suggestions", preferences.emojiSuggestions, "emoji strip", "Typing pizza offers 🍕") { p, v -> p.copy(emojiSuggestions = v) },
                 switch("Slide on space by word", preferences.cursorSlideByWord, "cursor caret move spacebar", "Sliding on the space bar moves the cursor a word at a time") { p, v -> p.copy(cursorSlideByWord = v) },
                 switch("Hold delete to erase words", preferences.holdDeleteWords, "backspace erase repeat", "Holding delete speeds up, then removes whole words") { p, v -> p.copy(holdDeleteWords = v) },
             ),

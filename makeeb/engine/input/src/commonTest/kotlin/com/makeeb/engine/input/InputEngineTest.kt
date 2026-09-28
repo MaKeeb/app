@@ -8,6 +8,8 @@ import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
 import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.ShiftState
+import com.makeeb.core.model.stripSlots
+import com.makeeb.core.model.Suggestion
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
@@ -337,5 +339,28 @@ class InputEngineTest {
         engine.startEmojiSearch()
         start()
         assertNull(engine.state.value.emojiSearch)
+    }
+
+    @Test
+    fun aWordThatNamesAnEmojiOffersItAndPickingItReplacesTheWord() {
+        val emojiEngine = InputEngine(
+            layouts = BuiltInLayoutProvider(),
+            suggestionEngine = DictionarySuggestionEngine(StarterDictionaries.english(), userDictionary),
+            preferences = preferences,
+            timeSource = time,
+            emojiForWord = { if (it.lowercase() == "pizza") "🍕" else null },
+        )
+        val host = FakeTextHost("I want ")
+        emojiEngine.startInput(host, keyboardHost, EditorAttributes())
+        "pizza".forEach { emojiEngine.onKey(KeyAction.Text(it.toString())) }
+        val emoji = emojiEngine.state.value.suggestions.single { it.kind == Suggestion.Kind.Emoji }
+        assertEquals("🍕", emoji.text)
+        assertEquals(emoji, emojiEngine.state.value.suggestions.stripSlots()[2], "always the right-hand slot")
+        emojiEngine.onSuggestionSelected(emoji)
+        assertEquals("I want 🍕 |", host.toString())
+
+        preferences.value = KeyboardPreferences(emojiSuggestions = false)
+        "pizza".forEach { emojiEngine.onKey(KeyAction.Text(it.toString())) }
+        assertTrue(emojiEngine.state.value.suggestions.none { it.kind == Suggestion.Kind.Emoji }, "off in settings")
     }
 }

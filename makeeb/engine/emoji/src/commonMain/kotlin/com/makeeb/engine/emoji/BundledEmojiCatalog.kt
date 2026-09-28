@@ -42,6 +42,23 @@ class BundledEmojiCatalog : EmojiCatalog {
         return ranked.sortedBy { it.second }.take(limit).map { all.emoji(it.first) } // stable: CLDR order breaks ties
     }
 
+    override fun forWord(word: String): Emoji? {
+        val needle = word.trim().lowercase()
+        if (needle.isEmpty()) return null
+        val all = lines
+        var best = -1
+        var bestScore = Int.MAX_VALUE
+        for (line in 0 until all.count) {
+            val tier = all.exactTier(line, needle) ?: continue
+            val score = tier * TIER + popularity(all.value(line))
+            if (score < bestScore) {
+                best = line
+                bestScore = score
+            }
+        }
+        return if (best < 0) null else all.emoji(best)
+    }
+
     private fun popularity(value: String): Int = POPULAR.indexOf(value).let { if (it < 0) POPULAR.size else it }
 
     /** Line and field offsets into the data chunks: `emoji<TAB>category[+]<TAB>name<TAB>keyword|…`. */
@@ -108,6 +125,17 @@ class BundledEmojiCatalog : EmojiCatalog {
                 (ne - ns >= needle.length && text.regionMatches(ns, needle, 0, needle.length)) || hasKeyword(text, ks, ke, needle) -> 1
                 terms.all { anyWordStarts(text, ns, ne, it) } -> 2
                 terms.all { anyWordStarts(text, ns, ne, it) || anyWordStarts(text, ks, ke, it) } -> 3
+                else -> null
+            }
+        }
+
+        /** 0 when the name is [word], 1 when a keyword is, else null. */
+        fun exactTier(line: Int, word: String): Int? {
+            val text = text(line)
+            val ns = nameStart[line]
+            return when {
+                nameEnd[line] - ns == word.length && text.regionMatches(ns, word, 0, word.length) -> 0
+                hasKeyword(text, keywordsStart(line), end[line], word) -> 1
                 else -> null
             }
         }

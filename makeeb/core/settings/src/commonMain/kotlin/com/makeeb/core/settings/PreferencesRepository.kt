@@ -38,6 +38,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
             doubleSpacePeriod = settings.getBoolean(Keys.DOUBLE_SPACE_PERIOD, defaults.doubleSpacePeriod),
             autoCorrect = settings.getBoolean(Keys.AUTO_CORRECT, defaults.autoCorrect),
             showSuggestions = settings.getBoolean(Keys.SHOW_SUGGESTIONS, defaults.showSuggestions),
+            emojiSuggestions = settings.getBoolean(Keys.EMOJI_SUGGESTIONS, defaults.emojiSuggestions),
             holdDeleteWords = settings.getBoolean(Keys.HOLD_DELETE_WORDS, defaults.holdDeleteWords),
             cursorSlideByWord = settings.getBoolean(Keys.CURSOR_SLIDE_BY_WORD, defaults.cursorSlideByWord),
             keyPressHaptics = settings.getBoolean(Keys.HAPTICS, defaults.keyPressHaptics),
@@ -62,6 +63,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putBoolean(Keys.DOUBLE_SPACE_PERIOD, doubleSpacePeriod)
         settings.putBoolean(Keys.AUTO_CORRECT, autoCorrect)
         settings.putBoolean(Keys.SHOW_SUGGESTIONS, showSuggestions)
+        settings.putBoolean(Keys.EMOJI_SUGGESTIONS, emojiSuggestions)
         settings.putBoolean(Keys.HOLD_DELETE_WORDS, holdDeleteWords)
         settings.putBoolean(Keys.CURSOR_SLIDE_BY_WORD, cursorSlideByWord)
         settings.putBoolean(Keys.HAPTICS, keyPressHaptics)
@@ -87,6 +89,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         const val DOUBLE_SPACE_PERIOD = "typing.double_space_period"
         const val AUTO_CORRECT = "typing.auto_correct"
         const val SHOW_SUGGESTIONS = "typing.show_suggestions"
+        const val EMOJI_SUGGESTIONS = "typing.emoji_suggestions"
         const val HOLD_DELETE_WORDS = "typing.hold_delete_words"
         const val CURSOR_SLIDE_BY_WORD = "typing.cursor_slide_by_word"
         const val HAPTICS = "feedback.haptics"

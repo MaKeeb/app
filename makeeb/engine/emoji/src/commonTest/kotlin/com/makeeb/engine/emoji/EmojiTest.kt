@@ -38,6 +38,16 @@ class EmojiTest {
     }
 
     @Test
+    fun aWordNamesItsEmojiExactlyAndTheMostUsedWins() {
+        assertEquals("🍕", catalog.forWord("pizza")?.value)
+        assertEquals("🍕", catalog.forWord("Pizza")?.value)
+        assertEquals("🐕", catalog.forWord("dog")?.value, "an exact name beats a keyword")
+        assertEquals("😍", catalog.forWord("love")?.value, "the most used of the keyword matches")
+        assertEquals(null, catalog.forWord("pizz"), "no partial words")
+        assertEquals(null, catalog.forWord("the"))
+    }
+
+    @Test
     fun recentsAreDeduplicatedNewestFirst() {
         val recents = EmojiRecents(capacity = 2)
         val (a, b, c) = catalog.emojis(EmojiCategory.FoodAndDrink).take(3)

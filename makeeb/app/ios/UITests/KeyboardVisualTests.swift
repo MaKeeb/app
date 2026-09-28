@@ -106,7 +106,10 @@ final class KeyboardVisualTests: XCTestCase {
         while !visible && switches < 4 {
             let globe = app.buttons["Next keyboard"].firstMatch
             trail.append("before \(switches + 1): globe=\(String(describing: globe.value)) stock=\(stockKeyboardShowing)")
-            globe.tap()
+            // A tap only toggles between the last two keyboards; holding lists them all.
+            globe.press(forDuration: 1.2)
+            let choice = app.descendants(matching: .any).matching(NSPredicate(format: "label == 'MaKeeb'")).firstMatch
+            if choice.waitForExistence(timeout: 3) { choice.tap() } else { globe.tap() }
             switches += 1
             visible = waitForMaKeeb(numberRow: numberRow, timeout: 20)
             if !visible { save("diag-\(context)-switch\(switches)") }
@@ -440,6 +443,32 @@ final class KeyboardVisualTests: XCTestCase {
         heldCapture("I-GLOBE-list", at: CGPoint(x: globe.frame.midX, y: globe.frame.midY), hold: 2.5)
     }
 
+    /// Fresh-simulator setup: add MaKeeb under Settings → General → Keyboard → Keyboards → Add New
+    /// Keyboard (writing AppleKeyboards directly isn't picked up). Then run test12a for Full Access.
+    func test00_enableKeyboard() {
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        for step in ["General", "Keyboard", "Keyboards"] {
+            let matches = settings.staticTexts.matching(identifier: step)
+            XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 10), step)
+            matches.allElementsBoundByIndex.max { $0.frame.minY < $1.frame.minY }?.tap()
+            Thread.sleep(forTimeInterval: 1)
+        }
+        func any(_ prefix: String) -> XCUIElement {
+            settings.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
+        }
+        if !any("MaKeeb").waitForExistence(timeout: 3) {
+            XCTAssertTrue(any("Add New Keyboard").waitForExistence(timeout: 10))
+            any("Add New Keyboard").tap()
+            XCTAssertTrue(any("MaKeeb").waitForExistence(timeout: 10))
+            any("MaKeeb").tap()
+            Thread.sleep(forTimeInterval: 1)
+        }
+        try? settings.debugDescription.write(toFile: outDir + "/settings-keyboards.txt", atomically: true, encoding: .utf8)
+        results["keyboard-enabled"] = any("MaKeeb").exists ? "yes" : "no"
+        settings.terminate()
+    }
+
     /// Simulators are disposable: turn on Full Access for MaKeeb through the Settings app, so the
     /// quick-settings tiles (App Group writes) can be exercised.
     func test12a_enableFullAccess() {
@@ -643,6 +672,19 @@ final class KeyboardVisualTests: XCTestCase {
         XCTAssertEqual(results["SC-concealed-shown"], "no", "a concealed clip must never be kept")
         save("I-CLIP-plain")
         tap(clipboard, pause: 0.8)
+    }
+
+    /// A typed word that names an emoji offers it in the strip's right-hand slot; picking it
+    /// replaces the word.
+    func test18_emojiSuggestion() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("EMS")
+        type("i want pizza")
+        save("I-EMOJI-suggestion")
+        tap(CGPoint(x: screenWidth * 5 / 6, y: keyboardBottom - 220 - strip / 2), pause: 1.0)
+        results["EMS-field"] = value("Text")
+        XCTAssertEqual(value("Text"), "I want 🍕 ")
     }
 
     func test08_companion() {
