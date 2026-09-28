@@ -1,6 +1,7 @@
 package com.makeeb.shared.keyboard
 
 import com.makeeb.core.common.currentMinuteOfDay
+import com.makeeb.core.model.ImeAction
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyIcon
 import com.makeeb.core.model.KeyboardPalette
@@ -40,6 +41,10 @@ data class KeyboardRender(
     val bestSuggestion: Int = -1,
     /** Incognito is on (the strip's incognito button is lit). */
     val incognito: Boolean = false,
+    /** The emoji search query while searching (the strip shows it instead of suggestions); null otherwise. */
+    val emojiSearch: String? = null,
+    /** Emoji matching [emojiSearch], best first; recents while the query is empty. */
+    val emojiResults: List<String> = emptyList(),
 ) {
     /** Resolved when drawn, so a scheduled theme switches at its time. */
     fun palette(systemDark: Boolean): KeyboardPalette {
@@ -78,13 +83,17 @@ object KeyboardRenderer {
         touch: TouchState,
         geometry: LayoutGeometry?,
         preferences: KeyboardPreferences,
+        emojiResults: List<String> = emptyList(),
     ): KeyboardRender {
         val showingKeys = state.panel == KeyboardPanel.Keys
+        val searching = state.emojiSearch != null
+        // Enter closes an emoji search rather than reaching the field.
+        val imeAction = if (searching) ImeAction.Done else state.editor.imeAction
         val keys = geometry?.keys.orEmpty().takeIf { showingKeys }.orEmpty().map { placed ->
             val key = placed.key
             RenderKey(
-                icon = key.renderIcon(state.shift, state.editor.imeAction),
-                label = key.renderLabel(state.shift, state.editor.imeAction),
+                icon = key.renderIcon(state.shift, imeAction),
+                label = key.renderLabel(state.shift, imeAction),
                 hint = key.hint,
                 caption = key.caption,
                 frame = placed.bounds.toRect(),
@@ -96,16 +105,18 @@ object KeyboardRenderer {
         }
         return KeyboardRender(
             keys = keys,
-            suggestions = if (showingKeys) state.suggestions.stripSlots().map { it?.text.orEmpty() } else emptyList(),
+            suggestions = if (showingKeys && !searching) state.suggestions.stripSlots().map { it?.text.orEmpty() } else emptyList(),
             preview = touch.preview?.takeIf { showingKeys }?.let { RenderPreview(it.label, it.bounds.toRect()) },
             popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected) },
             theme = preferences.theme,
             darkFromMinute = preferences.darkFromMinute,
             darkUntilMinute = preferences.darkUntilMinute,
             panel = state.panel,
-            stripActions = stripActions(state),
-            bestSuggestion = if (showingKeys) state.suggestions.bestStripSlot() else -1,
+            stripActions = if (searching) emptyList() else stripActions(state),
+            bestSuggestion = if (showingKeys && !searching) state.suggestions.bestStripSlot() else -1,
             incognito = state.incognito,
+            emojiSearch = state.emojiSearch,
+            emojiResults = if (searching) emojiResults else emptyList(),
         )
     }
 

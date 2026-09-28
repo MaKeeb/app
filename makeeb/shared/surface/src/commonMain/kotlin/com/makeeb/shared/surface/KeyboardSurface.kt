@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -18,10 +19,12 @@ import com.makeeb.shared.keyboard.KeyboardRenderer
 import com.makeeb.shared.keyboard.KeyboardSession
 import com.makeeb.shared.keyboard.StripAction
 import com.makeeb.core.common.currentMinuteOfDay
+import com.makeeb.core.model.ImeAction
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.feature.clipboard.ClipboardPanel
 import com.makeeb.feature.emoji.EmojiPanel
+import com.makeeb.feature.emoji.EmojiSearchStrip
 import com.makeeb.feature.keyboard.KeyboardKeys
 import com.makeeb.feature.settings.QuickSettingsPanel
 import com.makeeb.feature.suggestions.StripButton
@@ -50,7 +53,18 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                 .background(KeyboardTheme.colors.background)
                 .padding(bottom = bottomInset + KeyboardMetrics.BOTTOM_PADDING.dp),
         ) {
-            SuggestionStrip(
+            val searching = state.emojiSearch
+            if (searching != null) {
+                val recents by session.emojiRecentsState.collectAsState()
+                val results = remember(searching, recents) { if (searching.isBlank()) recents else session.emojiCatalog.search(searching) }
+                EmojiSearchStrip(
+                    query = searching,
+                    results = results,
+                    onEmoji = session::onEmoji,
+                    onClose = session::endEmojiSearch,
+                    modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
+                )
+            } else SuggestionStrip(
                 suggestions = if (state.panel == KeyboardPanel.Keys) state.suggestions else emptyList(),
                 onSuggestion = session::onSuggestion,
                 modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
@@ -81,7 +95,8 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                     geometry = geometry,
                     touch = session.touch,
                     shift = state.shift,
-                    imeAction = state.editor.imeAction,
+                    // Enter closes an emoji search rather than reaching the field.
+                    imeAction = if (searching != null) ImeAction.Done else state.editor.imeAction,
                     onSizeChanged = { size -> session.setKeysAreaSize(size.width.toFloat(), size.height.toFloat()) },
                     modifier = area,
                 )
@@ -93,6 +108,7 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                         onEmoji = session::onEmoji,
                         onBackspace = { session.onKey(KeyAction.Backspace) },
                         onClose = { session.showPanel(KeyboardPanel.Keys) },
+                        onSearch = session::startEmojiSearch,
                         modifier = area,
                     )
                 }

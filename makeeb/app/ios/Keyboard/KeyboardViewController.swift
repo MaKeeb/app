@@ -10,6 +10,7 @@ final class KeyboardViewController: UIInputViewController {
     private lazy var emojiPanel = EmojiPanelView(bridge: bridge)
     private lazy var clipboardPanel = ClipboardPanelView(bridge: bridge)
     private lazy var quickSettingsPanel = QuickSettingsPanelView(bridge: bridge)
+    private lazy var emojiSearchStrip = EmojiSearchStripView(bridge: bridge)
     private var shownPanel: KeyboardPanel = .keys
     private var heightConstraint: NSLayoutConstraint?
 
@@ -55,6 +56,7 @@ final class KeyboardViewController: UIInputViewController {
             if keyboardView.render == nil { LaunchTrace.mark("first render") }
             keyboardView.render = render
             showPanel(for: render)
+            showEmojiSearch(for: render)
             // Quick settings can change the height (number row) while the keyboard is up.
             let height = preferredHeight()
             if let constraint = heightConstraint, constraint.constant != height { constraint.constant = height }
@@ -96,6 +98,26 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+
+    /// While searching emoji the strip shows the query and results over the (then empty) strip.
+    private func showEmojiSearch(for render: KeyboardRender) {
+        guard let query = render.emojiSearch else {
+            if emojiSearchStrip.superview != nil { emojiSearchStrip.removeFromSuperview() }
+            return
+        }
+        if emojiSearchStrip.superview == nil {
+            emojiSearchStrip.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(emojiSearchStrip)
+            NSLayoutConstraint.activate([
+                emojiSearchStrip.topAnchor.constraint(equalTo: view.topAnchor),
+                emojiSearchStrip.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                emojiSearchStrip.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                emojiSearchStrip.heightAnchor.constraint(equalToConstant: keyboardView.stripHeight),
+            ])
+        }
+        let palette = render.palette(systemDark: traitCollection.userInterfaceStyle == .dark)
+        emojiSearchStrip.update(query: query, results: render.emojiResults, palette: palette)
+    }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)

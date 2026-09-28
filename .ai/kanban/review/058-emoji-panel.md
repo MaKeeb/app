@@ -27,4 +27,4 @@ Categorized, scrollable emoji picker with recents and a skin-tone/gender variant
 
 ## Progress
 
-Android (Compose) and iOS (native UIKit) panels; recents first. Sample emoji set.
+Android (Compose) and iOS (native UIKit) panels; recents first. Full Unicode 15.1 catalogue with CLDR names since APP-59 (2026-09-28). Missing: the skin-tone/gender picker (tone support is flagged in the data).

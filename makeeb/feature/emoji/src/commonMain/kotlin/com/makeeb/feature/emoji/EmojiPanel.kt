@@ -44,6 +44,7 @@ fun EmojiPanel(
     onEmoji: (Emoji) -> Unit,
     onBackspace: () -> Unit,
     onClose: () -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = KeyboardTheme.colors
@@ -74,6 +75,7 @@ fun EmojiPanel(
         }
         Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
             PanelButton("ABC", onClose)
+            PanelButton("Search emoji", onSearch, icon = KeyboardIcons.Search)
             Spacer(Modifier.weight(1f))
             PanelButton("Delete", onBackspace, icon = KeyboardIcons.Backspace)
         }

@@ -191,6 +191,11 @@ class KeyboardSession(
         keyboardHost?.openSettings()
     }
 
+    /** Keys type into an emoji search until [endEmojiSearch], Enter or the emoji key. */
+    fun startEmojiSearch() = engine.startEmojiSearch()
+
+    fun endEmojiSearch() = engine.endEmojiSearch()
+
     fun onEmoji(emoji: Emoji) {
         engine.commitRawText(emoji.value)
         if (!engine.state.value.incognito) emojiRecents.record(emoji)

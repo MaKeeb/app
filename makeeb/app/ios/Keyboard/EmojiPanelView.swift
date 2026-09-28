@@ -11,6 +11,7 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
     private let grid: UICollectionView
     private let emptyLabel = UILabel()
     private let lettersButton = UIButton(type: .system)
+    private let searchButton = UIButton(type: .system)
     private let deleteButton = UIButton(type: .system)
     private var palette: KeyboardPalette?
     private var tab = 0
@@ -49,10 +50,12 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
         emptyLabel.textAlignment = .center
 
         configure(lettersButton, title: "ABC", accessibilityLabel: "Letters") { [weak self] in self?.bridge.showKeys() }
+        configure(searchButton, symbol: "magnifyingglass", accessibilityLabel: "Search emoji") { [weak self] in self?.bridge.startEmojiSearch() }
+        searchButton.accessibilityIdentifier = "emoji-search"
         configure(deleteButton, symbol: "delete.left", accessibilityLabel: "Delete") { [weak self] in self?.bridge.deleteBackward() }
 
         let bottomBar = UIView()
-        for view in [tabBar, grid, emptyLabel, bottomBar, lettersButton, deleteButton] as [UIView] {
+        for view in [tabBar, grid, emptyLabel, bottomBar, lettersButton, searchButton, deleteButton] as [UIView] {
             view.translatesAutoresizingMaskIntoConstraints = false
         }
         addSubview(tabBar)
@@ -60,6 +63,7 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
         addSubview(emptyLabel)
         addSubview(bottomBar)
         bottomBar.addSubview(lettersButton)
+        bottomBar.addSubview(searchButton)
         bottomBar.addSubview(deleteButton)
         NSLayoutConstraint.activate([
             tabBar.topAnchor.constraint(equalTo: topAnchor, constant: 2),
@@ -80,6 +84,10 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
             lettersButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor),
             lettersButton.widthAnchor.constraint(equalToConstant: 64),
             lettersButton.heightAnchor.constraint(equalToConstant: 38),
+            searchButton.leadingAnchor.constraint(equalTo: lettersButton.trailingAnchor, constant: 12),
+            searchButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor),
+            searchButton.widthAnchor.constraint(equalToConstant: 64),
+            searchButton.heightAnchor.constraint(equalToConstant: 38),
             deleteButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor, constant: -10),
             deleteButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor),
             deleteButton.widthAnchor.constraint(equalToConstant: 64),
@@ -101,7 +109,7 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
         self.palette = palette
         let onKey = UIColor(argb: palette.onKey)
         emptyLabel.textColor = UIColor(argb: palette.hint)
-        for button in [lettersButton, deleteButton] {
+        for button in [lettersButton, searchButton, deleteButton] {
             button.backgroundColor = UIColor(argb: palette.modifierKey)
             button.tintColor = onKey
             button.setTitleColor(onKey, for: .normal)

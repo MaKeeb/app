@@ -1,5 +1,6 @@
 package com.makeeb.engine.input
 
+import com.makeeb.core.common.Graphemes
 import com.makeeb.core.common.TextBoundaries
 import com.makeeb.core.model.Capitalization
 import com.makeeb.core.model.EditorAttributes
@@ -87,7 +88,7 @@ class InputEngine(
         host = DetachedTextHost
         mirror = null
         keyboardHost = null
-        mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys) }
+        mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys, emojiSearch = null) }
     }
 
     /** The user's incognito toggle; the field's own request applies regardless. */
@@ -131,6 +132,7 @@ class InputEngine(
     // region Input
 
     fun onKey(action: KeyAction) {
+        if (state.value.emojiSearch != null && searchKey(action)) return
         when (action) {
             is KeyAction.Text -> typeText(action.text)
             KeyAction.Space -> typeSpace()
@@ -159,10 +161,56 @@ class InputEngine(
         if (action != KeyAction.Space) lastSpace = null
     }
 
+    // region Emoji search
+
+    /** Keys now type into an emoji search query; the letters show so the user can type it. */
+    fun startEmojiSearch() {
+        mutableState.update {
+            it.copy(
+                emojiSearch = "",
+                panel = KeyboardPanel.Keys,
+                mode = KeyboardMode.Letters,
+                layout = layoutFor(KeyboardMode.Letters, it.editor),
+                shift = ShiftState.Off,
+                suggestions = emptyList(),
+            )
+        }
+    }
+
+    /** Leave the search, back to the emoji panel ([toPanel]) or straight to the keys. */
+    fun endEmojiSearch(toPanel: KeyboardPanel = KeyboardPanel.Emoji) {
+        mutableState.update { it.copy(emojiSearch = null, panel = toPanel) }
+        if (toPanel == KeyboardPanel.Keys) resyncWithHost()
+    }
+
+    /**
+     * A key while searching. Returns false for keys that keep their usual meaning (mode
+     * switches, the globe). The field is never touched.
+     */
+    private fun searchKey(action: KeyAction): Boolean {
+        val query = state.value.emojiSearch ?: return false
+        fun setQuery(next: String) = mutableState.update { it.copy(emojiSearch = next, shift = ShiftState.Off) }
+        when (action) {
+            is KeyAction.Text -> setQuery(query + action.text.lowercase())
+            KeyAction.Space -> if (query.isNotEmpty() && !query.endsWith(' ')) setQuery("$query ")
+            KeyAction.Backspace -> setQuery(query.dropLast(Graphemes.lastLength(query)))
+            KeyAction.DeleteWord -> setQuery(query.trimEnd().dropLastWhile { it != ' ' })
+            KeyAction.Enter -> endEmojiSearch()
+            is KeyAction.ShowPanel -> endEmojiSearch(action.panel)
+            KeyAction.Shift, is KeyAction.MoveCursor, is KeyAction.MoveCursorByWord, KeyAction.None -> Unit
+            is KeyAction.SwitchMode, KeyAction.NextInputMethod, KeyAction.ShowInputMethodPicker -> return false
+        }
+        return true
+    }
+
+    // endregion
+
     /** Commit text from a panel (emoji, clipboard) verbatim: no shift, no autocorrect. */
     fun commitRawText(text: String) {
         pendingRevert = null
         host.commitText(text)
+        // An emoji picked from search results leaves the search open for the next one.
+        if (state.value.emojiSearch != null) return
         afterEdit(composing = TextBoundaries.trailingWord(state.value.composing + text))
     }
 
@@ -301,7 +349,7 @@ class InputEngine(
 
     private fun switchMode(mode: KeyboardMode) {
         mutableState.update { it.copy(mode = mode, layout = layoutFor(mode, it.editor), panel = KeyboardPanel.Keys, shift = ShiftState.Off) }
-        if (mode == KeyboardMode.Letters) resyncWithHost()
+        if (mode == KeyboardMode.Letters && state.value.emojiSearch == null) resyncWithHost()
     }
 
     // endregion

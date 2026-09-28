@@ -104,7 +104,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     fun observe(onRender: (KeyboardRender) -> Unit): RenderSubscription {
         val job = scope.launch {
             combine(session.engine.state, session.touch.state, session.geometry, session.preferences) { state, touch, geometry, prefs ->
-                KeyboardRenderer.render(state, touch, geometry, prefs)
+                KeyboardRenderer.render(state, touch, geometry, prefs, emojiResults(state.emojiSearch))
             }.combine(combine(session.emojiRecentsState, session.clipboardEntries) { _, _ -> }) { render, _ -> render }
                 .collect(onRender)
         }
@@ -132,6 +132,20 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         val emoji = session.emojiRecentsState.value.firstOrNull { it.value == value } ?: emojiByValue[value] ?: return
         session.onEmoji(emoji)
     }
+
+    /** Leaves the panel for the letters, which now type into the search query. */
+    fun startEmojiSearch() = session.startEmojiSearch()
+
+    fun endEmojiSearch() = session.endEmojiSearch()
+
+    private fun emojiResults(query: String?): List<String> = when {
+        query == null -> emptyList()
+        query.isBlank() -> session.emojiRecentsState.value.map { it.value }
+        else -> session.emojiCatalog.search(query).map { it.value }
+    }
+
+    /** The emoji's name, for VoiceOver. */
+    fun emojiName(value: String): String = emojiByValue[value]?.name ?: value
 
     private fun emojiList(tab: Int): List<Emoji> =
         if (tab == 0) session.emojiRecentsState.value

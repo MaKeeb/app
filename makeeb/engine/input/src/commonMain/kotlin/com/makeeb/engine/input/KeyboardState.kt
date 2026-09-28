@@ -21,6 +21,11 @@ data class KeyboardState(
     val active: Boolean = false,
     /** Incognito turned on by the user; it stays on across fields until turned off. */
     val manualIncognito: Boolean = false,
+    /**
+     * The emoji search query while the user is searching: keys then type into it instead of
+     * the field, and the strip shows it with the results. Null when not searching.
+     */
+    val emojiSearch: String? = null,
 ) {
     /** No learning, clipboard history or emoji recents: the field asked for it, or the user did. */
     val incognito: Boolean get() = editor.incognito || manualIncognito

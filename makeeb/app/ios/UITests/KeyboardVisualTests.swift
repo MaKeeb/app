@@ -521,6 +521,26 @@ final class KeyboardVisualTests: XCTestCase {
         save("I-ICON-home-\(theme)")
     }
 
+    /// Emoji search: the panel's search button, keys typing into the query in the strip, a result
+    /// typed into the field, and Enter back to the panel.
+    func test15_emojiSearch() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("ES")
+        tap(point("key-emoji", or: key("EMOJI")), pause: 1.2)
+        tap(point("emoji-search", or: CGPoint(x: 112, y: keyboardBottom - 23)), pause: 1.2)
+        save("I-EMOJI-search-empty")
+        type("pizza")
+        save("I-EMOJI-search")
+        results["ES-query"] = app.staticTexts["emoji-search-query"].firstMatch.label
+        tap(point("emoji-result-0", or: CGPoint(x: 44 + 112 + 4 + 21, y: keyboardBottom - 220 - strip / 2)), pause: 1.0)
+        results["ES-field"] = value("Text")
+        tap(key("ENTER"), pause: 1.2)
+        save("I-EMOJI-search-closed")
+        results["ES-field-after-enter"] = value("Text")
+        tap(point("Letters", or: CGPoint(x: 42, y: keyboardBottom - 23)), pause: 0.8)
+    }
+
     func test08_companion() {
         openTab("Setup")
         save("I-VT-30-setup")

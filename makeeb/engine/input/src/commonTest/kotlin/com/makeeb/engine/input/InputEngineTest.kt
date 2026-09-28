@@ -6,6 +6,7 @@ import com.makeeb.core.model.FieldType
 import com.makeeb.core.model.ImeAction
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
+import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.ShiftState
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.engine.dictionary.StarterDictionaries
@@ -290,5 +291,44 @@ class InputEngineTest {
         start()
         engine.onKey(KeyAction.NextInputMethod)
         assertEquals(1, keyboardHost.switchCount)
+    }
+
+    @Test
+    fun emojiSearchTypesIntoTheQueryNotTheField() {
+        val host = start(FakeTextHost("Hi "))
+        engine.startEmojiSearch()
+        assertEquals("", engine.state.value.emojiSearch)
+        assertEquals(KeyboardPanel.Keys, engine.state.value.panel)
+        type("Pizz")
+        engine.onKey(KeyAction.Backspace)
+        type("za")
+        assertEquals("pizza", engine.state.value.emojiSearch, "lower case, backspace edits the query")
+        assertEquals("Hi |", host.toString(), "the field is untouched")
+
+        engine.commitRawText("🍕")
+        assertEquals("Hi 🍕|", host.toString())
+        assertEquals("pizza", engine.state.value.emojiSearch, "search stays open for another pick")
+
+        engine.onKey(KeyAction.SwitchMode(KeyboardMode.Symbols))
+        engine.onKey(KeyAction.Text("1"))
+        assertEquals("pizza1", engine.state.value.emojiSearch, "symbols type into the query too")
+
+        engine.onKey(KeyAction.Enter)
+        assertNull(engine.state.value.emojiSearch)
+        assertEquals(KeyboardPanel.Emoji, engine.state.value.panel)
+        assertEquals("Hi 🍕|", host.toString(), "Enter closed the search instead of reaching the field")
+    }
+
+    @Test
+    fun theEmojiKeyOrANewFieldEndsEmojiSearch() {
+        start()
+        engine.startEmojiSearch()
+        engine.onKey(KeyAction.ShowPanel(KeyboardPanel.Emoji))
+        assertNull(engine.state.value.emojiSearch)
+        assertEquals(KeyboardPanel.Emoji, engine.state.value.panel)
+
+        engine.startEmojiSearch()
+        start()
+        assertNull(engine.state.value.emojiSearch)
     }
 }

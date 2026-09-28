@@ -12,6 +12,7 @@
 		2CDFCB6725227E389B21CC30 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */; };
 		633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */; };
 		65239AA548161AFC0CE3456D /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 001C6F1F58B9712245AC6EA8 /* AppIcon.icon */; };
+		7C700FEFAFB6C16C904F7A82 /* EmojiSearchStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6DE313937EB26A887E6742 /* EmojiSearchStripView.swift */; };
 		7CA6A89D457B9CCD39F06BAB /* KeyboardProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */; };
 		8DD3F9527FE33D7AC0162870 /* ClipboardPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09514377D45359E63E8A13E /* ClipboardPanelView.swift */; };
 		9410CB54F91017FDA587FBB4 /* EmojiPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */; };
@@ -56,6 +57,7 @@
 
 /* Begin PBXFileReference section */
 		001C6F1F58B9712245AC6EA8 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		0B6DE313937EB26A887E6742 /* EmojiSearchStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiSearchStripView.swift; sourceTree = "<group>"; };
 		0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		119987389ABB46E600651369 /* MaKeebApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaKeebApp.swift; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 			children = (
 				C09514377D45359E63E8A13E /* ClipboardPanelView.swift */,
 				F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */,
+				0B6DE313937EB26A887E6742 /* EmojiSearchStripView.swift */,
 				AFAA5A64B875CCE1F9B12B1B /* Info.plist */,
 				482A155E304EFB2862C9C10B /* Keyboard.entitlements */,
 				4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */,
@@ -335,6 +338,7 @@
 			files = (
 				8DD3F9527FE33D7AC0162870 /* ClipboardPanelView.swift in Sources */,
 				9410CB54F91017FDA587FBB4 /* EmojiPanelView.swift in Sources */,
+				7C700FEFAFB6C16C904F7A82 /* EmojiSearchStripView.swift in Sources */,
 				981F37B40A19EB8AF0FF5410 /* KeyboardView.swift in Sources */,
 				633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */,
 				EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */,

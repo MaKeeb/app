@@ -75,4 +75,20 @@ class KeyboardRendererTest {
         assertEquals(listOf(",", ".", "?", "!"), punctuation.suggestions)
         assertEquals(-1, punctuation.bestSuggestion)
     }
+
+    @Test
+    fun anEmojiSearchReplacesTheStripAndEnterClosesIt() {
+        val state = KeyboardState(
+            layout = layout,
+            emojiSearch = "piz",
+            suggestions = listOf(Suggestion("pizza", Suggestion.Kind.Completion)),
+        )
+        val render = KeyboardRenderer.render(state, TouchState(), LayoutGeometry(layout, 375f, 54f), KeyboardPreferences(), emojiResults = listOf("🍕"))
+        assertEquals("piz", render.emojiSearch)
+        assertEquals(listOf("🍕"), render.emojiResults)
+        assertTrue(render.suggestions.isEmpty(), "the query takes the strip")
+        assertTrue(render.stripActions.isEmpty())
+        assertTrue(render.keys.isNotEmpty(), "the letters stay for typing the query")
+        assertEquals(KeyIcon.Done, render.keys.last().icon)
+    }
 }

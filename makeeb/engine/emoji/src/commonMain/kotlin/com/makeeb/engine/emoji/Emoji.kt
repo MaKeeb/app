@@ -16,6 +16,8 @@ data class Emoji(
     val name: String,
     val category: EmojiCategory,
     val keywords: List<String> = emptyList(),
+    /** Comes in the five skin tones (for the tone picker). */
+    val hasSkinTones: Boolean = false,
 )
 
 interface EmojiCatalog {
@@ -23,6 +25,6 @@ interface EmojiCatalog {
 
     fun emojis(category: EmojiCategory): List<Emoji>
 
-    /** Case-insensitive match on name and keywords, prefix matches first. */
+    /** Case-insensitive, by word prefixes of the name and keywords; best matches first. */
     fun search(query: String, limit: Int = 24): List<Emoji>
 }

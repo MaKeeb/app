@@ -13,10 +13,26 @@ class EmojiTest {
     }
 
     @Test
-    fun searchPrefersPrefixMatches() {
-        val results = catalog.search("heart").map { it.value }
-        assertEquals("😍", results.first()) // "heart_eyes" name → "heart eyes"
-        assertTrue("❤️" in results)
+    fun theWholeCatalogueLoads() {
+        val count = catalog.categories.sumOf { catalog.emojis(it).size }
+        assertTrue(count > 1800, "got $count")
+        val thumbs = catalog.emojis(EmojiCategory.SmileysAndPeople).first { it.value == "👍" }
+        assertEquals("thumbs up", thumbs.name)
+        assertTrue(thumbs.hasSkinTones)
+        assertTrue("+1" in thumbs.keywords)
+    }
+
+    @Test
+    fun searchRanksExactThenPrefixThenKeywordMatches() {
+        val heart = catalog.search("heart").map { it.value }
+        assertEquals("❤️", heart.first(), "the most used of the exact keyword matches: $heart")
+        assertTrue("😍" in heart)
+        assertEquals("🍕", catalog.search("pizza").first().value)
+        assertEquals("😂", catalog.search("tears of joy").first().value)
+        assertEquals("👍", catalog.search("+1").first().value)
+        assertTrue(catalog.search("thumbs").take(2).map { it.value }.containsAll(listOf("👍", "👎")))
+        assertTrue(catalog.search("RED HEART").map { it.value }.first() == "❤️")
+        assertTrue(catalog.search("zzzqqq").isEmpty())
     }
 
     @Test
