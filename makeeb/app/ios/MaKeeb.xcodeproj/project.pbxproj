@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1356FB1E1EB172277C215D72 /* KeyboardVisualTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */; };
+		17EB3B4BEF78A59ACB3A6B89 /* MemoryGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E725AFB6639BE5331E772D /* MemoryGuard.swift */; };
 		24480B826943FC3844A47E6F /* MaKeebApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119987389ABB46E600651369 /* MaKeebApp.swift */; };
 		2CDFCB6725227E389B21CC30 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */; };
 		633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */; };
@@ -22,6 +23,7 @@
 		C115A8D3ABFAE3FF61DBF3B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EB90F42D3112441D0CFA919 /* Assets.xcassets */; };
 		C4A85C91E499D1B86295B47F /* QuickSettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */; };
 		EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */; };
+		FE96300EDADFBA1A13027FF8 /* MemoryTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A72098F6A0FF652FB72687 /* MemoryTrace.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,12 +59,14 @@
 
 /* Begin PBXFileReference section */
 		001C6F1F58B9712245AC6EA8 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		00A72098F6A0FF652FB72687 /* MemoryTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryTrace.swift; sourceTree = "<group>"; };
 		0B6DE313937EB26A887E6742 /* EmojiSearchStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiSearchStripView.swift; sourceTree = "<group>"; };
 		0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		119987389ABB46E600651369 /* MaKeebApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaKeebApp.swift; sourceTree = "<group>"; };
 		12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardVisualTests.swift; sourceTree = "<group>"; };
 		21460D4EAB227B92B6EC7C28 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		21E725AFB6639BE5331E772D /* MemoryGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryGuard.swift; sourceTree = "<group>"; };
 		482A155E304EFB2862C9C10B /* Keyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Keyboard.entitlements; sourceTree = "<group>"; };
 		4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
 		5EB90F42D3112441D0CFA919 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -100,6 +104,8 @@
 				4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */,
 				0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */,
 				87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */,
+				21E725AFB6639BE5331E772D /* MemoryGuard.swift */,
+				00A72098F6A0FF652FB72687 /* MemoryTrace.swift */,
 				10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */,
 				E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */,
 			);
@@ -342,6 +348,8 @@
 				981F37B40A19EB8AF0FF5410 /* KeyboardView.swift in Sources */,
 				633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */,
 				EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */,
+				17EB3B4BEF78A59ACB3A6B89 /* MemoryGuard.swift in Sources */,
+				FE96300EDADFBA1A13027FF8 /* MemoryTrace.swift in Sources */,
 				C4A85C91E499D1B86295B47F /* QuickSettingsPanelView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

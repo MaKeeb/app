@@ -27,4 +27,7 @@ interface EmojiCatalog {
 
     /** Case-insensitive, by word prefixes of the name and keywords; best matches first. */
     fun search(query: String, limit: Int = 24): List<Emoji>
+
+    /** The emoji with exactly this [value], or null. */
+    fun find(value: String): Emoji?
 }

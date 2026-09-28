@@ -20,6 +20,8 @@ class EmojiTest {
         assertEquals("thumbs up", thumbs.name)
         assertTrue(thumbs.hasSkinTones)
         assertTrue("+1" in thumbs.keywords)
+        assertEquals(thumbs, catalog.find("👍"))
+        assertEquals(null, catalog.find("not an emoji"))
     }
 
     @Test

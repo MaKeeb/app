@@ -35,6 +35,7 @@ final class KeyboardViewController: UIInputViewController {
         LaunchTrace.mark("viewDidLoad")
         bridge = KeyboardExtensionBridge(controller: self)
         LaunchTrace.mark("bridge ready")
+        MemoryTrace.mark("bridge ready")
         keyboardView.bridge = bridge
         keyboardView.inputController = self
         keyboardView.stripHeight = CGFloat(bridge.stripHeight)
@@ -53,7 +54,11 @@ final class KeyboardViewController: UIInputViewController {
 
         subscription = bridge.observe { [weak self] render in
             guard let self else { return }
-            if keyboardView.render == nil { LaunchTrace.mark("first render") }
+            if keyboardView.render == nil {
+                LaunchTrace.mark("first render")
+                MemoryTrace.mark("first render")
+            }
+            MemoryTrace.sample()
             keyboardView.render = render
             showPanel(for: render)
             showEmojiSearch(for: render)
@@ -68,6 +73,7 @@ final class KeyboardViewController: UIInputViewController {
         let palette = render.palette(systemDark: traitCollection.userInterfaceStyle == .dark)
         if render.panel != shownPanel {
             shownPanel = render.panel
+            MemoryTrace.mark("panel \(render.panel.name)")
             for panel in [emojiPanel, clipboardPanel, quickSettingsPanel] as [UIView] where panel.superview != nil {
                 panel.removeFromSuperview()
             }
@@ -106,6 +112,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
         if emojiSearchStrip.superview == nil {
+            MemoryTrace.mark("emoji search")
             emojiSearchStrip.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(emojiSearchStrip)
             NSLayoutConstraint.activate([
@@ -146,7 +153,13 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        MemoryTrace.mark("disappear")
         bridge.viewWillDisappear()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        MemoryGuard.recycleIfNeeded()
     }
 
     override func textDidChange(_ textInput: UITextInput?) {

@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 16 |
+| [Ready to start](todo/_todo.md) | 15 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 47 |
+| [In review](review/_review.md) | 48 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -39,6 +39,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-106](review/106-compose-ime-host-android.md): Compose IME host (Android)
 - [APP-107](review/107-native-keyboard-renderer-ios.md): Native keyboard renderer (iOS)
 - [APP-109](review/109-editor-text-mirror.md): Editor text mirror
+- [APP-111](review/111-ios-extension-memory-budget.md): iOS extension memory budget
 - [APP-112](review/112-first-on-device-run.md): First on-device run
 - [APP-119](review/119-function-key-icons-material-symbols-sf-symbols.md): Function-key icons (Material Symbols / SF Symbols)
 - [APP-120](review/120-keyboard-clears-the-system-nav-buttons-android.md): Keyboard clears the system nav buttons (Android)
@@ -70,7 +71,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-110](todo/110-memory-mapped-dictionary-format.md): Memory-mapped dictionary format
-- [APP-111](todo/111-ios-extension-memory-budget.md): iOS extension memory budget
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting

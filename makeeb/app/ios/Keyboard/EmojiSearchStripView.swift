@@ -110,7 +110,7 @@ final class EmojiSearchStripView: UIView, UICollectionViewDataSource, UICollecti
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ResultCell.reuseId, for: indexPath) as! ResultCell
-        cell.label.text = emoji[indexPath.item]
+        cell.show(emoji[indexPath.item])
         cell.accessibilityLabel = bridge.emojiName(value: emoji[indexPath.item])
         cell.accessibilityIdentifier = "emoji-result-\(indexPath.item)"
         return cell
@@ -124,7 +124,7 @@ final class EmojiSearchStripView: UIView, UICollectionViewDataSource, UICollecti
 
 private final class ResultCell: UICollectionViewCell {
     static let reuseId = "result"
-    let label = UILabel()
+    private let label = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -139,5 +139,9 @@ private final class ResultCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) is not supported")
+    }
+
+    func show(_ emoji: String) {
+        label.text = emoji
     }
 }

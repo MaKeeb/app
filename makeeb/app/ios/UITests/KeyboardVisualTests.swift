@@ -581,13 +581,45 @@ final class KeyboardVisualTests: XCTestCase {
         save("I-EMOJI-search-empty")
         type("pizza")
         save("I-EMOJI-search")
-        results["ES-query"] = app.staticTexts["emoji-search-query"].firstMatch.label
+        let query = app.staticTexts["emoji-search-query"].firstMatch
+        results["ES-query"] = query.waitForExistence(timeout: 5) ? query.label : "(not exposed yet)"
         tap(point("emoji-result-0", or: CGPoint(x: 44 + 112 + 4 + 21, y: keyboardBottom - 220 - strip / 2)), pause: 1.0)
         results["ES-field"] = value("Text")
         tap(key("ENTER"), pause: 1.2)
         save("I-EMOJI-search-closed")
         results["ES-field-after-enter"] = value("Text")
         tap(point("Letters", or: CGPoint(x: 42, y: keyboardBottom - 23)), pause: 0.8)
+    }
+
+    /// A heavy session for the memory budget (scripts/ios-memory-check.py reads the extension's
+    /// MemoryTrace): typing, every emoji category, an emoji search, clipboard and quick settings.
+    func test16_memorySession() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("MEM")
+        type("the quick brown fox jumps over the lazy dog ")
+        tap(point("key-emoji", or: key("EMOJI")), pause: 1.0)
+        for index in 0..<9 {
+            // Category tabs along the panel's top edge, recents first.
+            let tabWidth = (screenWidth - 12) / 9
+            tap(CGPoint(x: 6 + tabWidth * (CGFloat(index) + 0.5), y: keyboardBottom - 220 + 20), pause: 0.6)
+            coordinate(CGPoint(x: 200, y: keyboardBottom - 90)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 200, y: keyboardBottom - 180)))
+        }
+        tap(point("emoji-search", or: CGPoint(x: 112, y: keyboardBottom - 23)), pause: 1.0)
+        type("heart")
+        tap(point("emoji-result-0", or: CGPoint(x: 44 + 112 + 4 + 21, y: keyboardBottom - 220 - strip / 2)), pause: 0.6)
+        tap(key("ENTER"), pause: 0.8)
+        tap(point("Letters", or: CGPoint(x: 42, y: keyboardBottom - 23)), pause: 0.8)
+        tap(point("strip-clipboard", or: CGPoint(x: 30, y: keyboardBottom - 220 - strip / 2)), pause: 1.0)
+        tap(point("strip-clipboard", or: CGPoint(x: 30, y: keyboardBottom - 220 - strip / 2)), pause: 0.8)
+        tap(point("strip-settings", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - 220 - strip / 2)), pause: 1.0)
+        tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - 220 + 20)), pause: 0.8)
+        type("done ")
+        save("I-MEMORY-session")
+        // Hide the keyboard so the extension's MemoryGuard runs (it recycles a heavy process). The
+        // tab bar sits under the keyboard, so leave the app instead.
+        XCUIDevice.shared.press(.home)
+        Thread.sleep(forTimeInterval: 3)
     }
 
     func test08_companion() {

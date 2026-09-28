@@ -129,7 +129,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
 
     /** By value, not position: recents reorder as soon as one is used. */
     fun commitEmoji(value: String) {
-        val emoji = session.emojiRecentsState.value.firstOrNull { it.value == value } ?: emojiByValue[value] ?: return
+        val emoji = session.emojiRecentsState.value.firstOrNull { it.value == value } ?: session.emojiCatalog.find(value) ?: return
         session.onEmoji(emoji)
     }
 
@@ -145,15 +145,12 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     }
 
     /** The emoji's name, for VoiceOver. */
-    fun emojiName(value: String): String = emojiByValue[value]?.name ?: value
+    fun emojiName(value: String): String = session.emojiCatalog.find(value)?.name ?: value
 
     private fun emojiList(tab: Int): List<Emoji> =
         if (tab == 0) session.emojiRecentsState.value
         else session.emojiCatalog.categories.getOrNull(tab - 1)?.let(session.emojiCatalog::emojis).orEmpty()
 
-    private val emojiByValue: Map<String, Emoji> by lazy {
-        session.emojiCatalog.categories.flatMap(session.emojiCatalog::emojis).associateBy { it.value }
-    }
 
     // endregion
 

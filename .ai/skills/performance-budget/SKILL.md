@@ -25,8 +25,10 @@ The numbers are the go/no-go gates from `docs/research/platform-apis.md` §6.7. 
 
 ## iOS
 
-- Measure memory on a device. The simulator doesn't enforce the extension limit.
-- `phys_footprint` is the number jetsam uses. For a Debug-only overlay or a periodic log line:
+- Measure memory on a device. The simulator doesn't enforce the extension limit (and `os_proc_available_memory` returns 0 there).
+- **Regression check:** `makeeb/scripts/ios-memory-check.py --udid <sim>` runs `KeyboardVisualTests/test16_memorySession`, reads the extension's `MemoryTrace` (`tmp/memory.txt`, Debug builds) and enforces two budgets: typing ≤ 30 MB before any emoji is drawn, and ≤ 60 MB for the whole session. Measured on the iPhone 17 simulator (2026-09-28): typing 19 MB; session 52 MB.
+- **Emoji are the memory hazard.** The first emoji drawn loads iOS's emoji font machinery (~18 MB, a transient +30 MB). Core Text then keeps every distinct emoji glyph it has drawn for the life of the process, and neither dropping the font nor a memory warning frees it. That costs ~20 KB per glyph at 18 pt or below and ~52 KB at 19–32 pt (VocaHQ/vocaphone#340 measured the same). So the panel draws emoji at 18 pt, never lists skin-tone variants, and `MemoryGuard` exits the process on hide above 60% of the limit (45 MB where the limit is unknown), so the next field cold-starts instead of the keyboard dying mid-use. Reading the font's `sbix` bitmaps directly doesn't work on iOS: its Apple Color Emoji stores `emjc`, not PNG.
+- `phys_footprint` is the number jetsam uses (`MemoryGuard.footprint()` in the extension):
 
 ```swift
 func physFootprint() -> UInt64 {

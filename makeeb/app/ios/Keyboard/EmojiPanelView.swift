@@ -119,6 +119,7 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
     }
 
     private func select(tab: Int) {
+        MemoryTrace.mark("emoji tab \(tab)")
         self.tab = tab
         styleTabs()
         reloadEmojis()
@@ -160,8 +161,7 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.reuseId, for: indexPath) as! EmojiCell
-        cell.label.text = emojis[indexPath.item]
-        cell.accessibilityLabel = emojis[indexPath.item]
+        cell.show(emojis[indexPath.item])
         return cell
     }
 
@@ -173,11 +173,11 @@ final class EmojiPanelView: UIView, UICollectionViewDataSource, UICollectionView
 
 private final class EmojiCell: UICollectionViewCell {
     static let reuseId = "emoji"
-    let label = UILabel()
+    private let label = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        label.font = .systemFont(ofSize: 28)
+        label.font = .systemFont(ofSize: 18)
         label.textAlignment = .center
         label.frame = contentView.bounds
         label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -188,5 +188,10 @@ private final class EmojiCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) is not supported")
+    }
+
+    func show(_ emoji: String) {
+        label.text = emoji
+        accessibilityLabel = emoji
     }
 }
