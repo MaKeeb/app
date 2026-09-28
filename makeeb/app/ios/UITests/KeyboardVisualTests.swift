@@ -507,6 +507,20 @@ final class KeyboardVisualTests: XCTestCase {
         return CGPoint(x: element.frame.midX, y: element.frame.midY)
     }
 
+    /// The app icon on the home screen (the page holding MaKeeb), in the current appearance.
+    func test13_homeIcon() {
+        XCUIDevice.shared.press(.home)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let icon = springboard.icons["MaKeeb"].firstMatch
+        XCTAssertTrue(icon.waitForExistence(timeout: 10))
+        for _ in 0..<4 where !icon.isHittable {
+            springboard.swipeLeft()
+            Thread.sleep(forTimeInterval: 0.8)
+        }
+        Thread.sleep(forTimeInterval: 1.5)
+        save("I-ICON-home-\(theme)")
+    }
+
     func test08_companion() {
         openTab("Setup")
         save("I-VT-30-setup")

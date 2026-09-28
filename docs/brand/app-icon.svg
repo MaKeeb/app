@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- MaKeeb's icon, flat: the Android adaptive layers (app/android/src/main/res/drawable/ic_launcher_*.xml)
+       and the Play Store render come from this geometry. iOS uses the layered Liquid Glass version,
+       app/ios/MaKeeb/AppIcon.icon (edit it in Icon Composer). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B78FF"/>
+      <stop offset="1" stop-color="#2C40D6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.18" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EEF1FF"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <!-- keycap: shadow, body (the thicker lower lip reads as depth), raised face, legend -->
+  <rect x="246" y="272" width="532" height="560" rx="128" fill="#0A1680" filter="url(#shadow)"/>
+  <rect x="232" y="220" width="560" height="580" rx="128" fill="#C9D2FF"/>
+  <rect x="272" y="236" width="480" height="464" rx="100" fill="url(#face)"/>
+  <polyline points="380,590 380,360 512,492 644,360 644,590" fill="none" stroke="#3F5EFB"
+            stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

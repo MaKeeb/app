@@ -8,7 +8,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 19 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 40 |
+| [In review](review/_review.md) | 41 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -53,6 +53,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-124](review/124-visual-test-plan-run-on-android-and-ios.md): Visual test plan, run on Android and iOS
 - [APP-125](review/125-native-liquid-glass-tab-bar-ios-companion.md): Native Liquid Glass tab bar (iOS companion)
 - [APP-126](review/126-try-it-no-dead-band-above-the-keyboard.md): Try it: no dead band above the keyboard
+- [APP-132](review/132-app-icon-android-and-ios.md): App icon (Android and iOS)
 
 ## Ready to start
 

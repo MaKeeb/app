@@ -40,3 +40,4 @@
 38. [APP-124: Visual test plan, run on Android and iOS](124-visual-test-plan-run-on-android-and-ios.md)
 39. [APP-125: Native Liquid Glass tab bar (iOS companion)](125-native-liquid-glass-tab-bar-ios-companion.md)
 40. [APP-126: Try it: no dead band above the keyboard](126-try-it-no-dead-band-above-the-keyboard.md)
+41. [APP-132: App icon (Android and iOS)](132-app-icon-android-and-ios.md)

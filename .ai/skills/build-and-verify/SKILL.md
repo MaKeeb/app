@@ -51,6 +51,8 @@ adb -s emulator-5554 shell am start -n com.makeeb.debug/com.makeeb.android.MainA
 
 Create a throwaway device instead of using the user's: `xcrun simctl create MaKeeb-verify com.apple.CoreSimulator.SimDeviceType.iPhone-17 com.apple.CoreSimulator.SimRuntime.iOS-27-0`, then boot, `install`, `launch com.makeeb.ios`, `io <udid> screenshot`, and `delete` it afterwards. `simctl` cannot tap, so testing the keyboard extension itself needs Simulator.app or a device: Settings → General → Keyboard → Keyboards → Add → MaKeeb.
 
+The app icon is `app/ios/MaKeeb/AppIcon.icon`, an Icon Composer document (edit it in Xcode's Icon Composer; check a render with its `ictool --export-image`). XcodeGen adds it as a `wrapper.icon` file, which actool compiles into `Assets.car` with fallbacks for older iOS. SpringBoard caches icons, so reboot the simulator to see a change (`KeyboardVisualTests/test13_homeIcon` captures the home screen). Android's adaptive icon layers are `app/android/src/main/res/drawable/ic_launcher_*.xml`; `docs/brand/app-icon.svg` is the shared geometry.
+
 ## Definition of done
 
 `jvmTest` passes, plus the builds for each platform you touched. For UI or IME changes, one emulator screenshot of the change. Write logs and screenshots to the session scratchpad or `.ai/local/`, not the repo (curated screenshots go in `docs/screenshots/`. Paths such as `app/android/build/...` above are relative to `makeeb/`).
