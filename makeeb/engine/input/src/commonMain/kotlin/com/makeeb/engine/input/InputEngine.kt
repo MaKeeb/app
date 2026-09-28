@@ -67,7 +67,13 @@ class InputEngine(
         rejectedCorrection = null
         lastSpace = null
         val mode = attributes.initialMode
-        mutableState.value = KeyboardState(layout = layoutFor(mode, attributes), mode = mode, editor = attributes, active = true)
+        mutableState.value = KeyboardState(
+            layout = layoutFor(mode, attributes),
+            mode = mode,
+            editor = attributes,
+            active = true,
+            manualIncognito = state.value.manualIncognito,
+        )
         resyncWithHost()
     }
 
@@ -75,6 +81,11 @@ class InputEngine(
         host = DetachedTextHost
         keyboardHost = null
         mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys) }
+    }
+
+    /** The user's incognito toggle; the field's own request applies regardless. */
+    fun setIncognito(on: Boolean) {
+        mutableState.update { it.copy(manualIncognito = on) }
     }
 
     /** Preferences that shape the layout (number row, letter layout) changed. */
@@ -327,7 +338,7 @@ class InputEngine(
     }
 
     private fun learn(word: String) {
-        if (!state.value.editor.incognito) suggestionEngine.learn(word)
+        if (!state.value.incognito) suggestionEngine.learn(word)
     }
 
     private fun layoutFor(mode: KeyboardMode, editor: EditorAttributes): KeyboardLayout {

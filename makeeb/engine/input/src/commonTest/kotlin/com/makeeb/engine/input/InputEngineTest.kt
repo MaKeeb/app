@@ -211,6 +211,20 @@ class InputEngineTest {
     }
 
     @Test
+    fun manualIncognitoStopsLearningAndStaysOnAcrossFields() {
+        start()
+        engine.setIncognito(true)
+        type("zorblax ")
+        start()
+        assertTrue(engine.state.value.incognito)
+        type("zorblax ")
+        assertNull(userDictionary.lookup("zorblax"))
+        engine.setIncognito(false)
+        type("zorblax ")
+        assertEquals("zorblax", userDictionary.lookup("zorblax")?.word)
+    }
+
+    @Test
     fun doubleTapShiftLocksCaps() {
         val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
         engine.onKey(KeyAction.Shift)

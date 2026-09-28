@@ -7,6 +7,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":platform:host"))
+            api(project(":platform:clipboard"))
+            api(project(":core:settings"))
         }
     }
 }

@@ -96,7 +96,8 @@ final class KeyboardView: UIView {
     private func drawStripActions(_ render: KeyboardRender, palette: KeyboardPalette) {
         for (action, frame) in stripActionFrames() {
             let open = (action == .emoji && render.panel == .emoji) || (action == .clipboard && render.panel == .clipboard)
-            let color = UIColor(argb: open ? palette.onKey : palette.hint)
+                || (action == .incognito && render.incognito)
+            let color = UIColor(argb: open ? palette.accentKey : palette.hint)
             let configuration = UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
             guard let symbol = UIImage(systemName: stripSymbol(action), withConfiguration: configuration)?
                 .withTintColor(color, renderingMode: .alwaysOriginal) else { continue }
@@ -124,6 +125,7 @@ final class KeyboardView: UIView {
         switch action {
         case .emoji: return "face.smiling"
         case .clipboard: return "list.clipboard"
+        case .incognito: return "eye.slash"
         default: return "gearshape"
         }
     }
@@ -132,6 +134,7 @@ final class KeyboardView: UIView {
         switch action {
         case .emoji: return "Emoji"
         case .clipboard: return "Clipboard"
+        case .incognito: return "Incognito"
         default: return "MaKeeb settings"
         }
     }
@@ -253,7 +256,7 @@ final class KeyboardView: UIView {
         // Touch-state renders (pressed keys, previews) don't change what VoiceOver should read.
         let signature = render.keys.map { "\($0.label)|\($0.icon?.name ?? "")|\($0.frame.x),\($0.frame.y)" }.joined(separator: ";")
             + "#" + render.suggestions.joined(separator: ";")
-            + "#" + render.stripActions.map(\.name).joined(separator: ";") + "#\(render.panel.name)"
+            + "#" + render.stripActions.map(\.name).joined(separator: ";") + "#\(render.panel.name)#\(render.incognito)"
         guard signature != accessibilitySignature else { return }
         accessibilitySignature = signature
 
@@ -272,7 +275,7 @@ final class KeyboardView: UIView {
             let element = UIAccessibilityElement(accessibilityContainer: self)
             element.accessibilityLabel = stripLabel(action)
             element.accessibilityIdentifier = "strip-" + action.name.lowercased()
-            element.accessibilityTraits = .button
+            element.accessibilityTraits = action == .incognito && render.incognito ? [.button, .selected] : .button
             element.accessibilityFrameInContainerSpace = frame
             elements.append(element)
         }

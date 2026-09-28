@@ -38,6 +38,8 @@ data class KeyboardRender(
     val stripActions: List<StripAction> = emptyList(),
     /** The cell of [suggestions] drawn in bold (the best word), or -1. */
     val bestSuggestion: Int = -1,
+    /** Incognito is on (the strip's incognito button is lit). */
+    val incognito: Boolean = false,
 ) {
     /** Resolved when drawn, so a scheduled theme switches at its time. */
     fun palette(systemDark: Boolean): KeyboardPalette {
@@ -68,7 +70,7 @@ data class RenderPreview(val label: String, val frame: RenderRect)
 data class RenderPopup(val options: List<String>, val cells: List<RenderRect>, val selected: Int)
 
 /** Buttons in the suggestion strip while there is nothing to suggest. */
-enum class StripAction { Emoji, Clipboard, Settings }
+enum class StripAction { Emoji, Clipboard, Incognito, Settings }
 
 object KeyboardRenderer {
     fun render(
@@ -104,6 +106,7 @@ object KeyboardRenderer {
             panel = state.panel,
             stripActions = stripActions(state, canOpenSettings),
             bestSuggestion = if (showingKeys) state.suggestions.bestStripSlot() else -1,
+            incognito = state.incognito,
         )
     }
 
@@ -115,6 +118,7 @@ object KeyboardRenderer {
         val emojiKey = KeyAction.ShowPanel(KeyboardPanel.Emoji)
         if (state.layout.rows.none { row -> row.keys.any { it.action == emojiKey } }) add(StripAction.Emoji)
         add(StripAction.Clipboard)
+        add(StripAction.Incognito)
         if (canOpenSettings) add(StripAction.Settings)
     }
 

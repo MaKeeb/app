@@ -57,7 +57,13 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                 // Hiding and switching keyboards live in the system navigation bar on Android 10+.
                 val actions = KeyboardRenderer.stripActions(state, session.canOpenSettings)
                 actions.filter { it != StripAction.Settings }.forEach { action ->
-                    StripButton(action.icon(), action.description(), onClick = { session.perform(action) })
+                    val active = when (action) {
+                        StripAction.Emoji -> state.panel == KeyboardPanel.Emoji
+                        StripAction.Clipboard -> state.panel == KeyboardPanel.Clipboard
+                        StripAction.Incognito -> state.incognito
+                        StripAction.Settings -> false
+                    }
+                    StripButton(action.icon(), action.description(), onClick = { session.perform(action) }, active = active)
                 }
                 Spacer(Modifier.weight(1f))
                 if (StripAction.Settings in actions) {
@@ -107,11 +113,13 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
 private fun StripAction.icon() = when (this) {
     StripAction.Emoji -> KeyboardIcons.Emoji
     StripAction.Clipboard -> KeyboardIcons.Clipboard
+    StripAction.Incognito -> KeyboardIcons.Incognito
     StripAction.Settings -> KeyboardIcons.Settings
 }
 
 private fun StripAction.description() = when (this) {
     StripAction.Emoji -> "Emoji"
     StripAction.Clipboard -> "Clipboard"
+    StripAction.Incognito -> "Incognito"
     StripAction.Settings -> "MaKeeb settings"
 }

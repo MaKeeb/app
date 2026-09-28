@@ -50,11 +50,11 @@ class KeyboardRendererTest {
     @Test
     fun stripOffersEmojiOnlyWithoutAnEmojiKeyAndSettingsOnlyWhenPossible() {
         val withEmojiKey = KeyboardState(layout = layout)
-        assertEquals(listOf(StripAction.Clipboard), KeyboardRenderer.stripActions(withEmojiKey, canOpenSettings = false))
+        assertEquals(listOf(StripAction.Clipboard, StripAction.Incognito), KeyboardRenderer.stripActions(withEmojiKey, canOpenSettings = false))
 
         val globeLayout = BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions(switchKey = true))
         assertEquals(
-            listOf(StripAction.Emoji, StripAction.Clipboard, StripAction.Settings),
+            listOf(StripAction.Emoji, StripAction.Clipboard, StripAction.Incognito, StripAction.Settings),
             KeyboardRenderer.stripActions(KeyboardState(layout = globeLayout), canOpenSettings = true),
         )
     }

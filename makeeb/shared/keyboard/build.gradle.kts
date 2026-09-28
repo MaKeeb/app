@@ -34,5 +34,8 @@ kotlin {
             implementation(project(":core:common"))
             api(libs.koin.core)
         }
+        commonTest.dependencies {
+            implementation(project(":testing"))
+        }
     }
 }

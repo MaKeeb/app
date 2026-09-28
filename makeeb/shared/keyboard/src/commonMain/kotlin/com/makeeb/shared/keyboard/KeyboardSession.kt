@@ -141,6 +141,7 @@ class KeyboardSession(
         val panel = when (action) {
             StripAction.Emoji -> KeyboardPanel.Emoji
             StripAction.Clipboard -> KeyboardPanel.Clipboard
+            StripAction.Incognito -> return engine.setIncognito(!engine.state.value.manualIncognito)
             StripAction.Settings -> return openSettings()
         }
         showPanel(if (engine.state.value.panel == panel) KeyboardPanel.Keys else panel)
@@ -158,7 +159,7 @@ class KeyboardSession(
 
     fun onEmoji(emoji: Emoji) {
         engine.commitRawText(emoji.value)
-        emojiRecents.record(emoji)
+        if (!engine.state.value.incognito) emojiRecents.record(emoji)
     }
 
     fun onPaste(entry: ClipboardEntry) = engine.commitRawText(entry.text)
@@ -185,7 +186,7 @@ class KeyboardSession(
     private fun offerClip(clip: Clip) {
         // Never keep what password managers mark sensitive, nor anything copied while typing
         // into a field that asked for no learning.
-        if (!clip.isSensitive && !engine.state.value.editor.incognito) clipboardHistory.add(clip.text)
+        if (!clip.isSensitive && !engine.state.value.incognito) clipboardHistory.add(clip.text)
     }
 
     private fun playFeedback(key: Key) {

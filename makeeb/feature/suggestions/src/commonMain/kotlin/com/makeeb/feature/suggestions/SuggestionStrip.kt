@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,13 +71,18 @@ fun SuggestionStrip(
     }
 }
 
-/** A square toolbar button for the strip. */
+/** A square toolbar button for the strip; [active] (an open panel, incognito on) lights it. */
 @Composable
-fun StripButton(icon: ImageVector, contentDescription: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun StripButton(icon: ImageVector, contentDescription: String, onClick: () -> Unit, modifier: Modifier = Modifier, active: Boolean = false) {
+    val colors = KeyboardTheme.colors
     Box(
-        modifier.fillMaxHeight().width(52.dp).clickable(onClickLabel = contentDescription, onClick = onClick),
+        modifier
+            .fillMaxHeight()
+            .width(52.dp)
+            .semantics { selected = active }
+            .clickable(onClickLabel = contentDescription, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = contentDescription, tint = KeyboardTheme.colors.hint, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = contentDescription, tint = if (active) colors.accentKey else colors.hint, modifier = Modifier.size(22.dp))
     }
 }
