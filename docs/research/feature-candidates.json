@@ -1,0 +1,1015 @@
+{
+  "generated": "2026-09-27",
+  "features": [
+    {
+      "id": "key-grid-multitouch",
+      "title": "Key grid with multitouch and rollover",
+      "category": "core-typing",
+      "description": "Low-latency tap-to-type key grid that handles fast overlapping touches (rollover), cancelled touches and edge taps correctly. The rendering and hit-testing pipeline everything else builds on.",
+      "priority": "P0",
+      "effort": "L",
+      "seenIn": ["FlorisBoard", "HeliBoard", "AnySoftKeyboard", "FUTO Keyboard", "Hacker's Keyboard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "iOS keyboard extensions run under a tight memory ceiling, so renderer and Compose Multiplatform overhead must be measured early (see platform research)."
+    },
+    {
+      "id": "key-press-preview",
+      "title": "Key press preview popup",
+      "category": "core-typing",
+      "description": "Enlarged bubble showing the pressed character above the finger, with an option to disable it.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "AOSP LatinIME", "fcitx5-android", "Fossify Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: an extension cannot draw outside its own view, so top-row callouts need reserved headroom or an alternative design (verify)."
+    },
+    {
+      "id": "long-press-alternates",
+      "title": "Long-press alternate characters",
+      "category": "core-typing",
+      "description": "Long-press (or swipe-up) on a key opens a popup of accented letters, symbols or digits defined per layout and locale.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FlorisBoard", "AnySoftKeyboard", "fcitx5-android", "FUTO Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "shift-caps-lock",
+      "title": "Shift and caps lock",
+      "category": "core-typing",
+      "description": "One-shot shift, double-tap (or gesture) caps lock, and correct shifted labels on all keys.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "HeliBoard", "AnySoftKeyboard", "Unexpected Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "auto-capitalization",
+      "title": "Auto-capitalization",
+      "category": "core-typing",
+      "description": "Automatically shift at sentence starts and respect the text field's requested capitalization mode (words, sentences, characters, none).",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "HeliBoard", "AOSP LatinIME", "Gboard", "Apple Keyboard"],
+      "platformNotes": "Android: EditorInfo/getCursorCapsMode. iOS: autocapitalizationType trait plus documentContextBeforeInput, which only exposes limited context."
+    },
+    {
+      "id": "input-type-adaptation",
+      "title": "Field-aware layouts and action key",
+      "category": "core-typing",
+      "description": "Adapt the layout to the field type (email '@' and '.com', URL, number, date/time, password) and label the action key from the field's IME action (Go, Search, Send, Next).",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["AnySoftKeyboard", "HeliBoard", "FlorisBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: secure text fields and phone-pad fields always switch to the system keyboard, so a custom keyboard never sees them."
+    },
+    {
+      "id": "haptic-sound-feedback",
+      "title": "Haptic and sound feedback",
+      "category": "core-typing",
+      "description": "Configurable vibration strength and key click sounds (optionally sound packs), respecting system silent or do-not-disturb state.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "HeliBoard", "Fossify Keyboard", "Thumb-Key", "FUTO Keyboard", "LeanType", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: haptic (and per KeyboardKit docs, audio) feedback only works when the user grants Full Access."
+    },
+    {
+      "id": "backspace-repeat-word-delete",
+      "title": "Backspace repeat and word delete",
+      "category": "core-typing",
+      "description": "Holding backspace auto-repeats and accelerates, optionally switching to whole-word deletion, without splitting composite emoji or grapheme clusters.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["Thumb-Key", "Unexpected Keyboard", "FlorisBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "symbol-number-layers",
+      "title": "Symbol, number and numpad layers",
+      "category": "core-typing",
+      "description": "Symbol and 'more symbols' pages plus a dedicated number pad shown automatically for numeric fields and reachable manually.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "AnySoftKeyboard", "FlorisBoard", "Fossify Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "number-row",
+      "title": "Optional number row",
+      "category": "core-typing",
+      "description": "Persistent top row of digits, toggleable per user preference and shown automatically where layouts expect it.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "Simple Keyboard (rkkr)", "FlorisBoard", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "punctuation-conveniences",
+      "title": "Punctuation conveniences",
+      "category": "core-typing",
+      "description": "Double-space inserts a period, auto-space after punctuation, and swapping a trailing space with punctuation typed next ('word ,' becomes 'word, ').",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "FlorisBoard", "Thumb-Key", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "touch-model-hit-correction",
+      "title": "Probabilistic key hit correction",
+      "category": "core-typing",
+      "description": "Resolve ambiguous taps with a spatial touch model combined with the language model (dynamic key targets), rather than fixed rectangular hit boxes.",
+      "priority": "P1",
+      "effort": "L",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "FUTO Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "ime-switcher-key",
+      "title": "Next-keyboard (globe) key",
+      "category": "core-typing",
+      "description": "Key or long-press menu to switch to the next installed keyboard/input method.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["Apple Keyboard", "KeyboardKit", "HeliBoard", "Gboard"],
+      "platformNotes": "iOS: must show a switch-keyboard key when needsInputModeSwitchKey is true (App Review expectation). Android: shouldOfferSwitchingToNextInputMethod."
+    },
+    {
+      "id": "declarative-layout-engine",
+      "title": "Data-driven layout engine",
+      "category": "layouts-languages",
+      "description": "Layouts, popups, and per-state key variants (shift, field type, RTL) defined in data files parsed by shared code instead of hard-coded views. Candidate formats: FlorisBoard-style JSON (also read by HeliBoard) or CLDR Keyboard 3.0 XML.",
+      "priority": "P0",
+      "effort": "L",
+      "seenIn": ["FlorisBoard", "HeliBoard", "Unexpected Keyboard", "FUTO Keyboard", "Trime", "Keyman", "Thumb-Key"],
+      "platformNotes": "Pure shared logic and a good fit for commonMain."
+    },
+    {
+      "id": "latin-layout-variants",
+      "title": "Latin layout variants",
+      "category": "layouts-languages",
+      "description": "QWERTY, QWERTZ, AZERTY plus alternative layouts (Dvorak, Colemak, Workman) selectable independently of the language.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "HeliBoard", "Urik", "Hacker's Keyboard", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "language-coverage",
+      "title": "Broad language coverage",
+      "category": "layouts-languages",
+      "description": "Launch with a core set of languages (layout, long-press alternates, dictionary) and a data pipeline (e.g. CLDR exemplar characters) to scale to many more.",
+      "priority": "P0",
+      "effort": "L",
+      "seenIn": ["Keyman", "HeliBoard", "AnySoftKeyboard", "FlorisBoard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "language-switching",
+      "title": "Fast language switching",
+      "category": "layouts-languages",
+      "description": "Switch enabled languages/layouts via a language key, spacebar swipe or long-press menu, with the current language shown on the spacebar.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "FlorisBoard", "Fossify Keyboard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "multilingual-typing",
+      "title": "Multilingual typing",
+      "category": "layouts-languages",
+      "description": "Type in two or more languages on one layout without switching, with suggestions and autocorrect drawn from all active dictionaries.",
+      "priority": "P1",
+      "effort": "L",
+      "seenIn": ["HeliBoard", "AnySoftKeyboard", "Urik", "CleverKeys", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "rtl-layout-support",
+      "title": "Right-to-left scripts",
+      "category": "layouts-languages",
+      "description": "Arabic, Hebrew, Persian and other RTL layouts with mirrored function keys, correct bidi cursor movement and RTL-aware suggestion strip.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "AnySoftKeyboard", "Keyman", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "tablet-foldable-layouts",
+      "title": "Tablet, landscape and foldable layouts",
+      "category": "layouts-languages",
+      "description": "Layouts and scaling tuned for large screens, landscape and folded or unfolded states, remembered separately per posture.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "Unexpected Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "custom-layout-import",
+      "title": "Custom layout import",
+      "category": "layouts-languages",
+      "description": "Users can paste or import a layout file (and edit key popups) in the app, with validation so broken layouts cannot crash the keyboard.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "Unexpected Keyboard", "FUTO Keyboard", "CleverKeys", "Urik", "Thumb-Key", "Trime"],
+      "platformNotes": null
+    },
+    {
+      "id": "visual-layout-editor",
+      "title": "Visual layout editor",
+      "category": "layouts-languages",
+      "description": "Graphical editor for creating and rearranging keys and popups without hand-writing layout files. In the open-source keyboards this exists mostly as community web tools.",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["HeliBoard", "Unexpected Keyboard", "Keyman"],
+      "platformNotes": null
+    },
+    {
+      "id": "cldr-keyboard3-support",
+      "title": "CLDR Keyboard 3.0 (LDML) layouts",
+      "category": "layouts-languages",
+      "description": "Read Unicode CLDR Keyboard 3.0 (UTS #35 Part 7) files so one standard source defines touch and hardware layouts for a language.",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["FlorisBoard", "Keyman"],
+      "platformNotes": "k3lp (Kotlin Multiplatform, Apache-2.0, pre-alpha) already parses Keyboard3 files and could be reused directly."
+    },
+    {
+      "id": "pc-modifier-keys",
+      "title": "PC-style keys (Ctrl, Alt, Esc, Tab, F-keys)",
+      "category": "layouts-languages",
+      "description": "Optional layout or row with modifier, Esc, Tab, arrow and function keys for terminals, SSH and remote desktops.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["Hacker's Keyboard", "Unexpected Keyboard", "CleverKeys", "HeliBoard"],
+      "platformNotes": "iOS: the text document proxy only inserts text, deletes and moves the cursor, so modifier combinations cannot reach the host app (verify)."
+    },
+    {
+      "id": "alternative-layout-paradigms",
+      "title": "Alternative input paradigms",
+      "category": "layouts-languages",
+      "description": "Non-QWERTY paradigms such as 3x3 grids with swipe letters (MessagEase style), circular 8pen-style input, hexagonal layouts or T9 multi-tap for keypad phones.",
+      "priority": "P3",
+      "effort": "M",
+      "seenIn": ["Thumb-Key", "8VIM", "Typewise", "Traditional T9"],
+      "platformNotes": null
+    },
+    {
+      "id": "composition-engine-api",
+      "title": "Pluggable composition engine",
+      "category": "input-methods-cjk-indic",
+      "description": "An internal interface for composing input (dead keys, Hangul, Telex, kana, pinyin via librime) with preedit/composing text and candidate lists. This lets new scripts plug in without reworking the core.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "fcitx5-android", "Trime", "Hamster", "FUTO Keyboard", "Keyman"],
+      "platformNotes": "Android supports composing regions natively. iOS uses setMarkedText on the proxy, which some host apps handle inconsistently (verify)."
+    },
+    {
+      "id": "dead-keys-compose",
+      "title": "Dead keys and compose sequences",
+      "category": "input-methods-cjk-indic",
+      "description": "Dead keys and multi-key compose sequences for diacritics and rare characters.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["Unexpected Keyboard", "Thumb-Key", "FlorisBoard", "Keyman"],
+      "platformNotes": null
+    },
+    {
+      "id": "syllable-composition-scripts",
+      "title": "Korean Hangul and Vietnamese Telex/VNI",
+      "category": "input-methods-cjk-indic",
+      "description": "Composition engines that assemble syllables from keystrokes: Hangul jamo composition and Vietnamese Telex/VNI tone-mark input.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["fcitx5-android", "FUTO Keyboard", "FlorisBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "indic-complex-script-input",
+      "title": "Indic and complex-script input",
+      "category": "input-methods-cjk-indic",
+      "description": "Layouts and rules for Indic, Southeast Asian and other complex scripts (conjuncts, vowel signs, reordering), including phonetic or transliteration schemes that turn Latin keystrokes into native script.",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["Keyman", "HeliBoard", "fcitx5-android", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "chinese-input",
+      "title": "Chinese input methods",
+      "category": "input-methods-cjk-indic",
+      "description": "Pinyin (full, fuzzy, double), Zhuyin, Wubi, Cangjie, stroke and Cantonese Jyutping with a candidate window and user phrase learning.",
+      "priority": "P3",
+      "effort": "XL",
+      "seenIn": ["Trime", "fcitx5-android", "fcitx5-ios", "Hamster", "FUTO Keyboard", "Jyutping", "Gboard", "Apple Keyboard"],
+      "platformNotes": "librime (BSD-3-Clause) already runs on Android (Trime, fcitx5, FUTO) and iOS (Hamster), so integrating it is far cheaper than building an engine."
+    },
+    {
+      "id": "japanese-input",
+      "title": "Japanese kana-kanji input",
+      "category": "input-methods-cjk-indic",
+      "description": "Romaji and 12-key flick input with kana-kanji conversion and live conversion.",
+      "priority": "P3",
+      "effort": "XL",
+      "seenIn": ["azooKey", "fcitx5-android", "FUTO Keyboard", "Gboard", "Apple Keyboard"],
+      "platformNotes": "AzooKeyKanaKanjiConverter (MIT) is Swift-only, so it is reusable on iOS but not from shared Kotlin code."
+    },
+    {
+      "id": "handwriting-input",
+      "title": "Handwriting input",
+      "category": "input-methods-cjk-indic",
+      "description": "Draw characters on a canvas and have them recognized, mainly valuable for CJK and for users who cannot type.",
+      "priority": "P3",
+      "effort": "XL",
+      "seenIn": ["Gboard", "LeanType", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "suggestion-strip",
+      "title": "Suggestion strip",
+      "category": "prediction-autocorrect",
+      "description": "Candidate bar with three or more suggestions (typed word, best guess, alternatives), punctuation shortcuts when idle, and case-aware suggestions that follow shift state.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "OpenBoard", "AOSP LatinIME", "AnySoftKeyboard", "FUTO Keyboard", "Unexpected Keyboard", "Urik", "CleverKeys", "Keyman", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "word-completion",
+      "title": "Word completion",
+      "category": "prediction-autocorrect",
+      "description": "Frequency-ranked completion of the word being typed from a compact on-device dictionary (trie or DAWG), including diacritic-insensitive matching ('naive' finds 'naïve').",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "AOSP LatinIME", "AnySoftKeyboard", "FUTO Keyboard", "Unexpected Keyboard", "Keyman", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "Shared engine in commonMain. Dictionary memory footprint is critical inside the iOS extension."
+    },
+    {
+      "id": "autocorrect",
+      "title": "Autocorrect",
+      "category": "prediction-autocorrect",
+      "description": "Replace likely typos on space or punctuation using edit distance, keyboard proximity and word frequency, with adjustable aggressiveness and a per-language off switch.",
+      "priority": "P0",
+      "effort": "L",
+      "seenIn": ["HeliBoard", "OpenBoard", "AOSP LatinIME", "AnySoftKeyboard", "FUTO Keyboard", "Unexpected Keyboard", "Urik", "CleverKeys", "Keyman", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "autocorrect-revert",
+      "title": "One-tap autocorrect undo",
+      "category": "prediction-autocorrect",
+      "description": "Backspace immediately after an autocorrection restores the original word and stops correcting it again in the same spot.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "dictionary-packs",
+      "title": "Per-language dictionary packs",
+      "category": "prediction-autocorrect",
+      "description": "Bundled and importable dictionaries per language in a documented format, so languages can be added without an app update.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FUTO Keyboard", "AnySoftKeyboard", "Unexpected Keyboard", "Keyman", "FlorisBoard"],
+      "platformNotes": "Offline-first Android keyboards have users download files in a browser and import them. On iOS, network access and a shared container both involve Full Access (see platform research). Wordlist licences vary per language."
+    },
+    {
+      "id": "next-word-prediction",
+      "title": "Next-word prediction",
+      "category": "prediction-autocorrect",
+      "description": "Suggest likely next words after a space, using n-gram (bigram or trigram) statistics from the dictionary and the user's own history.",
+      "priority": "P1",
+      "effort": "L",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "AnySoftKeyboard", "FUTO Keyboard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "iOS provides no usable next-word API to extensions (KeyboardKit says Apple removed it in iOS 16), so MaKeeb must ship its own model."
+    },
+    {
+      "id": "on-device-learning",
+      "title": "On-device learning and forgetting",
+      "category": "prediction-autocorrect",
+      "description": "Learn new words and personal word pairs locally, and let users see, remove or reset learned data (for example long-press a suggestion to forget it).",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "AOSP LatinIME", "FUTO Keyboard", "AnySoftKeyboard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "personal-dictionary",
+      "title": "Personal dictionary editor",
+      "category": "prediction-autocorrect",
+      "description": "View, add and delete user words (with an 'add to dictionary' action on the typed word) so names and jargon stop being autocorrected.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "AOSP LatinIME", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: UILexicon exposes the user's system text replacements (read-only) to keyboards."
+    },
+    {
+      "id": "text-expansion-shortcuts",
+      "title": "Text expansion shortcuts",
+      "category": "prediction-autocorrect",
+      "description": "User-defined abbreviations that expand into phrases ('omw' becomes 'On my way!'), offered as a suggestion or applied automatically.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["8VIM", "CleverKeys", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: Apple's text replacements can be imported through UILexicon."
+    },
+    {
+      "id": "emoji-suggestions",
+      "title": "Emoji suggestions",
+      "category": "prediction-autocorrect",
+      "description": "Offer matching emoji in the suggestion strip when a typed word matches an emoji name or keyword.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "HeliBoard", "SwiftKey", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "inline-autofill-suggestions",
+      "title": "Password-manager inline autofill",
+      "category": "prediction-autocorrect",
+      "description": "Show password-manager and autofill chips inline in the suggestion strip or toolbar.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "Urik"],
+      "platformNotes": "Android 11+ only (inline suggestions API). On iOS, AutoFill belongs to the system keyboard."
+    },
+    {
+      "id": "revisit-word-suggestions",
+      "title": "Suggestions when revisiting a word",
+      "category": "prediction-autocorrect",
+      "description": "Moving the cursor back into an earlier word shows its alternatives again, so a missed correction or wrong swipe can be fixed with one tap.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "FUTO Keyboard", "Gboard"],
+      "platformNotes": "iOS: limited surrounding-text access makes this harder (verify)."
+    },
+    {
+      "id": "system-spell-checker",
+      "title": "System-wide spell checker service",
+      "category": "prediction-autocorrect",
+      "description": "Expose MaKeeb's dictionaries as the OS spell checker that underlines misspellings in any app.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "Unexpected Keyboard"],
+      "platformNotes": "Android-only (SpellCheckerService). iOS has no third-party spell-checker extension point."
+    },
+    {
+      "id": "contact-name-suggestions",
+      "title": "Contact-name suggestions",
+      "category": "prediction-autocorrect",
+      "description": "Opt-in use of contact names as dictionary words so they are suggested and not autocorrected.",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["AOSP LatinIME", "AnySoftKeyboard"],
+      "platformNotes": "Android needs READ_CONTACTS, which is a privacy trade-off (LeanType removed it). iOS UILexicon may supply some contact names (verify)."
+    },
+    {
+      "id": "offensive-word-filter",
+      "title": "Offensive-word filter",
+      "category": "prediction-autocorrect",
+      "description": "Keep offensive words out of suggestions and autocorrect targets by default. The user can still type them.",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "glide-typing",
+      "title": "Glide / swipe typing",
+      "category": "gesture-swipe",
+      "description": "Enter whole words by sliding across letters, decoded against the dictionary and context, with a visible gesture trail, a floating preview, alternatives after each swipe, and learning of swiped words.",
+      "priority": "P1",
+      "effort": "XL",
+      "seenIn": ["HeliBoard", "FUTO Keyboard", "AnySoftKeyboard", "FlorisBoard", "Urik", "CleverKeys", "LeanType", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "Reuse options: FUTO Swipe (GPL C++ library, models under the FUTO Model License, MIT dataset) or HeliBoard's NLnet-funded replacement library (planned Apache-2.0, unreleased). Decoding and trail rendering are shared logic."
+    },
+    {
+      "id": "spacebar-cursor-slide",
+      "title": "Spacebar cursor slide",
+      "category": "gesture-swipe",
+      "description": "Slide horizontally on the spacebar to move the cursor character by character (optionally word by word).",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "Simple Keyboard (rkkr)", "Thumb-Key", "Unexpected Keyboard", "FUTO Keyboard", "FlorisBoard", "Gboard"],
+      "platformNotes": "iOS: adjustTextPosition(byCharacterOffset:) supports horizontal movement."
+    },
+    {
+      "id": "trackpad-cursor-mode",
+      "title": "Trackpad cursor mode",
+      "category": "gesture-swipe",
+      "description": "Long-press the spacebar to turn the keyboard into a trackpad for two-dimensional cursor movement and selection.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["Apple Keyboard", "HeliBoard", "CleverKeys"],
+      "platformNotes": "iOS: the proxy only exposes character offsets, so vertical movement and selection must be approximated (verify)."
+    },
+    {
+      "id": "backspace-swipe-delete",
+      "title": "Swipe-to-delete words",
+      "category": "gesture-swipe",
+      "description": "Swipe left from backspace to select a variable number of previous words and delete them on release.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "Simple Keyboard (rkkr)", "FlorisBoard", "Thumb-Key", "Unexpected Keyboard", "Gboard"],
+      "platformNotes": "iOS: word boundaries come from documentContextBeforeInput, which may be truncated."
+    },
+    {
+      "id": "directional-key-swipes",
+      "title": "Directional key swipes",
+      "category": "gesture-swipe",
+      "description": "Short swipes in up to eight directions on a key produce secondary characters or actions, so symbols can be reached without switching layers.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["Unexpected Keyboard", "Thumb-Key", "CleverKeys", "8VIM"],
+      "platformNotes": null
+    },
+    {
+      "id": "configurable-swipe-actions",
+      "title": "Configurable keyboard gestures",
+      "category": "gesture-swipe",
+      "description": "User-mappable gestures (swipe up, down, left or right on the keyboard or specific keys) for actions such as hide keyboard, shift, switch language or open the clipboard.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "AnySoftKeyboard", "CleverKeys", "Unexpected Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "toolbar-quick-actions",
+      "title": "Toolbar / quick-action bar",
+      "category": "editing-cursor",
+      "description": "Configurable row of actions (clipboard, emoji, settings, one-handed, select all, undo, incognito) that shares or alternates with the suggestion strip, with pinnable keys.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "FUTO Keyboard", "Gboard", "SwiftKey"],
+      "platformNotes": null
+    },
+    {
+      "id": "cursor-navigation-panel",
+      "title": "Cursor and navigation panel",
+      "category": "editing-cursor",
+      "description": "Panel or layout with arrow keys, Home/End, word jumps and a select mode for precise editing.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "Unexpected Keyboard", "Hacker's Keyboard", "FlorisBoard", "8VIM", "Gboard"],
+      "platformNotes": "iOS: only horizontal cursor moves are possible and extensions cannot create selections (verify)."
+    },
+    {
+      "id": "selection-clipboard-actions",
+      "title": "Select, cut, copy and paste actions",
+      "category": "editing-cursor",
+      "description": "One-tap Select All, Cut, Copy and Paste from the keyboard.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "FlorisBoard", "Unexpected Keyboard", "Gboard"],
+      "platformNotes": "Android uses performContextMenuAction or key events. iOS: pasting needs Full Access to read the pasteboard, and cut/copy/select-all are largely unavailable to extensions (verify)."
+    },
+    {
+      "id": "undo-redo",
+      "title": "Undo / redo",
+      "category": "editing-cursor",
+      "description": "Undo and redo keys that send the platform undo command to the focused app.",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "HeliBoard"],
+      "platformNotes": "Android: Ctrl+Z / Ctrl+Shift+Z key events, which work only in some apps. iOS: no undo API for extensions (verify)."
+    },
+    {
+      "id": "emoji-panel",
+      "title": "Emoji panel",
+      "category": "emoji-symbols-media",
+      "description": "Categorized, scrollable emoji picker with recents and a skin-tone/gender variant picker, reachable from a key or long-press.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "AnySoftKeyboard", "Fossify Keyboard", "FUTO Keyboard", "fcitx5-android", "Thumb-Key", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "emoji-search",
+      "title": "Emoji search",
+      "category": "emoji-symbols-media",
+      "description": "Search emoji by name or keyword in the user's language, using CLDR annotations. Among the most-requested features in several open-source keyboards.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "Needs text entry inside the keyboard itself (a search field that captures keystrokes), which both platforms allow."
+    },
+    {
+      "id": "emoji-unicode-currency",
+      "title": "Up-to-date emoji with compatibility",
+      "category": "emoji-symbols-media",
+      "description": "Keep emoji data current (Unicode 17 in 2026) while hiding or rendering emoji the device font cannot show.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FUTO Keyboard", "FlorisBoard", "AnySoftKeyboard"],
+      "platformNotes": "Android: FUTO found the bundled emoji2 font adds about 9 MB and ships a trimmed 1 MB compatibility font instead. iOS: filter emoji by OS version."
+    },
+    {
+      "id": "symbol-kaomoji-panels",
+      "title": "Symbols and kaomoji panels",
+      "category": "emoji-symbols-media",
+      "description": "Extra panels for Unicode symbols (math, arrows, currency) and text emoticons or kaomoji.",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["fcitx5-android", "Trime", "FlorisBoard", "Fossify Keyboard", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "gif-sticker-insertion",
+      "title": "GIF and sticker insertion",
+      "category": "emoji-symbols-media",
+      "description": "Search or browse GIFs and sticker packs (online or offline packs) and insert them into apps that accept rich content.",
+      "priority": "P3",
+      "effort": "L",
+      "seenIn": ["Gboard", "SwiftKey", "CleverKeys", "EweSticker"],
+      "platformNotes": "Android: commitContent works only in apps that support it. iOS: copy to the pasteboard and paste (Full Access). Online search needs network, which conflicts with an offline stance (FUTO declined GIF search for this reason)."
+    },
+    {
+      "id": "clipboard-history",
+      "title": "Clipboard history",
+      "category": "clipboard",
+      "description": "Local history of copied text with tap-to-paste, configurable retention and size, and an option for a private keyboard-internal clipboard.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "Fossify Keyboard", "FUTO Keyboard", "fcitx5-android", "Thumb-Key", "Trime", "CleverKeys", "Urik", "KeyboardKit", "Gboard", "SwiftKey"],
+      "platformNotes": "Android 10+: only the focused default IME can read the clipboard. iOS: requires Full Access, and copies can only be captured while the keyboard is running (verify)."
+    },
+    {
+      "id": "clipboard-pinned-snippets",
+      "title": "Pinned clips and snippets",
+      "category": "clipboard",
+      "description": "Pin clips so they never expire, and keep a list of reusable snippets or quick texts.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["Fossify Keyboard", "FUTO Keyboard", "CleverKeys", "AnySoftKeyboard", "Gboard", "SwiftKey"],
+      "platformNotes": null
+    },
+    {
+      "id": "clipboard-paste-suggestion",
+      "title": "Recent-copy paste suggestion",
+      "category": "clipboard",
+      "description": "Show a freshly copied item as a one-tap chip in the suggestion strip for a short time.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "Gboard", "SwiftKey"],
+      "platformNotes": "iOS: requires Full Access."
+    },
+    {
+      "id": "clipboard-sensitive-handling",
+      "title": "Sensitive clip protection",
+      "category": "clipboard",
+      "description": "Never store clips flagged as sensitive (for example passwords from managers), auto-expire unpinned items, and exclude clips copied in password fields.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "HeliBoard", "Gboard"],
+      "platformNotes": "Android 13+: ClipDescription EXTRA_IS_SENSITIVE."
+    },
+    {
+      "id": "clipboard-media-items",
+      "title": "Images and files in clipboard",
+      "category": "clipboard",
+      "description": "Keep copied images, screenshots and files in history (with size caps) and paste them into apps that accept rich content.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FUTO Keyboard", "FlorisBoard", "CleverKeys"],
+      "platformNotes": "Android: commitContent / content URIs. iOS: pasteboard only."
+    },
+    {
+      "id": "clipboard-search",
+      "title": "Clipboard search and filter",
+      "category": "clipboard",
+      "description": "Search or filter clipboard history by text (optionally regex or tags).",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["FUTO Keyboard", "FlorisBoard", "CleverKeys"],
+      "platformNotes": null
+    },
+    {
+      "id": "system-dark-light",
+      "title": "Light/dark theme following the system",
+      "category": "theming-appearance",
+      "description": "Built-in light and dark themes that follow the system setting, with optional time-based switching.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "Fossify Keyboard", "FlorisBoard", "HeliBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "dynamic-color",
+      "title": "Material You dynamic color",
+      "category": "theming-appearance",
+      "description": "Derive keyboard colors from the Android 12+ wallpaper palette.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "Urik", "Thumb-Key", "fcitx5-android", "Gboard"],
+      "platformNotes": "Android 12+ only. iOS has no equivalent (could use the host's tint or the system accent)."
+    },
+    {
+      "id": "color-theme-editor",
+      "title": "Custom colors and theme editor",
+      "category": "theming-appearance",
+      "description": "In-app editing of key, background, text and accent colors with a live preview.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "Fossify Keyboard", "FUTO Keyboard", "CleverKeys", "Simple Keyboard (rkkr)"],
+      "platformNotes": null
+    },
+    {
+      "id": "key-visual-options",
+      "title": "Key borders, gaps, labels and hints",
+      "category": "theming-appearance",
+      "description": "Toggle key borders, adjust corner radius and key gaps, key label and hint size, and show long-press hints on keys.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "fcitx5-android", "FlorisBoard", "AnySoftKeyboard", "Gboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "theme-media-fonts",
+      "title": "Background images and custom fonts",
+      "category": "theming-appearance",
+      "description": "Use a photo or image as the keyboard background and choose custom key-label fonts.",
+      "priority": "P2",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "fcitx5-android", "FUTO Keyboard", "Fossify Keyboard", "Gboard", "SwiftKey"],
+      "platformNotes": "iOS: importing a user photo happens in the containing app and needs the shared container to reach the extension."
+    },
+    {
+      "id": "stylesheet-theme-engine",
+      "title": "Stylesheet-based theme engine",
+      "category": "theming-appearance",
+      "description": "Declarative, element-level theme format (CSS-like selectors for keys, states, popups, toolbar) so artists can build complete themes beyond a color picker.",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["FlorisBoard", "FUTO Keyboard", "Trime", "KeyboardKit"],
+      "platformNotes": "Shared engine in commonMain mapping to Compose styles on both platforms."
+    },
+    {
+      "id": "theme-sharing",
+      "title": "Theme import/export and gallery",
+      "category": "theming-appearance",
+      "description": "Share themes as files and optionally browse a community gallery.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "FUTO Keyboard", "AnySoftKeyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "per-app-tint",
+      "title": "Per-app keyboard tint",
+      "category": "theming-appearance",
+      "description": "Tint the keyboard to match the color of the app being typed into.",
+      "priority": "P3",
+      "effort": "M",
+      "seenIn": ["AnySoftKeyboard"],
+      "platformNotes": "iOS: the host app identity and colors are not reliably available to extensions (verify)."
+    },
+    {
+      "id": "keyboard-resize",
+      "title": "Keyboard height and size",
+      "category": "one-handed-floating-split",
+      "description": "Adjust keyboard height, width and bottom offset, stored per orientation.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["Simple Keyboard (rkkr)", "HeliBoard", "FlorisBoard", "AnySoftKeyboard", "Gboard"],
+      "platformNotes": "iOS: height is set with constraints on the input view, while width follows the screen (verify)."
+    },
+    {
+      "id": "one-handed-mode",
+      "title": "One-handed mode",
+      "category": "one-handed-floating-split",
+      "description": "Compact keyboard docked left or right with a quick toggle to switch sides.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "HeliBoard", "OpenBoard", "Urik", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "split-keyboard",
+      "title": "Split keyboard",
+      "category": "one-handed-floating-split",
+      "description": "Split the layout into two halves for thumb typing on tablets, foldables and landscape phones.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "Unexpected Keyboard", "Urik", "Gboard", "Apple Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "floating-keyboard",
+      "title": "Floating keyboard",
+      "category": "one-handed-floating-split",
+      "description": "Undocked, movable and resizable keyboard window, which is especially useful on tablets. Repeatedly requested in several open-source keyboards.",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["HeliBoard", "FlorisBoard", "Gboard", "SwiftKey", "Apple Keyboard"],
+      "platformNotes": "Android: feasible through IME window and insets handling (HeliBoard 4.0, FlorisBoard 0.6 alpha). iOS: floating is a system-keyboard feature and likely unavailable to extensions (verify)."
+    },
+    {
+      "id": "screen-reader-support",
+      "title": "Screen reader support",
+      "category": "accessibility",
+      "description": "Full TalkBack/VoiceOver support: announced keys and suggestions, explore-by-touch with lift-to-type, and accessible panels.",
+      "priority": "P1",
+      "effort": "L",
+      "seenIn": ["AOSP LatinIME", "Gboard", "Apple Keyboard"],
+      "platformNotes": "Custom Compose-drawn keys need explicit semantics. Compose Multiplatform accessibility inside an Android IME window and an iOS extension needs early validation."
+    },
+    {
+      "id": "display-accessibility-prefs",
+      "title": "Font scale, contrast and reduced motion",
+      "category": "accessibility",
+      "description": "Respect system font scaling without breaking layouts, offer high-contrast themes, and honor reduce-motion by disabling popups and animations.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["Gboard", "Apple Keyboard", "FUTO Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "timing-tuning",
+      "title": "Long-press and repeat timing",
+      "category": "accessibility",
+      "description": "Adjustable long-press delay, key repeat rate and accidental-touch debounce for users with motor impairments.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "AOSP LatinIME"],
+      "platformNotes": null
+    },
+    {
+      "id": "offline-no-network",
+      "title": "Offline by design",
+      "category": "privacy-security",
+      "description": "Core keyboard needs no network access: no INTERNET permission on Android, and every core feature works without Full Access on iOS.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["HeliBoard", "FUTO Keyboard", "Fossify Keyboard", "CleverKeys", "Urik", "Simple Keyboard (rkkr)", "LeanType"],
+      "platformNotes": "iOS: Full Access is all-or-nothing (network, pasteboard, haptics, shared container), so a clear 'what works without it' matrix is needed."
+    },
+    {
+      "id": "incognito-mode",
+      "title": "Incognito mode",
+      "category": "privacy-security",
+      "description": "Manual and automatic incognito that stops learning, history and emoji recents, turned on automatically when an app requests no personalized learning.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "FlorisBoard", "HeliBoard", "Gboard", "SwiftKey"],
+      "platformNotes": "Android: IME_FLAG_NO_PERSONALIZED_LEARNING. iOS has no equivalent hint beyond secure fields (verify)."
+    },
+    {
+      "id": "secure-field-handling",
+      "title": "Password-field handling",
+      "category": "privacy-security",
+      "description": "In password fields, disable suggestions, learning, key previews and clipboard capture.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["AOSP LatinIME", "HeliBoard", "Trime"],
+      "platformNotes": "iOS: secure fields always use the system keyboard."
+    },
+    {
+      "id": "locked-device-protection",
+      "title": "Lock-screen protection",
+      "category": "privacy-security",
+      "description": "When the device is locked, hide clipboard, suggestions and learned data, and handle direct-boot storage correctly.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["HeliBoard"],
+      "platformNotes": "Android direct boot: credential-protected storage is unavailable before the first unlock."
+    },
+    {
+      "id": "encrypted-local-storage",
+      "title": "Encrypted local storage",
+      "category": "privacy-security",
+      "description": "Encrypt learned words and clipboard history at rest.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["Urik"],
+      "platformNotes": "Android Keystore. iOS Keychain / Data Protection classes."
+    },
+    {
+      "id": "verifiable-builds",
+      "title": "Reproducible builds and signing transparency",
+      "category": "privacy-security",
+      "description": "Reproducible Android builds and published signing-certificate hashes so users can verify binaries.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "fcitx5-android"],
+      "platformNotes": "Android-only in practice. App Store binaries are re-signed by Apple."
+    },
+    {
+      "id": "opt-in-data-donation",
+      "title": "Opt-in local data donation",
+      "category": "privacy-security",
+      "description": "Explicitly opt-in, user-reviewed export of anonymized typing or gesture samples to improve models, with blocklists and a review screen.",
+      "priority": "P3",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FUTO Keyboard"],
+      "platformNotes": null
+    },
+    {
+      "id": "voice-input-handoff",
+      "title": "Voice input key",
+      "category": "voice-input",
+      "description": "Microphone key that hands off to the system or an installed voice input method and returns afterwards.",
+      "priority": "P1",
+      "effort": "S",
+      "seenIn": ["AnySoftKeyboard", "HeliBoard", "FlorisBoard", "Gboard", "Apple Keyboard"],
+      "platformNotes": "iOS: keyboard extensions cannot use the microphone. KeyboardKit works around this by opening the containing app to record."
+    },
+    {
+      "id": "on-device-dictation",
+      "title": "Built-in offline dictation",
+      "category": "voice-input",
+      "description": "Speech-to-text built into the keyboard or a companion plugin, running fully on-device.",
+      "priority": "P3",
+      "effort": "XL",
+      "seenIn": ["FUTO Voice Input", "Sayboard", "Transcribro", "LeanType", "Gboard", "Apple Keyboard"],
+      "platformNotes": "Android: RECORD_AUDIO inside the IME is allowed. iOS: only possible through a round-trip to the containing app."
+    },
+    {
+      "id": "onboarding-setup-flow",
+      "title": "Guided setup",
+      "category": "settings-sync-backup",
+      "description": "First-run flow to enable and select the keyboard, explain permissions (Full Access on iOS), and pick languages.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["FlorisBoard", "KeyboardKit", "fcitx5-ios", "Keyman"],
+      "platformNotes": "iOS: users must add the keyboard in Settings manually, and a deep link can only open the app's settings page."
+    },
+    {
+      "id": "settings-app",
+      "title": "Settings app with in-keyboard quick settings",
+      "category": "settings-sync-backup",
+      "description": "Companion app for all settings with search, plus a quick-settings panel reachable from the keyboard.",
+      "priority": "P0",
+      "effort": "M",
+      "seenIn": ["FlorisBoard", "HeliBoard", "AnySoftKeyboard", "FUTO Keyboard", "Gboard", "SwiftKey"],
+      "platformNotes": "Shared Compose Multiplatform UI for both platforms."
+    },
+    {
+      "id": "shared-app-extension-storage",
+      "title": "Shared storage between app and keyboard",
+      "category": "settings-sync-backup",
+      "description": "Settings, dictionaries and themes shared between the companion app and the keyboard process.",
+      "priority": "P0",
+      "effort": "S",
+      "seenIn": ["KeyboardKit", "fcitx5-ios"],
+      "platformNotes": "iOS: needs an App Group, and Apple's guide ties the shared container to Open Access, so a fallback is needed when Full Access is denied. Android: same app process, so this is trivial."
+    },
+    {
+      "id": "backup-restore",
+      "title": "Backup and restore",
+      "category": "settings-sync-backup",
+      "description": "Export and import settings, learned words, custom layouts, themes and clipboard pins as a file, with safe archive handling.",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "FlorisBoard"],
+      "platformNotes": "Validate archives on import (HeliBoard 4.0 fixed a backup-restore issue with manipulated zip files)."
+    },
+    {
+      "id": "cloud-sync",
+      "title": "Cross-device sync",
+      "category": "settings-sync-backup",
+      "description": "Sync settings, the personal dictionary and optionally the clipboard across devices, ideally through user-owned storage rather than a vendor account.",
+      "priority": "P3",
+      "effort": "L",
+      "seenIn": ["SwiftKey", "Gboard"],
+      "platformNotes": "Conflicts with the offline stance. It could run in the containing app only (iCloud / Drive / WebDAV) without giving the keyboard network access."
+    },
+    {
+      "id": "extension-packages",
+      "title": "Extension packages",
+      "category": "extensibility",
+      "description": "Installable data packages bundling layouts, themes, dictionaries and emoji data (similar to FlorisBoard .flex or Keyman .kmp).",
+      "priority": "P2",
+      "effort": "L",
+      "seenIn": ["FlorisBoard", "AnySoftKeyboard", "Keyman", "fcitx5-android"],
+      "platformNotes": "iOS forbids loading executable plugins, so packages must be data-only on both platforms for parity."
+    },
+    {
+      "id": "automation-integration",
+      "title": "Automation and macros",
+      "category": "extensibility",
+      "description": "Keys that run user macros or fire intents, and integration with automation apps.",
+      "priority": "P3",
+      "effort": "M",
+      "seenIn": ["CleverKeys"],
+      "platformNotes": "Android-only in practice (intents, Tasker)."
+    },
+    {
+      "id": "hardware-keyboard-mode",
+      "title": "Hardware keyboard companion mode",
+      "category": "hardware-keyboard",
+      "description": "When a physical keyboard is attached, hide the soft keys and keep only the suggestion or candidate bar (and CJK candidate window).",
+      "priority": "P1",
+      "effort": "M",
+      "seenIn": ["HeliBoard", "fcitx5-android", "Gboard"],
+      "platformNotes": "iOS: third-party keyboards get little or no hardware-key input (verify with platform research)."
+    },
+    {
+      "id": "hardware-layout-mapping",
+      "title": "Hardware layout mapping and shortcuts",
+      "category": "hardware-keyboard",
+      "description": "Map physical keys to the selected language layout (for example Cyrillic on a US keyboard) and support language-switch shortcuts such as Ctrl+Space.",
+      "priority": "P2",
+      "effort": "M",
+      "seenIn": ["AnySoftKeyboard", "fcitx5-android"],
+      "platformNotes": "Android: onKeyDown in InputMethodService. iOS: likely not feasible for extensions (verify)."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+// Shared build settings. Personal signing (team, bundle ID overrides) goes in Local.xcconfig,
+// which is gitignored: copy Local.xcconfig.example to start.
+CODE_SIGN_STYLE = Automatic
+
+// Simulator builds sign ad hoc ("Sign to Run Locally"): no team needed, and the entitlements are
+// still embedded. Without them there is no App Group, so the keyboard never sees the settings the
+// companion app writes (number row, theme, ...). Never build with CODE_SIGNING_ALLOWED=NO.
+CODE_SIGN_STYLE[sdk=iphonesimulator*] = Manual
+CODE_SIGN_IDENTITY[sdk=iphonesimulator*] = -
+DEVELOPMENT_TEAM[sdk=iphonesimulator*] =
+PROVISIONING_PROFILE_SPECIFIER[sdk=iphonesimulator*] =
+
+#include? "Local.xcconfig"

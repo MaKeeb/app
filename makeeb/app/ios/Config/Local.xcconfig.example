@@ -1,0 +1,4 @@
+// Copy to Local.xcconfig and fill in your Apple Developer team to run on a device.
+// App Groups must be registered for your team; change the group in project.yml,
+// core/settings (APP_GROUP_ID) and both entitlements files together if you use your own.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID

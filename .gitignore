@@ -1,0 +1,36 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+# Un-anchored so it covers every module's build dir, not just /build.
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild
+.cxx
+
+# Android signing (never committed)
+*.keystore
+*.jks
+keystore.properties
+play-service-account.json
+
+# iOS: the generated MaKeeb.xcodeproj is committed; per-user state and signing are not
+makeeb/app/ios/**/xcuserdata/
+makeeb/app/ios/DerivedData/
+makeeb/app/ios/Config/Local.xcconfig
+*.xcuserstate
+
+# macOS
+.DS_Store
+._*
+
+# AI tooling: per-user runtime state only. .claude/agents|commands|skills are symlinks into
+# .ai/ and stay tracked.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+
+# Local reviews, investigation evidence and scratch notes.
+/.ai/local/

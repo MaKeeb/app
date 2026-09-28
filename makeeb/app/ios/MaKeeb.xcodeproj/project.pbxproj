@@ -1,0 +1,630 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1356FB1E1EB172277C215D72 /* KeyboardVisualTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */; };
+		24480B826943FC3844A47E6F /* MaKeebApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119987389ABB46E600651369 /* MaKeebApp.swift */; };
+		2CDFCB6725227E389B21CC30 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */; };
+		633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */; };
+		7CA6A89D457B9CCD39F06BAB /* KeyboardProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */; };
+		8DD3F9527FE33D7AC0162870 /* ClipboardPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09514377D45359E63E8A13E /* ClipboardPanelView.swift */; };
+		9410CB54F91017FDA587FBB4 /* EmojiPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */; };
+		981F37B40A19EB8AF0FF5410 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */; };
+		A2BDDFCA2A48EF478248E75B /* MaKeebKeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7DC4D9107E37609CB1287AE1 /* MaKeebKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B1D98902F4336F5E91E38B0A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */; };
+		C115A8D3ABFAE3FF61DBF3B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EB90F42D3112441D0CFA919 /* Assets.xcassets */; };
+		EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4C0C836642693852AD085681 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 560B6EA5C5E7AF184CE438D9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 19A566977431C31727030EA2;
+			remoteInfo = MaKeeb;
+		};
+		64D53A717C2ED4BF9773D46E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 560B6EA5C5E7AF184CE438D9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8C8A522AF9591BF1D0610D64;
+			remoteInfo = MaKeebKeyboardExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CAFB02B1F8A857C512CD4092 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A2BDDFCA2A48EF478248E75B /* MaKeebKeyboardExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
+		10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		119987389ABB46E600651369 /* MaKeebApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaKeebApp.swift; sourceTree = "<group>"; };
+		12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardVisualTests.swift; sourceTree = "<group>"; };
+		21460D4EAB227B92B6EC7C28 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		482A155E304EFB2862C9C10B /* Keyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Keyboard.entitlements; sourceTree = "<group>"; };
+		4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
+		5EB90F42D3112441D0CFA919 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7802C84704F394BC45EA9F37 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		7D712C86AD89491835CA33C1 /* MaKeeb.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MaKeeb.entitlements; sourceTree = "<group>"; };
+		7DC4D9107E37609CB1287AE1 /* MaKeebKeyboardExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MaKeebKeyboardExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTrace.swift; sourceTree = "<group>"; };
+		909393140AE5D0C70B09AA18 /* MaKeebUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MaKeebUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AFAA5A64B875CCE1F9B12B1B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C09514377D45359E63E8A13E /* ClipboardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelView.swift; sourceTree = "<group>"; };
+		CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardProbeTests.swift; sourceTree = "<group>"; };
+		EA9AF842D9BEF0AB40B5C460 /* MaKeeb.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MaKeeb.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPanelView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		35493B9C51203C66BE59D3D8 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				7802C84704F394BC45EA9F37 /* Shared.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		479A1260BCEF3A88F527D308 /* Keyboard */ = {
+			isa = PBXGroup;
+			children = (
+				C09514377D45359E63E8A13E /* ClipboardPanelView.swift */,
+				F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */,
+				AFAA5A64B875CCE1F9B12B1B /* Info.plist */,
+				482A155E304EFB2862C9C10B /* Keyboard.entitlements */,
+				4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */,
+				0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */,
+				87D349CD0C693F3749CDFFD1 /* LaunchTrace.swift */,
+				10B9E92EE33B855FC4E6106F /* PrivacyInfo.xcprivacy */,
+			);
+			path = Keyboard;
+			sourceTree = "<group>";
+		};
+		4EB6E3D80761228895E00FE5 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */,
+				12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		7DFA7D260BB1B17242016954 = {
+			isa = PBXGroup;
+			children = (
+				35493B9C51203C66BE59D3D8 /* Config */,
+				479A1260BCEF3A88F527D308 /* Keyboard */,
+				E180C6B397F0526CCCBF7833 /* MaKeeb */,
+				4EB6E3D80761228895E00FE5 /* UITests */,
+				CC10847DF05F240921B8DC43 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC10847DF05F240921B8DC43 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EA9AF842D9BEF0AB40B5C460 /* MaKeeb.app */,
+				7DC4D9107E37609CB1287AE1 /* MaKeebKeyboardExtension.appex */,
+				909393140AE5D0C70B09AA18 /* MaKeebUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E180C6B397F0526CCCBF7833 /* MaKeeb */ = {
+			isa = PBXGroup;
+			children = (
+				5EB90F42D3112441D0CFA919 /* Assets.xcassets */,
+				21460D4EAB227B92B6EC7C28 /* Info.plist */,
+				7D712C86AD89491835CA33C1 /* MaKeeb.entitlements */,
+				119987389ABB46E600651369 /* MaKeebApp.swift */,
+				9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */,
+			);
+			path = MaKeeb;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		19A566977431C31727030EA2 /* MaKeeb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BCD861CCEA743B3337AD4DF1 /* Build configuration list for PBXNativeTarget "MaKeeb" */;
+			buildPhases = (
+				B6B3288BBF3B5690606D365F /* Build Kotlin framework (MaKeebCompanion) */,
+				275BD4B8F2EDF3A4F587938C /* Sources */,
+				DBB63E2226FADCB38E5957A3 /* Resources */,
+				CAFB02B1F8A857C512CD4092 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E49066A84D9EB97EB73013C /* PBXTargetDependency */,
+			);
+			name = MaKeeb;
+			packageProductDependencies = (
+			);
+			productName = MaKeeb;
+			productReference = EA9AF842D9BEF0AB40B5C460 /* MaKeeb.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8C8A522AF9591BF1D0610D64 /* MaKeebKeyboardExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 14209F3EDC8FCE39B5D38F76 /* Build configuration list for PBXNativeTarget "MaKeebKeyboardExtension" */;
+			buildPhases = (
+				B3AB6E83C5B37CA59B0BCA81 /* Build Kotlin framework (MaKeebKeyboard) */,
+				94D733112892CB301378E05E /* Sources */,
+				1E9865F2DE977B135B844417 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MaKeebKeyboardExtension;
+			packageProductDependencies = (
+			);
+			productName = MaKeebKeyboardExtension;
+			productReference = 7DC4D9107E37609CB1287AE1 /* MaKeebKeyboardExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		D3DCF93B2EC9B2692ACBAB6D /* MaKeebUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 876104E9DDEE78D41A99BB87 /* Build configuration list for PBXNativeTarget "MaKeebUITests" */;
+			buildPhases = (
+				8AD2B615FB2B8900E18EE58B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				329F44ABD367A6EFEB9465E9 /* PBXTargetDependency */,
+			);
+			name = MaKeebUITests;
+			packageProductDependencies = (
+			);
+			productName = MaKeebUITests;
+			productReference = 909393140AE5D0C70B09AA18 /* MaKeebUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		560B6EA5C5E7AF184CE438D9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					19A566977431C31727030EA2 = {
+						ProvisioningStyle = Automatic;
+					};
+					8C8A522AF9591BF1D0610D64 = {
+						ProvisioningStyle = Automatic;
+					};
+					D3DCF93B2EC9B2692ACBAB6D = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 19A566977431C31727030EA2;
+					};
+				};
+			};
+			buildConfigurationList = 6E636C7B91F519C5AC977115 /* Build configuration list for PBXProject "MaKeeb" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 7DFA7D260BB1B17242016954;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CC10847DF05F240921B8DC43 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				19A566977431C31727030EA2 /* MaKeeb */,
+				8C8A522AF9591BF1D0610D64 /* MaKeebKeyboardExtension */,
+				D3DCF93B2EC9B2692ACBAB6D /* MaKeebUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1E9865F2DE977B135B844417 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1D98902F4336F5E91E38B0A /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DBB63E2226FADCB38E5957A3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C115A8D3ABFAE3FF61DBF3B0 /* Assets.xcassets in Resources */,
+				2CDFCB6725227E389B21CC30 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B3AB6E83C5B37CA59B0BCA81 /* Build Kotlin framework (MaKeebKeyboard) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Kotlin framework (MaKeebKeyboard)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../..\"\nsource app/ios/Config/find-java.sh\n./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode\n";
+		};
+		B6B3288BBF3B5690606D365F /* Build Kotlin framework (MaKeebCompanion) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Kotlin framework (MaKeebCompanion)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../..\"\nsource app/ios/Config/find-java.sh\n./gradlew :shared:companion:embedAndSignAppleFrameworkForXcode\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		275BD4B8F2EDF3A4F587938C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24480B826943FC3844A47E6F /* MaKeebApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8AD2B615FB2B8900E18EE58B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7CA6A89D457B9CCD39F06BAB /* KeyboardProbeTests.swift in Sources */,
+				1356FB1E1EB172277C215D72 /* KeyboardVisualTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		94D733112892CB301378E05E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DD3F9527FE33D7AC0162870 /* ClipboardPanelView.swift in Sources */,
+				9410CB54F91017FDA587FBB4 /* EmojiPanelView.swift in Sources */,
+				981F37B40A19EB8AF0FF5410 /* KeyboardView.swift in Sources */,
+				633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */,
+				EEDF1DD0CC1E79348B1F6E61 /* LaunchTrace.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1E49066A84D9EB97EB73013C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8C8A522AF9591BF1D0610D64 /* MaKeebKeyboardExtension */;
+			targetProxy = 64D53A717C2ED4BF9773D46E /* PBXContainerItemProxy */;
+		};
+		329F44ABD367A6EFEB9465E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 19A566977431C31727030EA2 /* MaKeeb */;
+			targetProxy = 4C0C836642693852AD085681 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0B62A50AC602D10EF7848F50 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MaKeeb;
+			};
+			name = Debug;
+		};
+		25B0977D4C3B36A081734963 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7802C84704F394BC45EA9F37 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5;
+			};
+			name = Debug;
+		};
+		A8B30031CF054E11F5F0023E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../shared/keyboard/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				INFOPLIST_FILE = Keyboard/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework MaKeebKeyboard";
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios.keyboard;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AC28911045A9DFAC9584AE05 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7802C84704F394BC45EA9F37 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5;
+			};
+			name = Release;
+		};
+		BD9256FF945A1769F4C7ADC6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MaKeeb/MaKeeb.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../shared/companion/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				INFOPLIST_FILE = MaKeeb/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework MaKeebCompanion";
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C0471B9B392CE8EFB7A65AC7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../shared/keyboard/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				INFOPLIST_FILE = Keyboard/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework MaKeebKeyboard";
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios.keyboard;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D94858E83A508E364FB6B619 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MaKeeb/MaKeeb.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../shared/companion/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				INFOPLIST_FILE = MaKeeb/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework MaKeebCompanion";
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F2E5A713EE5739B9EA7053DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.makeeb.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MaKeeb;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		14209F3EDC8FCE39B5D38F76 /* Build configuration list for PBXNativeTarget "MaKeebKeyboardExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0471B9B392CE8EFB7A65AC7 /* Debug */,
+				A8B30031CF054E11F5F0023E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6E636C7B91F519C5AC977115 /* Build configuration list for PBXProject "MaKeeb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25B0977D4C3B36A081734963 /* Debug */,
+				AC28911045A9DFAC9584AE05 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		876104E9DDEE78D41A99BB87 /* Build configuration list for PBXNativeTarget "MaKeebUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B62A50AC602D10EF7848F50 /* Debug */,
+				F2E5A713EE5739B9EA7053DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BCD861CCEA743B3337AD4DF1 /* Build configuration list for PBXNativeTarget "MaKeeb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD9256FF945A1769F4C7ADC6 /* Debug */,
+				D94858E83A508E364FB6B619 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 560B6EA5C5E7AF184CE438D9 /* Project object */;
+}

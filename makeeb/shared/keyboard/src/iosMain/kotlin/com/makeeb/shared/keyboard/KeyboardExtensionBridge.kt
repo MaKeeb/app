@@ -1,0 +1,173 @@
+package com.makeeb.shared.keyboard
+
+import com.makeeb.core.model.KeyAction
+import com.makeeb.core.model.KeyboardPanel
+import com.makeeb.core.model.inStripOrder
+import com.makeeb.core.settings.PreferencesRepository
+import com.makeeb.engine.emoji.Emoji
+import com.makeeb.platform.clipboard.PasteboardSystemClipboard
+import com.makeeb.platform.feedback.HapticFeedback
+import com.makeeb.platform.feedback.ImpactHapticFeedback
+import com.makeeb.platform.feedback.InputClickSoundFeedback
+import com.makeeb.platform.host.InputViewControllerKeyboardHost
+import com.makeeb.platform.host.TextDocumentProxyTextHost
+import com.makeeb.platform.host.toEditorAttributes
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
+import platform.UIKit.UIInputViewController
+
+/**
+ * What the Swift `KeyboardViewController` talks to. Swift forwards view lifecycle, text-change
+ * callbacks and touches (in key-area points) and draws each [KeyboardRender] it receives.
+ */
+class KeyboardExtensionBridge(private val controller: UIInputViewController) : KoinComponent {
+    private val scope = MainScope()
+    private val preferences: PreferencesRepository
+    private val session: KeyboardSession
+    private val textHost = TextDocumentProxyTextHost { controller.textDocumentProxy }
+    private val keyboardHost = InputViewControllerKeyboardHost(controller)
+
+    init {
+        IosKeyboardKoin.ensureStarted()
+        preferences = get()
+        val impact by lazy { ImpactHapticFeedback() }
+        val ports = KeyboardPorts(
+            clipboard = PasteboardSystemClipboard(hasAccess = { controller.hasFullAccess }),
+            // Haptics need Full Access in a keyboard extension.
+            haptics = HapticFeedback { type -> if (controller.hasFullAccess) impact.keyPress(type) },
+            sound = InputClickSoundFeedback(),
+            clipboardAvailable = { controller.hasFullAccess },
+        )
+        session = get { parametersOf(ports, scope) }
+        session.density = 1f // UIKit lays out in points, the unit KeyboardMetrics is written in
+    }
+
+    /** Total keyboard height in points for the current preferences on a screen [screenHeight] tall. */
+    fun preferredHeight(screenHeight: Double): Double =
+        KeyboardMetrics.totalHeight(preferences.preferences.value, screenHeight.toFloat()).toDouble()
+
+    val stripHeight: Double = KeyboardMetrics.STRIP_HEIGHT.toDouble()
+
+    fun viewWillAppear() {
+        // The companion app writes preferences from another process.
+        preferences.reload()
+        session.start(textHost, keyboardHost, controller.textDocumentProxy.toEditorAttributes())
+    }
+
+    fun viewWillDisappear() = session.stop()
+
+    /** Called for text changes and field switches alike; a new field means a new input session. */
+    fun textDidChange() {
+        val attributes = controller.textDocumentProxy.toEditorAttributes()
+        if (attributes != session.engine.state.value.editor) {
+            session.start(textHost, keyboardHost, attributes)
+        } else {
+            session.engine.onExternalChange()
+        }
+    }
+
+    fun selectionDidChange() = session.engine.onExternalChange()
+
+    fun setKeysAreaSize(width: Double, height: Double) = session.setKeysAreaSize(width.toFloat(), height.toFloat())
+
+    fun touchDown(id: Long, x: Double, y: Double) = session.touch.down(id, x.toFloat(), y.toFloat())
+
+    fun touchMove(id: Long, x: Double, y: Double) = session.touch.move(id, x.toFloat(), y.toFloat())
+
+    fun touchUp(id: Long, x: Double, y: Double) = session.touch.up(id, x.toFloat(), y.toFloat())
+
+    fun touchCancel(id: Long) = session.touch.cancel(id)
+
+    /** [stripIndex] is the position in [KeyboardRender.suggestions]. */
+    fun selectSuggestion(stripIndex: Int) {
+        val suggestion = session.engine.state.value.suggestions.take(3).inStripOrder().getOrNull(stripIndex) ?: return
+        session.onSuggestion(suggestion)
+    }
+
+    /**
+     * Every change the renderer or an open panel shows. Recents and clipboard changes re-send the
+     * same render so an open panel reloads its data.
+     */
+    fun observe(onRender: (KeyboardRender) -> Unit): RenderSubscription {
+        val job = scope.launch {
+            combine(session.engine.state, session.touch.state, session.geometry, session.preferences) { state, touch, geometry, prefs ->
+                KeyboardRenderer.render(state, touch, geometry, prefs, session.canOpenSettings)
+            }.combine(combine(session.emojiRecentsState, session.clipboardEntries) { _, _ -> }) { render, _ -> render }
+                .collect(onRender)
+        }
+        return RenderSubscription(job)
+    }
+
+    fun performStripAction(action: StripAction) = session.perform(action)
+
+    fun showKeys() = session.showPanel(KeyboardPanel.Keys)
+
+    fun deleteBackward() = session.onKey(KeyAction.Backspace)
+
+    // region Emoji panel
+
+    /** Tab icons: recents first, then the catalog's categories. */
+    val emojiTabs: List<String> get() = listOf(RECENTS_TAB_ICON) + session.emojiCatalog.categories.map { it.icon }
+
+    /** Opens on recents only when there are some. */
+    val initialEmojiTab: Int get() = if (session.emojiRecentsState.value.isEmpty()) 1 else 0
+
+    fun emojis(tab: Int): List<String> = emojiList(tab).map { it.value }
+
+    /** By value, not position: recents reorder as soon as one is used. */
+    fun commitEmoji(value: String) {
+        val emoji = session.emojiRecentsState.value.firstOrNull { it.value == value } ?: emojiByValue[value] ?: return
+        session.onEmoji(emoji)
+    }
+
+    private fun emojiList(tab: Int): List<Emoji> =
+        if (tab == 0) session.emojiRecentsState.value
+        else session.emojiCatalog.categories.getOrNull(tab - 1)?.let(session.emojiCatalog::emojis).orEmpty()
+
+    private val emojiByValue: Map<String, Emoji> by lazy {
+        session.emojiCatalog.categories.flatMap(session.emojiCatalog::emojis).associateBy { it.value }
+    }
+
+    // endregion
+
+    // region Clipboard panel
+
+    /** False without Full Access: the panel explains why it is empty. */
+    val clipboardAvailable: Boolean get() = session.clipboardAvailable
+
+    val clips: List<ClipItem> get() = session.clipboardEntries.value.map { ClipItem(it.id, it.text, it.pinned) }
+
+    fun pasteClip(id: Long) = clip(id)?.let(session::onPaste)
+
+    fun toggleClipPin(id: Long) = clip(id)?.let { session.setClipPinned(it, !it.pinned) }
+
+    fun deleteClip(id: Long) = clip(id)?.let(session::removeClip)
+
+    fun clearClips() = session.clearClips()
+
+    private fun clip(id: Long) = session.clipboardEntries.value.firstOrNull { it.id == id }
+
+    // endregion
+
+    private companion object {
+        const val RECENTS_TAB_ICON = "🕘"
+    }
+
+    fun dispose() {
+        session.stop()
+        scope.cancel()
+    }
+}
+
+/** A clipboard entry as the iOS panel shows it. */
+data class ClipItem(val id: Long, val text: String, val pinned: Boolean)
+
+class RenderSubscription internal constructor(private val job: Job) {
+    fun cancel() = job.cancel()
+}

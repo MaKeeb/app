@@ -1,0 +1,98 @@
+# MaKeeb's board: .ai/kanban/board.yml. The kanban skill (https://github.com/fonix232/kanban) documents every key.
+name: MaKeeb
+key: APP
+
+# Each column is a folder of cards, left to right.
+columns:
+  - id: backlog
+    title: Backlog
+  - id: next
+    title: Next
+  - id: todo
+    title: Ready to start
+  - id: doing
+    title: In progress
+  - id: review
+    title: In review
+  - id: done
+    title: Done
+
+# The card fields, in the order the front matter and the page show them.
+fields:
+  - name: type
+    label: Type
+    kind: select
+    options: [feature, bug, refactor, chore, docs, spike]
+  - name: priority
+    label: Priority
+    kind: select
+    marker: true
+    options:
+      - { value: P0, color: red }
+      - { value: P1, color: amber }
+      - { value: P2, color: blue }
+      - { value: P3, color: gray }
+  - name: effort
+    label: Effort
+    kind: select
+    tile: true
+    options: [XS, S, M, L, XL]
+  - name: milestone
+    label: Milestone
+    kind: select
+    tile: true
+    options: [MVP, '1.0', 1.x, Later]
+  - name: category
+    label: Category
+    kind: select
+    options:
+      - { value: foundation, label: Foundation }
+      - { value: core-typing, label: Core typing }
+      - { value: layouts-languages, label: Layouts & languages }
+      - { value: prediction-autocorrect, label: Prediction & autocorrect }
+      - { value: gesture-swipe, label: Gestures & swipe }
+      - { value: editing-cursor, label: Editing & cursor }
+      - { value: emoji-symbols-media, label: Emoji & symbols }
+      - { value: clipboard, label: Clipboard }
+      - { value: theming-appearance, label: Theming }
+      - { value: one-handed-floating-split, label: One-handed & split }
+      - { value: accessibility, label: Accessibility }
+      - { value: privacy-security, label: Privacy & security }
+      - { value: voice-input, label: Voice }
+      - { value: settings-sync-backup, label: Settings & backup }
+      - { value: extensibility, label: Extensibility }
+      - { value: input-methods-cjk-indic, label: CJK & Indic input }
+      - { value: hardware-keyboard, label: Hardware keyboard }
+  - name: android
+    label: Android
+    kind: select
+    options: [full, limited, unavailable, none]
+  - name: ios
+    label: iOS
+    kind: select
+    options: [full, limited, unavailable, none]
+  - name: modules
+    label: Modules
+    kind: list
+  - name: seen_in
+    label: Seen in
+    kind: list
+  - name: depends_on
+    label: Depends on
+    kind: cards
+
+# What a new card starts with.
+template: |
+  What the card is for, in a sentence or two.
+
+  ## Acceptance criteria
+
+  - [ ] What has to be true for the card to be done
+
+  ## Tasks
+
+  - [ ] The work, broken down, in order
+
+  ## Progress
+
+  Not started.

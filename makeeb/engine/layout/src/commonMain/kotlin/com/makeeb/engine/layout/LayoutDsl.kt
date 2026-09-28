@@ -1,0 +1,77 @@
+package com.makeeb.engine.layout
+
+import com.makeeb.core.model.KeyAction
+import com.makeeb.core.model.KeyboardMode
+import com.makeeb.core.model.KeyboardPanel
+
+@DslMarker
+annotation class LayoutDsl
+
+fun keyboardLayout(id: String, mode: KeyboardMode, block: LayoutBuilder.() -> Unit): KeyboardLayout =
+    KeyboardLayout(id, mode, LayoutBuilder().apply(block).rows)
+
+@LayoutDsl
+class LayoutBuilder {
+    internal val rows = mutableListOf<KeyRow>()
+
+    fun row(heightWeight: Float = 1f, block: RowBuilder.() -> Unit) {
+        rows += KeyRow(RowBuilder().apply(block).keys, heightWeight)
+    }
+}
+
+@LayoutDsl
+class RowBuilder {
+    internal val keys = mutableListOf<Key>()
+
+    /** One character key per char, with long-press alternates and hints from the maps. */
+    fun chars(
+        chars: String,
+        alternates: Map<Char, String> = emptyMap(),
+        hints: Map<Char, String> = emptyMap(),
+    ) {
+        chars.forEach { char ->
+            val hint = hints[char]
+            val alts = listOfNotNull(hint) + alternates[char].orEmpty().map(Char::toString)
+            text(char.toString(), alternates = alts, hint = hint)
+        }
+    }
+
+    fun text(
+        text: String,
+        label: String = text,
+        width: Float = 1f,
+        alternates: List<String> = emptyList(),
+        hint: String? = null,
+        caption: String? = null,
+    ) {
+        keys += Key(KeyAction.Text(text), label, width, KeyStyle.Character, alternates, hint, caption)
+    }
+
+    fun shift(width: Float = 1.5f) {
+        keys += Key(KeyAction.Shift, "⇧", width, KeyStyle.Modifier)
+    }
+
+    fun backspace(width: Float = 1.5f) {
+        keys += Key(KeyAction.Backspace, "⌫", width, KeyStyle.Modifier)
+    }
+
+    fun mode(mode: KeyboardMode, label: String, width: Float = 1.5f) {
+        keys += Key(KeyAction.SwitchMode(mode), label, width, KeyStyle.Modifier)
+    }
+
+    fun globe(width: Float = 1f) {
+        keys += Key(KeyAction.NextInputMethod, "🌐", width, KeyStyle.Modifier)
+    }
+
+    fun emoji(width: Float = 1f) {
+        keys += Key(KeyAction.ShowPanel(KeyboardPanel.Emoji), "☺", width, KeyStyle.Modifier)
+    }
+
+    fun space(width: Float = 4f) {
+        keys += Key(KeyAction.Space, "", width, KeyStyle.Space)
+    }
+
+    fun enter(width: Float = 1.5f) {
+        keys += Key(KeyAction.Enter, "⏎", width, KeyStyle.Enter)
+    }
+}

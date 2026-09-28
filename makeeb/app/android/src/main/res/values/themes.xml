@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose draws everything; this only sets window basics before the first frame. -->
+    <style name="Theme.MaKeeb" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+
+    <color name="window_background">#FFF6F7FA</color>
+    <color name="launcher_background">#FF3F5EFB</color>
+</resources>

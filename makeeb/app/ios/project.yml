@@ -1,0 +1,129 @@
+# XcodeGen manifest: the source of truth for MaKeeb.xcodeproj. After editing, regenerate with
+# `xcodegen generate` in this directory (brew install xcodegen). The generated project is
+# committed so plain Xcode users can open it without extra tooling.
+name: MaKeeb
+options:
+  bundleIdPrefix: com.makeeb
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Config/Shared.xcconfig
+  Release: Config/Shared.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5"
+    # Gradle only builds arm64 iOS targets (iosArm64 / iosSimulatorArm64).
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": x86_64
+    # The Kotlin framework script phases write outside Xcode's script sandbox.
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+
+targets:
+  # Container app: setup, settings and a test field, in Compose Multiplatform.
+  MaKeeb:
+    type: application
+    platform: iOS
+    sources:
+      - MaKeeb
+    dependencies:
+      - target: MaKeebKeyboardExtension
+        embed: true
+    info:
+      path: MaKeeb/Info.plist
+      properties:
+        CFBundleDisplayName: MaKeeb
+        UILaunchScreen: {}
+        # Required by Compose Multiplatform for full refresh rate on ProMotion displays.
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: MaKeeb/MaKeeb.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.makeeb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.makeeb.ios
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../../shared/companion/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+        OTHER_LDFLAGS: "$(inherited) -framework MaKeebCompanion"
+    preBuildScripts:
+      - name: Build Kotlin framework (MaKeebCompanion)
+        script: |
+          cd "$SRCROOT/../.."
+          source app/ios/Config/find-java.sh
+          ./gradlew :shared:companion:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+
+  # The keyboard. Links only the Compose-free Kotlin runtime and draws natively: Compose
+  # Multiplatform is not app-extension safe (see docs/research/platform-apis.md).
+  MaKeebKeyboardExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Keyboard
+    info:
+      path: Keyboard/Info.plist
+      properties:
+        CFBundleDisplayName: MaKeeb
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+          NSExtensionAttributes:
+            IsASCIICapable: false
+            PrefersRightToLeft: false
+            PrimaryLanguage: en-US
+            # Optional: unlocks clipboard history and haptics. Everything else works without it
+            # (App Review guideline 4.4.1).
+            RequestsOpenAccess: true
+    entitlements:
+      path: Keyboard/Keyboard.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.makeeb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.makeeb.ios.keyboard
+        APPLICATION_EXTENSION_API_ONLY: "YES"
+        FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../../shared/keyboard/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+        OTHER_LDFLAGS: "$(inherited) -framework MaKeebKeyboard"
+    preBuildScripts:
+      - name: Build Kotlin framework (MaKeebKeyboard)
+        script: |
+          cd "$SRCROOT/../.."
+          source app/ios/Config/find-java.sh
+          ./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+
+  # UI tests: enable the keyboard in Settings, drive it in the companion's QA fields, capture
+  # the visual test plan (docs/testing/visual-test-plan.md).
+  MaKeebUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests
+    dependencies:
+      - target: MaKeeb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.makeeb.ios.uitests
+        TEST_TARGET_NAME: MaKeeb
+        GENERATE_INFOPLIST_FILE: "YES"
+
+schemes:
+  MaKeeb:
+    build:
+      targets:
+        MaKeeb: all
+        MaKeebKeyboardExtension: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - MaKeebUITests
+    archive:
+      config: Release

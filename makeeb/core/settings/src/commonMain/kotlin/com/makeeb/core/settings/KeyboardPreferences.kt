@@ -1,0 +1,28 @@
+package com.makeeb.core.settings
+
+/** User-facing keyboard settings. Written by the companion app, read by the keyboard. */
+data class KeyboardPreferences(
+    // Typing
+    val autoCapitalize: Boolean = true,
+    val doubleSpacePeriod: Boolean = true,
+    val autoCorrect: Boolean = true,
+    val showSuggestions: Boolean = true,
+    // Feedback
+    val keyPressHaptics: Boolean = true,
+    val keyPressSound: Boolean = false,
+    val keyPopupPreview: Boolean = true,
+    // Layout
+    val numberRow: Boolean = false,
+    /** Multiplier on the default key height, clamped to [MIN_HEIGHT_SCALE]..[MAX_HEIGHT_SCALE]. */
+    val heightScale: Float = 1f,
+    val letterLayoutId: String = "qwerty",
+    // Appearance
+    val theme: ThemeMode = ThemeMode.System,
+) {
+    companion object {
+        const val MIN_HEIGHT_SCALE = 0.8f
+        const val MAX_HEIGHT_SCALE = 1.3f
+    }
+}
+
+enum class ThemeMode { System, Light, Dark }
