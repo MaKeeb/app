@@ -16,11 +16,15 @@ Offer matching emoji in the suggestion strip when a typed word matches an emoji 
 
 ## Acceptance criteria
 
-- [ ] Written when the card is scheduled
+- [ ] A typed word that names an emoji offers it in the strip
+- [ ] Picking it replaces the word and records a recent, except in incognito
+- [ ] A setting turns it off
 
 ## Tasks
 
-- [ ] Broken down when the card is scheduled
+- [ ] Match exact names, then keywords; the most used emoji on a tie
+- [ ] The Emoji suggestions setting
+- [ ] Check on the Pixel and the simulator (test18_emojiSuggestion)
 
 ## Progress
 

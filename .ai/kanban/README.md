@@ -5,8 +5,8 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | Column | Cards |
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
-| [Next](next/_next.md) | 11 |
-| [Ready to start](todo/_todo.md) | 29 |
+| [Next](next/_next.md) | 7 |
+| [Ready to start](todo/_todo.md) | 33 |
 | [In progress](doing/_doing.md) | 0 |
 | [In review](review/_review.md) | 26 |
 | [Done](done/_done.md) | 5 |
@@ -49,10 +49,13 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-8](todo/008-backspace-repeat-and-word-delete.md): Backspace repeat and word delete
 - [APP-9](todo/009-symbol-number-and-numpad-layers.md): Symbol, number and numpad layers
 - [APP-13](todo/013-next-keyboard-globe-key.md): Next-keyboard (globe) key
+- [APP-14](todo/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-15](todo/015-latin-layout-variants.md): Latin layout variants
+- [APP-17](todo/017-fast-language-switching.md): Fast language switching
 - [APP-33](todo/033-suggestion-strip.md): Suggestion strip
 - [APP-34](todo/034-word-completion.md): Word completion
 - [APP-35](todo/035-autocorrect.md): Autocorrect
+- [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-49](todo/049-spacebar-cursor-slide.md): Spacebar cursor slide
 - [APP-69](todo/069-lightdark-theme-following-the-system.md): Light/dark theme following the system
 - [APP-85](todo/085-incognito-mode.md): Incognito mode
@@ -66,6 +69,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-11](todo/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
+- [APP-42](todo/042-emoji-suggestions.md): Emoji suggestions
 - [APP-59](todo/059-emoji-search.md): Emoji search
 - [APP-64](todo/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 - [APP-66](todo/066-sensitive-clip-protection.md): Sensitive clip protection
@@ -74,10 +78,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 ## Next
 
-- [APP-14](next/014-data-driven-layout-engine.md): Data-driven layout engine
-- [APP-17](next/017-fast-language-switching.md): Fast language switching
-- [APP-37](next/037-per-language-dictionary-packs.md): Per-language dictionary packs
-- [APP-42](next/042-emoji-suggestions.md): Emoji suggestions
 - [APP-48](next/048-glide-swipe-typing.md): Glide / swipe typing
 - [APP-56](next/056-select-cut-copy-and-paste-actions.md): Select, cut, copy and paste actions
 - [APP-65](next/065-recent-copy-paste-suggestion.md): Recent-copy paste suggestion

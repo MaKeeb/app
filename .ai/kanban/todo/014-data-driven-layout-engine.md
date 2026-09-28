@@ -21,11 +21,18 @@ Pure shared logic and a good fit for commonMain.
 
 ## Acceptance criteria
 
-- [ ] Written when the card is scheduled
+- [ ] Letter rows and long-press alternates come from data files read by shared code
+- [ ] The data is converted from AOSP LatinIME (Apache-2.0)
+- [ ] Every page matches the old hand-written layouts (a parity test)
+- [ ] Alternates follow the language, not the layout
+- [ ] The reader adds little to the iOS keyboard framework
 
 ## Tasks
 
-- [ ] Broken down when the card is scheduled
+- [ ] Research layout data formats
+- [ ] Stage A: layout data from AOSP, with a parity test
+- [ ] Stage B: layouts from data, and alternates that follow the language
+- [ ] Stage C: a small hand-written JSON reader in place of kotlinx.serialization
 
 ## Progress
 
