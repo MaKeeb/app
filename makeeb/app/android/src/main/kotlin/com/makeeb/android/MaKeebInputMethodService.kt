@@ -81,9 +81,9 @@ class MaKeebInputMethodService :
         )
         session = get { parametersOf(ports, scope) }
         session.density = resources.displayMetrics.density
-        // Debug builds log per-key main-thread cost (`adb logcat -s MaKeebLatency`) and when the
-        // dictionary pack is ready (`-s MaKeebDictionary`); durations and counts only.
-        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+        // Debug and benchmark builds log per-key main-thread cost (`adb logcat -s MaKeebLatency`)
+        // and when the dictionary pack is ready (`-s MaKeebDictionary`); durations and counts only.
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 || packageName.endsWith(".benchmark")) {
             session.latency = KeyLatency({ Log.d("MaKeebLatency", it) })
             scope.launch {
                 val status = get<BundledDictionaryLoader>().status.first {

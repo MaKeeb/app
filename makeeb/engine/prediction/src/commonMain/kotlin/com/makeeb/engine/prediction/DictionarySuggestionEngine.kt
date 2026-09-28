@@ -48,10 +48,12 @@ class DictionarySuggestionEngine(
             }
         }
 
-        // Only known typos are corrected on space (KnownTypos), plus the capitals of a known word
-        // typed in lower case ("i" → "I"); other near misses stay suggestions.
-        val capitalised = exact?.word?.takeIf { it != typed && it.any(Char::isUpperCase) && typed == typed.lowercase() }
-        val autoCorrection = capitalised ?: KnownTypos.correctionFor(typed)?.takeIf { exact == null }?.let { matchCase(it, typed) }
+        // Only known typos are corrected on space (KnownTypos), even where a large word list has
+        // the typo as a rare word ("cant", "wont"); then a proper noun's capital ("london" →
+        // "London", "i" → "I"), never an acronym's ("nad" is not "NAD"). Other near misses stay
+        // suggestions.
+        val capitalised = exact?.word?.takeIf { it != typed && typed == typed.lowercase() && it.isTitleCase() }
+        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: capitalised
         autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         val ranked = candidates.values.sortedByDescending { it.score }
 
@@ -80,6 +82,9 @@ class DictionarySuggestionEngine(
         typed.first().isUpperCase() -> word.replaceFirstChar { it.uppercaseChar() }
         else -> word
     }
+
+    /** "London", "I": a capital first letter and nothing else in capitals. */
+    private fun String.isTitleCase(): Boolean = first().isUpperCase() && drop(1).none(Char::isUpperCase)
 
     private companion object {
         const val EXACT_BONUS = 0.5

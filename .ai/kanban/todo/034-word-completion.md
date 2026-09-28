@@ -33,4 +33,4 @@ Shared engine in commonMain. Dictionary memory footprint is critical inside the 
 
 ## Progress
 
-Trie completions over a ~250-word starter list. Missing: a real dictionary (starter list only), diacritic-insensitive matching.
+Trie completions over a ~250-word starter list. Missing: a real dictionary (starter list only), diacritic-insensitive matching. The AOSP en_US pack is mapped since APP-110 (2026-09-28).

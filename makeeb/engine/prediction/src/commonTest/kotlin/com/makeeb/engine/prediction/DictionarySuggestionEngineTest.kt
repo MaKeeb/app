@@ -2,6 +2,8 @@ package com.makeeb.engine.prediction
 
 import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
+import com.makeeb.engine.dictionary.WordEntry
+import com.makeeb.engine.dictionary.TrieDictionary
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -53,5 +55,16 @@ class DictionarySuggestionEngineTest {
     fun learnedWordsBecomeSuggestions() {
         engine.learn("MaKeeb")
         assertTrue(engine.suggest(TypingContext("MaK")).suggestions.any { it.text == "MaKeeb" })
+    }
+
+    @Test
+    fun knownTyposWinOverRareWordsAndOnlyProperNounsGetCapitals() {
+        // Large word lists hold "cant" and "wont" as words and "NAD" as an acronym.
+        val big = TrieDictionary("en", listOf(WordEntry("cant", 40), WordEntry("wont", 30), WordEntry("NAD", 20), WordEntry("London", 120), WordEntry("and", 250)))
+        val engine = DictionarySuggestionEngine(big)
+        assertEquals("can't", engine.suggest(TypingContext("cant")).autoCorrection)
+        assertEquals("won't", engine.suggest(TypingContext("wont")).autoCorrection)
+        assertEquals("and", engine.suggest(TypingContext("nad")).autoCorrection)
+        assertEquals("London", engine.suggest(TypingContext("london")).autoCorrection)
     }
 }
