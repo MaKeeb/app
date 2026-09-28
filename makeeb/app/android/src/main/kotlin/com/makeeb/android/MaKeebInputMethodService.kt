@@ -23,6 +23,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.makeeb.shared.keyboard.BundledDictionaryLoader
 import com.makeeb.shared.keyboard.KeyLatency
 import com.makeeb.shared.keyboard.KeyboardPorts
 import com.makeeb.shared.keyboard.KeyboardSession
@@ -36,9 +37,12 @@ import com.makeeb.platform.host.TextSelection
 import com.makeeb.platform.host.toEditorAttributes
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
+import kotlin.time.TimeSource
 
 /**
  * The Android keyboard. An IME is a Service, not an Activity, so it provides the lifecycle,
@@ -65,6 +69,7 @@ class MaKeebInputMethodService :
     private lateinit var session: KeyboardSession
 
     override fun onCreate() {
+        val created = TimeSource.Monotonic.markNow()
         super.onCreate()
         savedStateController.performRestore(null)
         moveLifecycleTo(Lifecycle.State.CREATED)
@@ -76,9 +81,16 @@ class MaKeebInputMethodService :
         )
         session = get { parametersOf(ports, scope) }
         session.density = resources.displayMetrics.density
-        // Debug builds log per-key main-thread cost (`adb logcat -s MaKeebLatency`); durations only.
+        // Debug builds log per-key main-thread cost (`adb logcat -s MaKeebLatency`) and when the
+        // dictionary pack is ready (`-s MaKeebDictionary`); durations and counts only.
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
             session.latency = KeyLatency({ Log.d("MaKeebLatency", it) })
+            scope.launch {
+                val status = get<BundledDictionaryLoader>().status.first {
+                    it !is BundledDictionaryLoader.Status.Idle && it !is BundledDictionaryLoader.Status.Loading
+                }
+                Log.d("MaKeebDictionary", "$status, ready ${created.elapsedNow().inWholeMilliseconds} ms after the service was created")
+            }
         }
     }
 

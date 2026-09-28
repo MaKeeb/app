@@ -65,6 +65,12 @@ targets:
     platform: iOS
     sources:
       - Keyboard
+      # The English dictionary pack, mapped in place by the extension (BundleFiles). Gradle builds
+      # it in the pre-build phase below from a pinned source; it is not committed.
+      - path: ../../tools/dictionaries/build/packs/en_US.mkd
+        group: Keyboard
+        buildPhase: resources
+        optional: true
     info:
       path: Keyboard/Info.plist
       properties:
@@ -91,12 +97,14 @@ targets:
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../../shared/keyboard/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
         OTHER_LDFLAGS: "$(inherited) -framework MaKeebKeyboard"
     preBuildScripts:
-      - name: Build Kotlin framework (MaKeebKeyboard)
+      - name: Build Kotlin framework (MaKeebKeyboard) and dictionary packs
         script: |
           cd "$SRCROOT/../.."
           source app/ios/Config/find-java.sh
-          ./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode
+          ./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode :tools:dictionaries:dictionaryPacks
         basedOnDependencyAnalysis: false
+        outputFiles:
+          - $(SRCROOT)/../../tools/dictionaries/build/packs/en_US.mkd
 
   # UI tests: enable the keyboard in Settings, drive it in the companion's QA fields, capture
   # the visual test plan (docs/testing/visual-test-plan.md).

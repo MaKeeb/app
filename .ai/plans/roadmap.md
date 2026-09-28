@@ -11,7 +11,7 @@ Status on 2026-09-27: the scaffold builds for Android and iOS, and 49 JVM tests 
 
 ## Iteration 2: language data
 
-1. APP-110: a compact binary dictionary format, memory-mapped (Okio/kotlinx-io on Android, `NSData` mapped on iOS), with a builder script. Check licences before choosing sources: AOSP/HeliBoard word lists are Apache-2.0; review any others.
+1. APP-110: the MKD pack format (docs/dictionaries/mkd-format.md), read through a `ByteRegion` port (a `MappedByteBuffer` over an uncompressed APK asset on Android, POSIX `mmap` on iOS), plus a Kotlin builder (`:tools:dictionaries`) for the AOSP en_US list. Stage 1 of docs/research/dictionaries-autocorrect.md §10.6. AOSP word lists are Apache-2.0; HeliBoard's repository is GPL-3.0, so review any other source.
 2. APP-37 + APP-17: per-language packs; the companion app installs them into the App Group (iOS) or app storage (Android).
 3. APP-14: move layouts from the Kotlin DSL to data files. Evaluate FlorisBoard's JSON format and CLDR Keyboard 3.0; k3lp, a KMP Apache-2.0 parser, may be reusable.
 4. APP-39: persist the user dictionary (keyboard-local; respect incognito).

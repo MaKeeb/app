@@ -2,7 +2,6 @@ package com.makeeb.shared.keyboard
 
 import com.makeeb.engine.clipboard.ClipboardHistory
 import com.makeeb.engine.dictionary.Dictionary
-import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
 import com.makeeb.engine.emoji.BundledEmojiCatalog
 import com.makeeb.engine.emoji.EmojiCatalog
@@ -15,16 +14,22 @@ import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.layout.LayoutProvider
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
 import com.makeeb.engine.prediction.SuggestionEngine
+import com.makeeb.platform.storage.BundledFiles
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 
 /**
  * Engine bindings for the keyboard process. Requires a `PreferencesRepository` from the
- * platform root. Koin singles are lazy, so nothing heavy loads until the keyboard shows.
+ * platform root, and takes the dictionary pack from its `BundledFiles` when it binds one. Koin
+ * singles are lazy, so nothing heavy loads until the keyboard shows.
  */
 val keyboardRuntimeModule = module {
     single<LayoutProvider> { BuiltInLayoutProvider() }
-    single<Dictionary> { StarterDictionaries.english() }
+    // Mapping starts when the engine first asks for the dictionary, as the keyboard is created.
+    single { BundledDictionaryLoader(files = getOrNull<BundledFiles>(), scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
+    single<Dictionary> { get<BundledDictionaryLoader>().also { it.start() }.dictionary }
     single { UserDictionary(languageTag = "en") }
     single<SuggestionEngine> { DictionarySuggestionEngine(main = get(), user = get<UserDictionary>()) }
     single<GestureDecoder> { KeySequenceGestureDecoder(dictionary = get()) }

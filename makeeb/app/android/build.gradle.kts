@@ -16,6 +16,12 @@ android {
         versionName = "0.1.0"
     }
 
+    // Dictionary packs are memory-mapped straight out of the APK (AssetBundledFiles), which only
+    // works for assets stored uncompressed.
+    androidResources {
+        noCompress += "mkd"
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -36,6 +42,26 @@ android {
     }
 }
 
+// The bundled dictionary packs (en_US.mkd), built from pinned sources at build time rather than
+// committed. -Pmakeeb.dictionaries=false leaves them out (offline builds); the keyboard then falls
+// back to its starter word list.
+val dictionaryPacks = configurations.dependencyScope("dictionaryPacks")
+val dictionaryPackFiles = configurations.resolvable("dictionaryPackFiles") {
+    extendsFrom(dictionaryPacks.get())
+    attributes { attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "makeeb-dictionary-packs")) }
+}
+if (providers.gradleProperty("makeeb.dictionaries").orNull != "false") {
+    dependencies { add(dictionaryPacks.name, project(":tools:dictionaries")) }
+    val dictionaryAssets = tasks.register<DictionaryAssets>("dictionaryAssets") {
+        packs.from(dictionaryPackFiles)
+    }
+    androidComponents {
+        onVariants { variant ->
+            variant.sources.assets?.addGeneratedSourceDirectory(dictionaryAssets, DictionaryAssets::outputDirectory)
+        }
+    }
+}
+
 dependencies {
     implementation(project(":shared:surface"))
     implementation(project(":shared:companion"))
@@ -51,4 +77,25 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.savedstate)
+}
+
+/** Copies the dictionary packs built by :tools:dictionaries into a generated assets directory. */
+abstract class DictionaryAssets : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val packs: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @get:Inject
+    abstract val files: FileSystemOperations
+
+    @TaskAction
+    fun copy() {
+        files.sync {
+            from(packs)
+            into(outputDirectory)
+        }
+    }
 }

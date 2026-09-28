@@ -6,14 +6,15 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 12 |
-| [In progress](doing/_doing.md) | 1 |
+| [Ready to start](todo/_todo.md) | 11 |
+| [In progress](doing/_doing.md) | 2 |
 | [In review](review/_review.md) | 50 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
 
 - [APP-14](doing/014-data-driven-layout-engine.md): Data-driven layout engine
+- [APP-110](doing/110-memory-mapped-dictionary-format.md): Memory-mapped dictionary format
 
 ## In review
 
@@ -75,7 +76,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
-- [APP-110](todo/110-memory-mapped-dictionary-format.md): Memory-mapped dictionary format
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting

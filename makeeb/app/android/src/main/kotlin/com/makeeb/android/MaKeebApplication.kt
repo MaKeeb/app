@@ -5,6 +5,8 @@ import com.makeeb.shared.companion.companionModule
 import com.makeeb.shared.keyboard.keyboardRuntimeModule
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.androidPreferencesRepository
+import com.makeeb.platform.storage.AssetBundledFiles
+import com.makeeb.platform.storage.BundledFiles
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -25,4 +27,6 @@ class MaKeebApplication : Application() {
 
 private val androidPlatformModule = module {
     single<PreferencesRepository> { androidPreferencesRepository(androidContext()) }
+    // Dictionary packs are stored uncompressed in the APK and mapped in place (build.gradle.kts).
+    single<BundledFiles> { AssetBundledFiles(androidContext().assets) }
 }

@@ -10,6 +10,7 @@
 		1356FB1E1EB172277C215D72 /* KeyboardVisualTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E3E2DF7E725939FC2F746A /* KeyboardVisualTests.swift */; };
 		17EB3B4BEF78A59ACB3A6B89 /* MemoryGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E725AFB6639BE5331E772D /* MemoryGuard.swift */; };
 		24480B826943FC3844A47E6F /* MaKeebApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119987389ABB46E600651369 /* MaKeebApp.swift */; };
+		29BDCB74FEAB1057D99B44D7 /* en_US.mkd in Resources */ = {isa = PBXBuildFile; fileRef = BFEDF5044EED5E0151D0A8FD /* en_US.mkd */; };
 		2CDFCB6725227E389B21CC30 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */; };
 		633B65D50717AA4066B96B4D /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C141D54FD5932EAA39DBFAA /* KeyboardViewController.swift */; };
 		65239AA548161AFC0CE3456D /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 001C6F1F58B9712245AC6EA8 /* AppIcon.icon */; };
@@ -77,6 +78,7 @@
 		909393140AE5D0C70B09AA18 /* MaKeebUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MaKeebUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A2A9943D7A3C1F042B32755 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AFAA5A64B875CCE1F9B12B1B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BFEDF5044EED5E0151D0A8FD /* en_US.mkd */ = {isa = PBXFileReference; name = en_US.mkd; path = ../../../tools/dictionaries/build/packs/en_US.mkd; sourceTree = "<group>"; };
 		C09514377D45359E63E8A13E /* ClipboardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelView.swift; sourceTree = "<group>"; };
 		CDD6958DBB528847C54B63E4 /* KeyboardProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardProbeTests.swift; sourceTree = "<group>"; };
 		E2956B9855FAED0EBC8F92B1 /* QuickSettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSettingsPanelView.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				C09514377D45359E63E8A13E /* ClipboardPanelView.swift */,
 				F06AA46C62BB159615B0DFB7 /* EmojiPanelView.swift */,
 				0B6DE313937EB26A887E6742 /* EmojiSearchStripView.swift */,
+				BFEDF5044EED5E0151D0A8FD /* en_US.mkd */,
 				AFAA5A64B875CCE1F9B12B1B /* Info.plist */,
 				482A155E304EFB2862C9C10B /* Keyboard.entitlements */,
 				4ECDAE50ECEEA3412AAC1570 /* KeyboardView.swift */,
@@ -183,7 +186,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 14209F3EDC8FCE39B5D38F76 /* Build configuration list for PBXNativeTarget "MaKeebKeyboardExtension" */;
 			buildPhases = (
-				B3AB6E83C5B37CA59B0BCA81 /* Build Kotlin framework (MaKeebKeyboard) */,
+				E6BEAE29300489093A7038F9 /* Build Kotlin framework (MaKeebKeyboard) and dictionary packs */,
 				94D733112892CB301378E05E /* Sources */,
 				1E9865F2DE977B135B844417 /* Resources */,
 			);
@@ -264,6 +267,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1D98902F4336F5E91E38B0A /* PrivacyInfo.xcprivacy in Resources */,
+				29BDCB74FEAB1057D99B44D7 /* en_US.mkd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,25 +284,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B3AB6E83C5B37CA59B0BCA81 /* Build Kotlin framework (MaKeebKeyboard) */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Build Kotlin framework (MaKeebKeyboard)";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../..\"\nsource app/ios/Config/find-java.sh\n./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode\n";
-		};
 		B6B3288BBF3B5690606D365F /* Build Kotlin framework (MaKeebCompanion) */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -317,6 +302,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/../..\"\nsource app/ios/Config/find-java.sh\n./gradlew :shared:companion:embedAndSignAppleFrameworkForXcode\n";
+		};
+		E6BEAE29300489093A7038F9 /* Build Kotlin framework (MaKeebKeyboard) and dictionary packs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Kotlin framework (MaKeebKeyboard) and dictionary packs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/../../tools/dictionaries/build/packs/en_US.mkd",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../..\"\nsource app/ios/Config/find-java.sh\n./gradlew :shared:keyboard:embedAndSignAppleFrameworkForXcode :tools:dictionaries:dictionaryPacks\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

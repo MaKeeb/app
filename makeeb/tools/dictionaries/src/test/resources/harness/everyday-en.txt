@@ -1,0 +1,128 @@
+# Held-out text for the typing harness: everyday messages written for MaKeeb (no third-party
+# text, so no licence to track). One sentence per line; lines starting with # are skipped.
+# Keep it fixed: changing it changes every baseline number.
+Hey, are you still coming over tonight?
+I think we should leave around seven so we can find parking.
+Can you pick up some milk and bread on your way home?
+The meeting got moved to Thursday afternoon.
+Thanks so much for the birthday present, I love it.
+Sorry I missed your call, I was driving.
+Let me know when you get there safely.
+We are running a little late because of the traffic.
+Did you remember to feed the cat this morning?
+I will send you the photos from the trip later today.
+The kitchen sink is leaking again and the plumber cannot come until Monday.
+Could you please review the document before lunch?
+I really enjoyed dinner last night, we should do it again soon.
+My phone battery is almost dead so I might not answer.
+What time does the movie start on Saturday?
+The weather looks great for a walk in the park.
+I left my keys at the office, can you let me in?
+Happy anniversary to the best couple I know.
+Please remember to bring your passport to the airport.
+The train was delayed by twenty minutes this morning.
+I just finished reading the book you recommended and it was wonderful.
+Are we still on for coffee tomorrow?
+Do you want me to book a table for four people?
+The kids are finally asleep, time for some quiet.
+I need to buy a new pair of running shoes.
+Could you send me the address of the restaurant?
+My flight lands at noon, so I should be home by two.
+We had a lovely time at the beach this weekend.
+Our team won the game in the last minute.
+I am so proud of you for getting the job.
+The package should arrive sometime next week.
+Can we talk about the budget after the call?
+Let us meet at the usual place near the station.
+I forgot to charge my laptop, so I am working from my phone.
+The doctor said everything looks fine.
+Please do not forget to water the plants while I am away.
+It was nice to finally meet your parents.
+I am making pasta for dinner, do you want some?
+The heating is broken again and the apartment is freezing.
+Could you check whether the store is open on Sunday?
+Good luck with your exam tomorrow, you will do great.
+I think I left my umbrella in your car.
+We should plan a trip to the mountains in the spring.
+Just landed, waiting for my bag.
+The concert was amazing, the band played for three hours.
+I have a headache so I am going to bed early.
+Do you know a good mechanic in the neighborhood?
+The new cafe on the corner makes excellent sandwiches.
+Remind me to call my grandmother on Friday.
+I cannot believe how quickly this year has gone.
+Your package is waiting for you at the front desk.
+I would love to join you for lunch next week.
+The printer on the second floor is out of paper again.
+Please let the dog out when you get home.
+We need to fix the fence before the winter comes.
+I am sorry about the confusion earlier.
+The children loved the museum, especially the dinosaurs.
+Can you believe it is already the end of October?
+I will be working late tonight, do not wait up.
+The soup needs a little more salt.
+Did anyone see where I put my glasses?
+Our neighbors are having a party on the weekend.
+I started learning to play the guitar last month.
+The bus was so crowded that I had to stand the whole way.
+Please send the invoice to the finance department.
+I bought fresh strawberries at the market this morning.
+We are thinking about painting the living room blue.
+It has been raining all day and the garden is flooded.
+Let me check my calendar and get back to you.
+I had a great conversation with my manager today.
+The internet has been really slow all evening.
+Could you help me move the couch on Saturday?
+I am grateful for everything you have done for me.
+The hotel room was small but very clean.
+Do not forget that the rent is due next week.
+I found a nice recipe for chocolate cake.
+We watched the sunset from the top of the hill.
+My sister is visiting from London next month.
+The office will be closed on the holiday.
+I think the battery in the smoke alarm needs changing.
+Thank you for your patience while we sort this out.
+Could you forward me the email from yesterday?
+I would rather stay in and watch a movie tonight.
+The traffic on the highway was terrible this afternoon.
+Please text me when the delivery arrives.
+We ran out of coffee, can you grab some on the way?
+My brother just got engaged and we are all very excited.
+The garage door is making a strange noise.
+I am going to the gym after work, want to come?
+The teacher said the kids did really well on their project.
+We should probably leave before it gets dark.
+I will pick you up from the station at six.
+The dishwasher is full, could you start it?
+I spent the whole afternoon cleaning the house.
+Would you like to come to the wedding with me?
+The library books are due back on Tuesday.
+I just saw the most beautiful rainbow over the lake.
+Could you lend me your ladder for the weekend?
+The coffee machine at work finally got fixed.
+Tell your mom I said hello.
+I am not feeling well, so I will stay home today.
+Let me know if you need anything from the pharmacy.
+We are out of toilet paper again.
+The report is almost done, I just need to add the charts.
+I think it might snow later this week.
+Could you turn the music down a little?
+My favorite part of the trip was the boat ride.
+Please remember to lock the back door.
+I will call you as soon as the meeting is over.
+We should invite the new neighbors for dinner.
+The shop gave me a refund for the broken lamp.
+I have been waiting for the bus for half an hour.
+Do you have any plans for the long weekend?
+I love the photo you posted of the garden.
+The car needs new tires before the winter.
+It was a long day, but we got a lot done.
+Can you believe how expensive everything has become?
+I am heading out now, see you soon.
+The baby finally took her first steps today.
+We need to renew our insurance before the end of the month.
+I would appreciate it if you could reply by Friday.
+The pizza will be here in about twenty minutes.
+Could you ask your brother if he can help us move?
+I am really looking forward to the holidays.
+Thanks again for letting me borrow your camera.

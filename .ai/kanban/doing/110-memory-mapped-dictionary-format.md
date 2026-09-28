@@ -23,11 +23,11 @@ Compact binary dictionaries read from mapped files, off the Kotlin heap, to fit 
 
 ## Tasks
 
-- [ ] The MKD format, ByteRegion and MappedDictionary
-- [ ] Build en_US from the pinned AOSP list
+- [x] The MKD format, ByteRegion and MappedDictionary
+- [x] Build en_US from the pinned AOSP list
 - [ ] Known typos first with the big list
 - [ ] Benchmark the per-key cost
 
 ## Progress
 
-Not started.
+Stage 1 of docs/research/dictionaries-autocorrect.md: memory-mapped MKD pack, builder from the AOSP en_US list, suggestion engine on it. In progress (2026-09-28).

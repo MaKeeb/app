@@ -14,12 +14,12 @@ An early scaffold. The shared engine has working shift and caps lock, auto-capit
 
 ## Layout
 
-The repository root holds AI tooling, docs and this README. All source lives in `makeeb/`, which is the Gradle root:
+The repository root holds AI tooling, docs, this README and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). All source lives in `makeeb/`, which is the Gradle root:
 
 ```
 makeeb/
   core/       model, common, settings                 foundations
-  platform/   host, feedback, clipboard               OS ports + Android/iOS adapters
+  platform/   host, feedback, clipboard, storage      OS ports + Android/iOS adapters
   engine/     layout, input, touch, dictionary,       shared input logic (commonMain only)
               prediction, gesture, emoji, clipboard
   ui/         theme, components                       Compose design system
@@ -27,7 +27,8 @@ makeeb/
               clipboard, settings, onboarding
   shared/     keyboard, surface, companion            composition roots; the iOS frameworks
   app/        android, ios                            platform wrappers only
-docs/         research, screenshots
+  tools/      dictionaries                            build-time: dictionary packs, typing harness
+docs/         research, screenshots, dictionaries
 ```
 
 Layers only depend downwards. Details, rules and the reasoning behind them are in [.ai/instructions.md](.ai/instructions.md).
@@ -39,7 +40,7 @@ Requires JDK 21, the Android SDK (platform 37), and for iOS, Xcode 27 plus [Xcod
 ```
 cd makeeb
 ./gradlew jvmTest                        # shared unit tests
-./gradlew :app:android:assembleDebug     # Android APK
+./gradlew :app:android:assembleDebug     # Android APK (first build downloads the pinned AOSP word list)
 cd app/ios && xcodegen generate          # then open MaKeeb.xcodeproj, or:
 xcodebuild -project MaKeeb.xcodeproj -scheme MaKeeb -sdk iphonesimulator \
   -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build

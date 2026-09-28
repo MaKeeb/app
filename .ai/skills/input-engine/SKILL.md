@@ -44,9 +44,14 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 ## Suggestions and dictionaries
 
 - `SuggestionEngine.suggest(TypingContext)` returns `Prediction(suggestions, autoCorrection)`. `TypingContext.previousWords` (up to two) is there for next-word prediction (APP-38).
-- Today `DictionarySuggestionEngine` runs over a `TrieDictionary` plus a `UserDictionary`. `StarterDictionaries` are tiny in-code word lists for development.
+- The main dictionary is a `MappedDictionary` over the bundled MKD pack `en_US.mkd` (160k words from AOSP LatinIME), read in place through `ByteRegion` (`:platform:storage`). `BundledDictionaryLoader` (`:shared:keyboard`) maps it off the main thread. Until then, or if the pack is missing, `DeferredDictionary` serves `StarterDictionaries`, a tiny in-code list that tests also use. `UserDictionary` is an in-heap `TrieDictionary`. The format and its reasoning are in docs/dictionaries/mkd-format.md.
 - `suggest` runs on the main thread on every keystroke. Its cost must be bounded and must not grow with dictionary size, and it should allocate little.
-- Real dictionaries (APP-110, APP-37) are memory-mapped binary files loaded off the main thread, never Kotlin collections. Check word-list licences before importing any: AOSP and HeliBoard lists are Apache-2.0, and anything else needs a review (roadmap).
+  - `MappedDictionary.completions` is a best-first search, about 1 µs per query on the JVM.
+  - `corrections` is the unweighted edit-distance walk. It costs 12–16k DP rows for a 6+ letter word with two allowed edits, and dominates per-key cost on the Pixel. Stage 3 replaces it with a bounded beam search (docs/research/dictionaries-autocorrect.md §6).
+- Offensive words (AOSP `possibly_offensive`) are known to `lookup` but never offered by completions or corrections.
+- Never load word lists into Kotlin collections in the keyboard. Packs are built at build time by `:tools:dictionaries` from pinned, hash-checked sources.
+- Check word-list licences before importing any. AOSP lists are Apache-2.0. HeliBoard's dictionary repository is GPL-3.0 as a whole, so rebuild from the original sources (research §9). Anything else needs a review. Record attributions in `THIRD_PARTY_NOTICES.md`.
+- Measure changes with the typing harness: `./gradlew :tools:dictionaries:typingHarness` reports keystroke savings, false corrections and typo fixes on held-out text (baseline in research §6.8).
 - Scope: statistical prediction, autocorrect, learning and swipe decoding are in scope. LLM or generative features are not (`.ai/instructions.md` → Scope).
 
 ## Layouts and touch

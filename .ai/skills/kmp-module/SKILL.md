@@ -16,6 +16,7 @@ description: Add or restructure a Gradle module in MaKeeb: pick the layer and co
 | `feature` | one Compose UI slice | `makeeb.kmp.compose` | commonMain (+ platform code for OS screens) |
 | `shared` | composition roots: Koin wiring, iOS frameworks | per module | see existing |
 | `app` | platform wrappers only (`app/android`, `app/ios`) | `makeeb.android.application` | Android entry points |
+| `tools` | build-time JVM tools, never shipped (`tools/dictionaries`) | `kotlin-jvm` (catalog alias `libs.plugins.kotlin.jvm`) | main + test; alias `jvmTest` to `test` so `./gradlew jvmTest` runs them |
 
 All paths below are relative to `makeeb/`, the Gradle root. A module depends only on its own layer or lower. Feature modules never depend on other feature modules; compose them in the `shared` layer. `:testing` holds fakes for `commonTest`.
 

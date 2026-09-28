@@ -24,6 +24,7 @@ kotlin {
             api(project(":platform:host"))
             api(project(":platform:feedback"))
             api(project(":platform:clipboard"))
+            api(project(":platform:storage"))
             api(project(":engine:input"))
             api(project(":engine:touch"))
             api(project(":engine:emoji"))

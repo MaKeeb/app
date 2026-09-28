@@ -10,32 +10,33 @@ MaKeeb is a third-party on-screen keyboard for Android and iOS, built with Kotli
 
 ## Layout
 
-The repository root holds only AI tooling, `docs/`, `.gitignore` and the README. All source lives in `makeeb/`, the Gradle root.
+The repository root holds only AI tooling, `docs/`, `.gitignore`, the README and `THIRD_PARTY_NOTICES.md`. All source lives in `makeeb/`, the Gradle root.
 
 ```
 makeeb/
   build-logic/        convention plugins: makeeb.kmp.library, makeeb.kmp.compose, makeeb.android.application
   gradle/             version catalog (libs.versions.toml) and wrapper
   core/               model, common, settings                      foundations, no DI, no UI
-  platform/           host, feedback, clipboard                    OS ports: commonMain interface + androidMain/iosMain adapters
+  platform/           host, feedback, clipboard, storage           OS ports: commonMain interface + androidMain/iosMain adapters
   engine/             layout, input, touch, dictionary,            pure input logic, commonMain only, unit-tested on the JVM
                       prediction, gesture, emoji, clipboard
   ui/                 theme, components                            Compose design system (incl. KeyboardIcons)
   feature/            keyboard, suggestions, emoji, clipboard,     Compose UI slices; settings/onboarding own ViewModels + Koin modules
                       settings, onboarding
   testing/            fakes for the platform ports (commonTest only)
+  tools/dictionaries  build-time JVM tool: dictionary packs (en_US.mkd) and the typing harness; not shipped
   shared/keyboard     keyboard composition root, no Compose; iOS framework "MaKeebKeyboard" (+ Swift bridge)
   shared/surface      Compose keyboard surface: strip + keys + panels
   shared/companion    companion app root (setup, settings, try-it); iOS framework "MaKeebCompanion"
   app/android         Android wrapper: manifest, resources, Application, MaKeebInputMethodService, MainActivity
   app/ios             Xcode wrapper (XcodeGen): MaKeeb app + MaKeebKeyboardExtension
-docs/                 research, screenshots
+docs/                 research, screenshots, dictionaries/ (pack format)
 .ai/                  instructions.md (this file), kanban/ (the board), skills/, agents/, commands/, plans/; local/ is gitignored
 ```
 
 ## Module graph
 
-Layers, lowest first: `core` → `platform` → `engine` → `ui` → `feature` → `shared` → `app`. A module may depend on its own layer or any layer below, never above. `:testing` is used only from test source sets.
+Layers, lowest first: `core` → `platform` → `engine` → `ui` → `feature` → `shared` → `app`. A module may depend on its own layer or any layer below, never above. `:testing` is used only from test source sets. `tools/` modules run at build time only, and nothing in the runtime graph depends on them.
 
 - `app/` holds only the platform wrappers: the Android application module and the Xcode project. Each platform's entry points live there (Android: `MaKeebApplication`, `MaKeebInputMethodService`, `MainActivity`; iOS: `MaKeebApp.swift`, `KeyboardViewController.swift`). Everything they host comes from `shared/`.
 - Feature modules do not depend on each other. The `shared` layer composes them (e.g. `KeyboardSurface` puts the strip, keys and panels together).
@@ -47,7 +48,7 @@ Layers, lowest first: `core` → `platform` → `engine` → `ui` → `feature` 
 
 - **The engine owns behaviour; renderers only draw.** `InputEngine` (typing state machine), `TouchController` (hit-testing, long-press, repeat, cursor slide), `LayoutGeometry` and `KeyboardRender` are shared. Function keys are semantic `KeyIcon`s (`core:model`), drawn as Material Symbols on Android (`KeyboardIcons`) and SF Symbols on iOS. Never put Unicode arrows or emoji on keys. Android draws with Compose (`:feature:keyboard`). The iOS extension draws `KeyboardRender` snapshots natively (`app/ios/Keyboard/KeyboardView.swift`). A behaviour change belongs in Kotlin, with a test, not in a renderer.
 - **The iOS keyboard extension links only `:shared:keyboard`.** Compose Multiplatform is not app-extension safe: it calls `UIApplication.shared`, needs a foreground window scene, and costs memory the extension doesn't have (docs/research/platform-apis.md §6). Never add Compose, or anything that touches `UIApplication`, to the runtime's dependency graph. `:shared:surface` still compiles for iOS so a future spike is only a linking change.
-- **iOS memory ceiling is roughly 48–70 MB and the kill is silent.** Budget about 30 MB for the extension. Large data (dictionaries) must be memory-mapped, not loaded into the Kotlin heap.
+- **iOS memory ceiling is roughly 48–70 MB and the kill is silent.** Budget about 30 MB for the extension. Large data (dictionaries) must be memory-mapped, not loaded into the Kotlin heap: read it through `ByteRegion` (`:platform:storage`), as `MappedDictionary` does (docs/dictionaries/mkd-format.md).
 - **iOS without Full Access:** no network, clipboard, haptics or sound, and read-only App Group access. Everything must still work (App Review 4.4.1). Gate those features on `hasFullAccess`.
 - **Settings:** the companion app writes them all. The keyboard reads them (`PreferencesRepository.reload()` when the iOS extension appears) and writes only the few in its quick-settings panel (`QuickSetting`): always on Android, only with Full Access on iOS (`KeyboardPorts.settingsWritable`), because without it the App Group is read-only. The companion reloads on resume. Learned words stay keyboard-local.
 - **Privacy:** never log typed text or clipboard contents, and typed text never leaves the device. Respect `EditorAttributes.incognito`: no learning, no clipboard history, no network features.

@@ -45,7 +45,7 @@ Read `keyboard-platforms` first. The evidence is in `docs/research/platform-apis
 ## Memory
 
 The budget is 30 MB steady and 40 MB peak on the oldest supported device. Jetsam kills the extension silently at roughly 48–70 MB. See `performance-budget` for how to measure.
-- Memory-map large data (`NSData` with `.mappedIfSafe`, or POSIX `mmap` via cinterop). Never parse it into Kotlin collections. `StarterDictionaries` are small in-code lists; the APP-110 card replaces them.
+- Memory-map large data. Never parse it into Kotlin collections. `BundleFiles` (`:platform:storage`, iosMain) maps files from the extension bundle with POSIX `mmap` into a bounds-checked `ByteRegion`. The English pack `en_US.mkd` is a resource of the keyboard extension only (`project.yml`), built by the extension's pre-build Gradle phase. Mapped pages are clean, so they don't count toward `phys_footprint`.
 - `KeyboardView` redraws the whole view for every `KeyboardRender`. That's cheap on memory. If profiling shows redraw cost on the typing path, move to a `CALayer` per key or dirty rectangles, and keep the renderer dumb.
 - Kotlin/Native options worth measuring (research §6.4): `latin1Strings`, `pagedAllocator=false`, and a capped GC `maxHeapBytes`. Set them with `binaryOption(...)` in the `MaKeebKeyboard` framework block, and record before and after numbers.
 

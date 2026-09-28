@@ -18,17 +18,24 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
+import platform.Foundation.NSLog
 import platform.UIKit.UIInputViewController
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform
+import kotlin.time.TimeSource
 
 /**
  * What the Swift `KeyboardViewController` talks to. Swift forwards view lifecycle, text-change
  * callbacks and touches (in key-area points) and draws each [KeyboardRender] it receives.
  */
+@OptIn(ExperimentalNativeApi::class)
 class KeyboardExtensionBridge(private val controller: UIInputViewController) : KoinComponent {
+    private val created = TimeSource.Monotonic.markNow()
     private val scope = MainScope()
     private val preferences: PreferencesRepository
     private val session: KeyboardSession
@@ -52,6 +59,18 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         session.density = 1f // UIKit lays out in points, the unit KeyboardMetrics is written in
         // iPhone screens are flat to the edge: keys run as close to it as the system keyboard's.
         session.sideInset = 0f
+        if (Platform.isDebugBinary) logDictionaryLoad()
+    }
+
+    /** Debug builds log when the dictionary pack is ready (Console, "MaKeebDictionary"); durations and counts only. */
+    private fun logDictionaryLoad() {
+        scope.launch {
+            val status = get<BundledDictionaryLoader>().status.first {
+                it !is BundledDictionaryLoader.Status.Idle && it !is BundledDictionaryLoader.Status.Loading
+            }
+            val line = "MaKeebDictionary: $status, ready ${created.elapsedNow().inWholeMilliseconds} ms after the bridge was created"
+            NSLog(line.replace("%", "%%"))
+        }
     }
 
     /** Total keyboard height in points for the current preferences on a screen [screenHeight] tall. */

@@ -432,6 +432,24 @@ cost(literal) = Σ spatial(tᵢ, typed keyᵢ) + λ · (−ln P_unk(typed))
 - Gate regressions on these metrics. Do not commit timing assertions (performance-budget skill).
 - Set the targets after the first run, from the baseline.
 
+**Stage 1 baseline** *(measured 2026-09-28)*. The harness is `makeeb/tools/dictionaries/src/test/.../harness/TypingHarness.kt`; run it with `./gradlew :tools:dictionaries:typingHarness`, adding `-Pharness.pack=starter` for the starter list.
+
+- **Corpus:** 125 held-out everyday sentences (1,170 words), written for MaKeeb (`src/test/resources/harness/everyday-en.txt`).
+- **Typing:** every word goes through the real `InputEngine` and `DictionarySuggestionEngine` via `FakeTextHost`, in lower case, relying on auto-capitalisation. There is no user dictionary.
+- **Typos:** each letter is replaced by a random neighbouring QWERTY key with probability 5%, seed 20260928.
+- **Keystroke savings** assume a user who taps the word as soon as the strip shows it, so they are an upper bound.
+
+| | Starter list (204 words) | AOSP en_US pack (160,668 words) |
+|---|---|---|
+| Corpus words the dictionary knows | 63.3% | 100% |
+| Keystroke savings from completion | 21.5% | 35.0% |
+| False corrections on clean typing | 0.0% (0 of 1,170) | 0.0% (0 of 1,170) |
+| Typos fixed by autocorrect | 0.0% (0 of 234) | 0.0% (0 of 234) |
+| Typos with the intended word in the strip | 41.0% | 76.1% |
+| Key cost on the JVM, p50 / p95 | 9 / 26 µs | 5 / 81 µs |
+
+Stage 0's policy only corrects whitelisted typos (`KnownTypos`), and random neighbour-key substitutions never produce those, so the typo-fix rate is 0%. Stage 3 has to raise it without raising the false-correction rate. On device, the pack raised per-key main-thread cost on the Pixel 6 Pro (debug build) from p50 1.9 ms / p95 2.4–3.0 ms to p50 3.1–3.4 ms / p95 5.4–8.7 ms. The first 50 keys, before the JIT warms up, reached p95 17 ms. Almost all of that is the unweighted edit-distance walk: 12–16k DP rows for a 6+ letter word with two allowed edits. That walk is what Stage 3's bounded beam search, run off the main thread (§6.10), replaces.
+
 ### 6.9 Swipe typing (pointer only)
 
 - Gesture decoding reuses the same lexicon and language model with a different channel model:

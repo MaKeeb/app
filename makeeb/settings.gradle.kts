@@ -35,6 +35,7 @@ include(":core:settings")
 include(":platform:host")
 include(":platform:feedback")
 include(":platform:clipboard")
+include(":platform:storage")
 
 // engine — pure input logic (commonMain only, no Compose)
 include(":engine:layout")
@@ -60,6 +61,9 @@ include(":feature:onboarding")
 
 // testing — fakes for the platform ports; test source sets only
 include(":testing")
+
+// tools — build-time JVM tools, outside the runtime graph: dictionary packs and the typing harness
+include(":tools:dictionaries")
 
 // shared — composition roots: wire features and engines into a keyboard and a companion app,
 // and produce the iOS frameworks (MaKeebKeyboard, MaKeebCompanion)
