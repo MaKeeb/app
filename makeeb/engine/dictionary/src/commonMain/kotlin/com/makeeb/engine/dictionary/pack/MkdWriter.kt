@@ -16,7 +16,7 @@ object MkdWriter {
         require(meta["language"]?.isNotBlank() == true) { "meta needs a language" }
         val table = wordTable(words)
         val allMeta = LinkedHashMap(meta).apply {
-            put("keyFold", MkdFormat.FOLD_LOWERCASE)
+            put("keyFold", MkdFormat.FOLD_V2)
             put("words", table.size.toString())
         }
         val sections = listOf(
@@ -62,7 +62,7 @@ object MkdWriter {
             val bytes = word.text.encodeToByteArray()
             var flags = 0
             if (word.offensive) flags = flags or MkdFormat.WORD_OFFENSIVE
-            if (MkdFormat.fold(word.text) != word.text) flags = flags or MkdFormat.WORD_CASED
+            if (word.text.lowercase() != word.text) flags = flags or MkdFormat.WORD_CASED
             out.u8(word.frequency)
             out.u8(flags)
             out.u8(bytes.size)

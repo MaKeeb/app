@@ -20,6 +20,9 @@ class MkdPack private constructor(
 ) {
     val languageTag: String get() = meta.getValue("language")
 
+    /** How this pack folded its keys; queries fold the same way ([MkdFormat.fold]). */
+    val keyFold: String get() = meta.getValue("keyFold")
+
     fun wordFrequency(id: Int): Int = region.u8(recordAt(id))
 
     fun wordFlags(id: Int): Int = region.u8(recordAt(id) + 1)
@@ -84,7 +87,7 @@ class MkdPack private constructor(
                 .associate { it.substringBefore('=') to it.substringAfter('=') }
             if (meta["language"].isNullOrBlank()) fail("META has no language")
             val fold = meta["keyFold"]
-            if (fold != MkdFormat.FOLD_LOWERCASE) fail("unsupported key fold $fold")
+            if (fold != MkdFormat.FOLD_LOWERCASE && fold != MkdFormat.FOLD_V2) fail("unsupported key fold $fold")
 
             val wordsLength = lengths.getValue(MkdFormat.WORD)
             if (wordsLength < 4) fail("WORD section too short")

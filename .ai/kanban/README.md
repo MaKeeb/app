@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 11 |
+| [Ready to start](todo/_todo.md) | 10 |
 | [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 51 |
+| [In review](review/_review.md) | 52 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
@@ -29,6 +29,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-13](review/013-next-keyboard-globe-key.md): Next-keyboard (globe) key
 - [APP-15](review/015-latin-layout-variants.md): Latin layout variants
 - [APP-33](review/033-suggestion-strip.md): Suggestion strip
+- [APP-34](review/034-word-completion.md): Word completion
 - [APP-36](review/036-one-tap-autocorrect-undo.md): One-tap autocorrect undo
 - [APP-49](review/049-spacebar-cursor-slide.md): Spacebar cursor slide
 - [APP-58](review/058-emoji-panel.md): Emoji panel
@@ -72,7 +73,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 ## Ready to start
 
 - [APP-17](todo/017-fast-language-switching.md): Fast language switching
-- [APP-34](todo/034-word-completion.md): Word completion
 - [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard

@@ -1,5 +1,7 @@
 package com.makeeb.engine.dictionary.pack
 
+import com.makeeb.engine.dictionary.KeyFold
+
 /**
  * MKD v1, MaKeeb's dictionary pack format. [MkdWriter] writes it and [MkdPack] reads it straight
  * from a mapped [com.makeeb.platform.storage.ByteRegion]; nothing is decoded up front, so a pack
@@ -72,13 +74,18 @@ object MkdFormat {
 
     const val LABEL_END = 0x1F
 
-    /** The v1 key fold: Unicode lower case, locale-independent. Stage 2 adds diacritic folding (FOLD). */
+    /** The first packs' key fold: Unicode lower case, locale-independent. Still readable. */
     const val FOLD_LOWERCASE = "lowercase"
+
+    /** Lower case without diacritics or apostrophes ([KeyFold]); what the writer uses now. */
+    const val FOLD_V2 = KeyFold.SCHEME
 
     const val MAX_WORD_BYTES = 255
     const val MAX_U24 = 0xFFFFFF
 
-    fun fold(word: String): String = word.lowercase()
+    /** Fold [word] the way a pack declaring [scheme] folded its keys. */
+    fun fold(word: String, scheme: String = FOLD_V2): String =
+        if (scheme == FOLD_LOWERCASE) word.lowercase() else KeyFold.fold(word)
 
     fun sectionId(name: String): Int {
         require(name.length == 4 && name.all { it.code in 0x20..0x7E }) { "section ids are four ASCII characters" }

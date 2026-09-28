@@ -14,9 +14,10 @@ open class TrieDictionary(
     override val languageTag: String,
     entries: Iterable<WordEntry> = emptyList(),
 ) : Dictionary {
+    /** Keys are [KeyFold]ed, so one node can hold several spellings ("naive", "naïve"). */
     private class Node {
         val children = HashMap<Char, Node>()
-        var entry: WordEntry? = null
+        val entries = ArrayList<WordEntry>(1)
     }
 
     private val root = Node()
@@ -25,28 +26,34 @@ open class TrieDictionary(
         entries.forEach(::insert)
     }
 
+    /** Adds [entry], or updates the frequency of the same spelling. */
     protected fun insert(entry: WordEntry) {
         var node = root
-        entry.word.lowercase().forEach { char -> node = node.children.getOrPut(char) { Node() } }
-        val existing = node.entry
-        node.entry = if (existing == null || entry.frequency >= existing.frequency) entry else existing
+        KeyFold.fold(entry.word).forEach { char -> node = node.children.getOrPut(char) { Node() } }
+        val same = node.entries.indexOfFirst { it.word == entry.word }
+        if (same >= 0) node.entries[same] = entry else node.entries += entry
+        node.entries.sortByDescending { it.frequency }
     }
 
     protected fun remove(word: String) {
-        find(word.lowercase())?.entry = null
+        find(KeyFold.fold(word))?.entries?.removeAll { it.word.equals(word, ignoreCase = true) }
     }
 
-    override fun lookup(word: String): WordEntry? = find(word.lowercase())?.entry
+    /** The spelling typed exactly when it exists, otherwise the most frequent one under the key. */
+    override fun lookup(word: String): WordEntry? {
+        val entries = find(KeyFold.fold(word))?.entries ?: return null
+        return entries.firstOrNull { it.word == word } ?: entries.firstOrNull()
+    }
 
     override fun completions(prefix: String, limit: Int): List<WordEntry> {
-        val start = find(prefix.lowercase()) ?: return emptyList()
+        val start = find(KeyFold.fold(prefix)) ?: return emptyList()
         val found = mutableListOf<WordEntry>()
         collect(start, found)
         return found.sortedByDescending { it.frequency }.take(limit)
     }
 
     override fun corrections(word: String, maxEdits: Int, limit: Int): List<WordMatch> {
-        val target = word.lowercase()
+        val target = KeyFold.fold(word)
         val firstRow = IntArray(target.length + 1) { it }
         val matches = mutableListOf<WordMatch>()
         root.children.forEach { (char, child) -> walk(child, char, null, target, firstRow, null, maxEdits, matches) }
@@ -59,7 +66,7 @@ open class TrieDictionary(
         val stack = ArrayDeque(listOf(root))
         while (stack.isNotEmpty()) {
             val node = stack.removeLast()
-            node.entry?.let { yield(it) }
+            yieldAll(node.entries)
             stack.addAll(node.children.values)
         }
     }
@@ -85,7 +92,7 @@ open class TrieDictionary(
             row[i] = best
         }
         val distance = row[target.length]
-        node.entry?.let { if (distance <= maxEdits) out += WordMatch(it, distance) }
+        if (distance <= maxEdits) node.entries.forEach { out += WordMatch(it, distance) }
         if (row.min() <= maxEdits) {
             node.children.forEach { (next, child) -> walk(child, next, char, target, row, previousRow, maxEdits, out) }
         }
@@ -98,7 +105,7 @@ open class TrieDictionary(
     }
 
     private fun collect(node: Node, out: MutableList<WordEntry>) {
-        node.entry?.let(out::add)
+        out += node.entries
         node.children.values.forEach { collect(it, out) }
     }
 }

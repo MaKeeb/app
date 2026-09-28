@@ -67,4 +67,15 @@ class DictionarySuggestionEngineTest {
         assertEquals("and", engine.suggest(TypingContext("nad")).autoCorrection)
         assertEquals("London", engine.suggest(TypingContext("london")).autoCorrection)
     }
+
+    @Test
+    fun aTypedFormMissingOnlyAccentsOrAnApostropheIsCorrected() {
+        val big = TrieDictionary("en", listOf(WordEntry("I'm", 220), WordEntry("café", 120), WordEntry("its", 200), WordEntry("it's", 210), WordEntry("ill", 100), WordEntry("I'll", 180)))
+        val engine = DictionarySuggestionEngine(big)
+        assertEquals("I'm", engine.suggest(TypingContext("im")).autoCorrection)
+        assertEquals("café", engine.suggest(TypingContext("cafe")).autoCorrection)
+        assertEquals("Café", engine.suggest(TypingContext("Cafe")).autoCorrection)
+        assertNull(engine.suggest(TypingContext("its")).autoCorrection, "a word in its own right")
+        assertNull(engine.suggest(TypingContext("ill")).autoCorrection)
+    }
 }

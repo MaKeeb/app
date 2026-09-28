@@ -18,8 +18,9 @@ import com.makeeb.platform.storage.ByteRegion
  * - Offensive words ([MkdFormat.WORD_OFFENSIVE]) are found by [lookup], so typing one isn't treated
  *   as a typo, but are never offered by [completions], [corrections] or [entries] unless
  *   [suggestOffensive] is set (AOSP blocks them the same way by default).
- * - Keys fold case only. When several spellings share a key ("us", "US"), [lookup] returns the one
- *   typed exactly, else the most frequent.
+ * - Keys fold case, diacritics and apostrophes (the pack's `keyFold`). When several spellings
+ *   share a key ("us", "US"; "naive", "naïve"), [lookup] returns the one typed exactly, else the
+ *   most frequent.
  */
 class MappedDictionary(
     val pack: MkdPack,
@@ -32,6 +33,7 @@ class MappedDictionary(
     val wordCount: Int get() = pack.wordCount
 
     private val region = pack.region
+    private val keyFold = pack.keyFold
 
     /** Nodes the last [completions] call decoded; tests check it stays independent of subtree size. */
     internal var lastCompletionNodes = 0
@@ -42,7 +44,7 @@ class MappedDictionary(
         private set
 
     override fun lookup(word: String): WordEntry? {
-        val key = codePoints(MkdFormat.fold(word))
+        val key = codePoints(MkdFormat.fold(word, keyFold))
         if (key.isEmpty()) return null
         val node = Node(region)
         val matched = descend(key, node)
@@ -59,7 +61,7 @@ class MappedDictionary(
 
     override fun completions(prefix: String, limit: Int): List<WordEntry> {
         if (limit <= 0) return emptyList()
-        val key = codePoints(MkdFormat.fold(prefix))
+        val key = codePoints(MkdFormat.fold(prefix, keyFold))
         val node = Node(region)
         val queue = BestFirstQueue()
         if (key.isEmpty()) {
@@ -94,7 +96,7 @@ class MappedDictionary(
 
     override fun corrections(word: String, maxEdits: Int, limit: Int): List<WordMatch> {
         if (limit <= 0 || maxEdits < 0) return emptyList()
-        val walk = CorrectionWalk(codePoints(MkdFormat.fold(word)), maxEdits, limit)
+        val walk = CorrectionWalk(codePoints(MkdFormat.fold(word, keyFold)), maxEdits, limit)
         walk.visitArray(pack.lexicon, depth = 0)
         lastCorrectionRows = walk.rowsComputed
         return walk.results()

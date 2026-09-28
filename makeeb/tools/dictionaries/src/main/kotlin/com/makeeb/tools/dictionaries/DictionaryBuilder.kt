@@ -110,7 +110,9 @@ private fun verify(spec: PackSpec, bytes: ByteArray, list: AospWordList) {
         expect(dictionary.lookup(word)?.word == word, "lookup $word")
     }
     expect(dictionary.completions("kitch", 3).any { it.word == "kitchen" }, "kitch completes to kitchen")
-    expect(dictionary.lookup("im") == null, "not-a-word entries are left out")
+    // AOSP's not-a-word "im" is dropped; its folded key finds the real word.
+    expect(dictionary.lookup("im")?.word == "I'm", "not-a-word entries are left out; im finds I'm")
+    expect(dictionary.lookup("dont")?.word == "don't", "keys fold apostrophes")
     val offensive = list.words.first { it.offensive }
     expect(dictionary.lookup(offensive.text) != null, "offensive words stay known")
     expect(dictionary.completions(offensive.text, 50).none { it.word == offensive.text }, "offensive words are not offered")

@@ -33,7 +33,7 @@ class MappedDictionaryTest {
         assertTrue(pack.checksumMatches())
         assertEquals("en-US", pack.languageTag)
         assertEquals("Test", pack.meta["name"])
-        assertEquals(MkdFormat.FOLD_LOWERCASE, pack.meta["keyFold"])
+        assertEquals(MkdFormat.FOLD_V2, pack.meta["keyFold"])
         assertEquals(words.size.toString(), pack.meta["words"])
 
         val dictionary = MappedDictionary(pack)
@@ -206,5 +206,17 @@ class MappedDictionaryTest {
                 value /= 26
             }
         }.reversed()
+    }
+
+    @Test
+    fun keysFoldDiacriticsAndApostrophesButSuggestionsKeepTheSpelling() {
+        val words = dictionary(listOf(MkdWord("naïve", 90), MkdWord("naive", 60), MkdWord("café", 150), MkdWord("cafeteria", 110), MkdWord("don't", 200), MkdWord("Straße", 100)))
+        assertEquals("naive", words.lookup("naive")?.word, "the spelling typed, when it exists")
+        assertEquals("naïve", words.lookup("naïve")?.word)
+        assertEquals(listOf("café", "cafeteria"), words.completions("cafe", 5).map { it.word })
+        assertEquals("don't", words.lookup("dont")?.word)
+        assertEquals("don't", words.completions("don", 1).single().word)
+        assertEquals("Straße", words.lookup("strasse")?.word)
+        assertTrue(words.corrections("cafw", 1, 5).any { it.entry.word == "café" })
     }
 }

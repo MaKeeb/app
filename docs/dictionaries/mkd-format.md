@@ -14,7 +14,7 @@ All integers are little-endian, except the two "marker first" encodings noted be
 |---|---|
 | Header (16 bytes) | `u32` magic `"MKD" 0x1A`; `u16` major version (1, and readers reject any other); `u16` minor version (0, additive changes only); `u32` CRC-32 of bytes 12..end; `u16` section count; `u16` reserved |
 | Section table | One `{u32 id, u32 offset, u32 length}` entry per section. The id is four ASCII characters. Readers skip sections they don't know |
-| `META` | UTF-8 `key=value` lines. Required: `language` (BCP 47) and `keyFold` (`lowercase` in v1). Also present: `name`, `source`, `sourceSha256`, `sourceVersion`, `licence`, `attribution`, `words` |
+| `META` | UTF-8 `key=value` lines. Required: `language` (BCP 47) and `keyFold`: `fold-v2` (lower case without diacritics or apostrophes, `KeyFold`; written since 2026-09-29) or `lowercase` (the first packs; still readable). Also present: `name`, `source`, `sourceSha256`, `sourceVersion`, `licence`, `attribution`, `words` |
 | `WORD` | `u32` count, then `count × u24` record offsets, then the records. Each record is `u8` frequency (0–255, log scale), `u8` flags, `u8` byte length and the UTF-8 spelling |
 | `LEXI` | Radix trie over folded keys, laid out breadth-first |
 
@@ -38,7 +38,7 @@ All integers are little-endian, except the two "marker first" encodings noted be
   - Measured on the en_US pack (JVM): 3–19 nodes and about 1 µs per completion query.
   - A DAFSA would be smaller but can't store a per-prefix best score.
 - **Breadth-first layout:** the levels every query starts from share the first pages. `MappedDictionary.warmUp` touches them off the main thread.
-- **Several words per key:** keys are folded, so one key can have several spellings ("us" and "US"). `lookup` returns the exact spelling when it exists, otherwise the most frequent one. Stage 2 folds diacritics into keys the same way ("naive" finding "naïve"), with a `FOLD` section and a new `keyFold` value. Readers reject a `keyFold` they don't know.
+- **Several words per key:** keys are folded, so one key can have several spellings ("us" and "US"). `lookup` returns the exact spelling when it exists, otherwise the most frequent one. Since Stage 2 keys also fold diacritics, letter expansions (ß→ss, æ→ae) and apostrophes (`keyFold=fold-v2`), so "naive" finds "naïve" and "dont" finds "don't"; the fold is code (`KeyFold`), not a table in the pack. Readers reject a `keyFold` they don't know.
 - **Offensive words** are known to `lookup` (typing one exactly isn't a typo). `completions`, `corrections` and `entries` never offer them unless `suggestOffensive` is set. AOSP behaves the same way by default.
 - **Reproducible:** the writer uses no timestamps, so the same word list always builds the same bytes. The CRC is checked when a pack is built (and, from Stage 4, when one is installed), never on every mapping: checking reads every page.
 

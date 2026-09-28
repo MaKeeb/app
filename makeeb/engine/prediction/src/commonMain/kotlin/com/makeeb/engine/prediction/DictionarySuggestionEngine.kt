@@ -53,7 +53,10 @@ class DictionarySuggestionEngine(
         // "London", "i" → "I"), never an acronym's ("nad" is not "NAD"). Other near misses stay
         // suggestions.
         val capitalised = exact?.word?.takeIf { it != typed && typed == typed.lowercase() && it.isTitleCase() }
-        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: capitalised
+        // Keys fold accents and apostrophes, so a typed form that isn't a word itself finds the
+        // one it lacks them for: "im" → "I'm", "cafe" → "café". "its", "were", "ill" are words.
+        val refolded = exact?.word?.takeIf { !it.equals(typed, ignoreCase = true) }?.let { matchCase(it, typed) }
+        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised
         autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         val ranked = candidates.values.sortedByDescending { it.score }
 
