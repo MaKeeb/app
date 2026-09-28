@@ -6,6 +6,8 @@ import MaKeebKeyboard
 /// so Android and iOS behave identically. Cheap on memory, which the extension needs.
 final class KeyboardView: UIView {
     weak var bridge: KeyboardExtensionBridge?
+    /// Receives globe-key touches: iOS's own handler switches keyboards on a tap and lists them on a long press.
+    weak var inputController: UIInputViewController?
     var stripHeight: CGFloat = 44
     var render: KeyboardRender? {
         didSet {
@@ -23,6 +25,7 @@ final class KeyboardView: UIView {
     var drawnSinceAppearing = false
     private var lastKeysAreaSize: CGSize = .zero
     private var stripTouches = Set<UITouch>()
+    private var globeTouches = Set<UITouch>()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -321,6 +324,9 @@ final class KeyboardView: UIView {
             let point = touch.location(in: self)
             if point.y < stripHeight {
                 stripTouches.insert(touch)
+            } else if isOnGlobeKey(point), let inputController, let event {
+                globeTouches.insert(touch)
+                inputController.handleInputModeList(from: self, with: event)
             } else {
                 bridge?.touchDown(id: touchId(touch), x: Double(point.x), y: Double(point.y - stripHeight))
             }
@@ -328,29 +334,37 @@ final class KeyboardView: UIView {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches where !stripTouches.contains(touch) {
+        if let event, touches.contains(where: globeTouches.contains) { inputController?.handleInputModeList(from: self, with: event) }
+        for touch in touches where !stripTouches.contains(touch) && !globeTouches.contains(touch) {
             let point = touch.location(in: self)
             bridge?.touchMove(id: touchId(touch), x: Double(point.x), y: Double(point.y - stripHeight))
         }
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let event, touches.contains(where: globeTouches.contains) { inputController?.handleInputModeList(from: self, with: event) }
         for touch in touches {
             let point = touch.location(in: self)
             if stripTouches.remove(touch) != nil {
                 selectSuggestion(at: point)
-            } else {
+            } else if globeTouches.remove(touch) == nil {
                 bridge?.touchUp(id: touchId(touch), x: Double(point.x), y: Double(point.y - stripHeight))
             }
         }
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let event, touches.contains(where: globeTouches.contains) { inputController?.handleInputModeList(from: self, with: event) }
         for touch in touches {
-            if stripTouches.remove(touch) == nil {
+            if stripTouches.remove(touch) == nil && globeTouches.remove(touch) == nil {
                 bridge?.touchCancel(id: touchId(touch))
             }
         }
+    }
+
+    /// Our own globe key, drawn when iOS asks for one (home-button iPhones).
+    private func isOnGlobeKey(_ point: CGPoint) -> Bool {
+        render?.keys.contains { $0.icon == .globe && keyAreaRect($0.frame).contains(point) } ?? false
     }
 
     private func selectSuggestion(at point: CGPoint) {

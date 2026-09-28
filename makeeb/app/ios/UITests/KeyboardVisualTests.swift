@@ -423,6 +423,23 @@ final class KeyboardVisualTests: XCTestCase {
         save("cold-open")
     }
 
+    /// Home-button iPhones (run on an iPhone SE): iOS asks MaKeeb for its own globe key; a tap
+    /// switches keyboards and a long press lists them, through iOS's own handler.
+    func test11_globeKey() {
+        openTab("Try it")
+        let field = field("Text")
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        tap(CGPoint(x: field.frame.midX, y: field.frame.midY), pause: 1.5)
+        let globe = app.descendants(matching: .any).matching(identifier: "key-globe").firstMatch
+        // iOS reopens the last keyboard: advance with the system keyboard's globe until MaKeeb's shows.
+        for _ in 0..<4 where !globe.waitForExistence(timeout: 15) {
+            app.buttons["Next keyboard"].firstMatch.tap()
+        }
+        XCTAssertTrue(globe.exists, "MaKeeb draws its own globe key")
+        save("I-GLOBE-key")
+        heldCapture("I-GLOBE-list", at: CGPoint(x: globe.frame.midX, y: globe.frame.midY), hold: 2.5)
+    }
+
     func test08_companion() {
         openTab("Setup")
         save("I-VT-30-setup")

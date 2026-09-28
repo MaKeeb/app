@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 23 |
+| [Ready to start](todo/_todo.md) | 22 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 36 |
+| [In review](review/_review.md) | 37 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -20,6 +20,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-7](review/007-haptic-and-sound-feedback.md): Haptic and sound feedback
 - [APP-8](review/008-backspace-repeat-and-word-delete.md): Backspace repeat and word delete
 - [APP-9](review/009-symbol-number-and-numpad-layers.md): Symbol, number and numpad layers
+- [APP-13](review/013-next-keyboard-globe-key.md): Next-keyboard (globe) key
 - [APP-15](review/015-latin-layout-variants.md): Latin layout variants
 - [APP-33](review/033-suggestion-strip.md): Suggestion strip
 - [APP-36](review/036-one-tap-autocorrect-undo.md): One-tap autocorrect undo
@@ -54,7 +55,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 - [APP-1](todo/001-key-grid-with-multitouch-and-rollover.md): Key grid with multitouch and rollover
 - [APP-3](todo/003-long-press-alternate-characters.md): Long-press alternate characters
-- [APP-13](todo/013-next-keyboard-globe-key.md): Next-keyboard (globe) key
 - [APP-14](todo/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-17](todo/017-fast-language-switching.md): Fast language switching
 - [APP-34](todo/034-word-completion.md): Word completion

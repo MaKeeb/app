@@ -34,6 +34,7 @@ final class KeyboardViewController: UIInputViewController {
         bridge = KeyboardExtensionBridge(controller: self)
         LaunchTrace.mark("bridge ready")
         keyboardView.bridge = bridge
+        keyboardView.inputController = self
         keyboardView.stripHeight = CGFloat(bridge.stripHeight)
         keyboardView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(keyboardView)
