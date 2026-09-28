@@ -97,8 +97,9 @@ class KeyboardSession(
             }
         }
         scope.launch {
-            this@KeyboardSession.preferences.collect {
+            this@KeyboardSession.preferences.collect { prefs ->
                 touch.previewEnabled = previewEnabled()
+                touch.deleteWordsWhenHeld = prefs.holdDeleteWords
                 engine.refreshLayout()
             }
         }

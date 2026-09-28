@@ -186,6 +186,31 @@ class InputEngineTest {
     }
 
     @Test
+    fun deleteWordRemovesTheWordAndTheSpacesAfterIt() {
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None, autoCorrect = false))
+        type("hello big world ")
+        engine.onKey(KeyAction.DeleteWord)
+        assertEquals("hello big ", host.text)
+        engine.onKey(KeyAction.DeleteWord)
+        assertEquals("hello ", host.text)
+        type("it's")
+        engine.onKey(KeyAction.DeleteWord)
+        assertEquals("hello ", host.text, "apostrophes stay part of the word")
+    }
+
+    @Test
+    fun deleteWordTakesPunctuationAndEmojiOneAtATime() {
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None, autoCorrect = false))
+        type("hi")
+        engine.commitRawText("👍🏽")
+        engine.onKey(KeyAction.DeleteWord)
+        assertEquals("hi", host.text, "the whole emoji, never half of it")
+        type("!")
+        engine.onKey(KeyAction.DeleteWord)
+        assertEquals("hi", host.text)
+    }
+
+    @Test
     fun doubleTapShiftLocksCaps() {
         val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
         engine.onKey(KeyAction.Shift)

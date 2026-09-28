@@ -103,6 +103,7 @@ class InputEngine(
             is KeyAction.Text -> typeText(action.text)
             KeyAction.Space -> typeSpace()
             KeyAction.Backspace -> backspace()
+            KeyAction.DeleteWord -> deleteWord()
             KeyAction.Enter -> enter()
             KeyAction.Shift -> toggleShift()
             is KeyAction.SwitchMode -> switchMode(action.mode)
@@ -204,6 +205,24 @@ class InputEngine(
             return
         }
         host.deleteBackward()
+        resyncWithHost()
+    }
+
+    /**
+     * The spaces before the caret and the word before them. Anything else (punctuation, emoji)
+     * goes one grapheme at a time, so a word delete never splits an emoji.
+     */
+    private fun deleteWord() {
+        pendingRevert = null
+        val before = host.textBeforeCursor(CONTEXT_LENGTH)
+        val trimmed = before.trimEnd()
+        val spaces = before.length - trimmed.length
+        val word = trimmed.takeLastWhile { it.isLetterOrDigit() || it == '\'' || it == '’' }
+        when {
+            word.isNotEmpty() -> host.replaceBeforeCursor(word.length + spaces, "")
+            spaces > 0 -> host.replaceBeforeCursor(spaces, "")
+            else -> host.deleteBackward()
+        }
         resyncWithHost()
     }
 

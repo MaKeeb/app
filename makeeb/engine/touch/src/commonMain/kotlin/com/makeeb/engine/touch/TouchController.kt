@@ -64,6 +64,9 @@ class TouchController(
     var shift: ShiftState = ShiftState.Off
     var previewEnabled: Boolean = true
 
+    /** Holding delete long switches from characters to whole words. */
+    var deleteWordsWhenHeld: Boolean = true
+
     fun down(id: Long, x: Float, y: Float) {
         val placed = geometry?.keyAt(x, y) ?: return
         pointers[id]?.timer?.cancel()
@@ -77,9 +80,18 @@ class TouchController(
                 listener.onAction(KeyAction.Backspace)
                 pointer.timer = scope.launch {
                     delay(config.repeatStartMillis)
+                    var repeats = 0
                     while (isActive) {
-                        listener.onAction(KeyAction.Backspace)
-                        delay(config.repeatIntervalMillis)
+                        val words = deleteWordsWhenHeld && repeats >= config.wordDeleteAfterRepeats
+                        listener.onAction(if (words) KeyAction.DeleteWord else KeyAction.Backspace)
+                        repeats++
+                        delay(
+                            when {
+                                words -> config.wordRepeatIntervalMillis
+                                repeats >= config.accelerateAfterRepeats -> config.fastRepeatIntervalMillis
+                                else -> config.repeatIntervalMillis
+                            },
+                        )
                     }
                 }
             }

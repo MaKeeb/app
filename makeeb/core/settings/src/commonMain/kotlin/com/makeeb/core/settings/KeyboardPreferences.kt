@@ -7,6 +7,8 @@ data class KeyboardPreferences(
     val doubleSpacePeriod: Boolean = true,
     val autoCorrect: Boolean = true,
     val showSuggestions: Boolean = true,
+    /** Holding delete speeds up, then erases whole words. */
+    val holdDeleteWords: Boolean = true,
     // Feedback
     val keyPressHaptics: Boolean = true,
     val keyPressSound: Boolean = false,

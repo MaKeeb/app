@@ -121,6 +121,34 @@ class TouchControllerTest {
     }
 
     @Test
+    fun heldBackspaceAcceleratesThenDeletesWords() = runTest {
+        val touch = controller()
+        val backspace = geometry.keys.first { it.key.action == KeyAction.Backspace }.bounds
+        touch.down(1, backspace.centerX, backspace.centerY)
+        advanceTimeBy(1_000)
+        runCurrent()
+        val firstSecond = actions.size
+        assertTrue(firstSecond > 1 + 600 / 60, "faster than a steady 60 ms repeat: got $firstSecond")
+        advanceTimeBy(1_000)
+        runCurrent()
+        touch.up(1, backspace.centerX, backspace.centerY)
+        val firstWord = actions.indexOf(KeyAction.DeleteWord)
+        assertEquals(1 + 20, firstWord, "words after the initial delete and 20 character repeats")
+        assertTrue(actions.drop(firstWord).all { it == KeyAction.DeleteWord })
+    }
+
+    @Test
+    fun heldBackspaceKeepsToCharactersWhenWordDeletionIsOff() = runTest {
+        val touch = controller().also { it.deleteWordsWhenHeld = false }
+        val backspace = geometry.keys.first { it.key.action == KeyAction.Backspace }.bounds
+        touch.down(1, backspace.centerX, backspace.centerY)
+        advanceTimeBy(3_000)
+        runCurrent()
+        touch.up(1, backspace.centerX, backspace.centerY)
+        assertTrue(actions.all { it == KeyAction.Backspace })
+    }
+
+    @Test
     fun spaceSlideMovesTheCursorInsteadOfTypingSpace() = runTest {
         val touch = controller()
         val space = geometry.keys.first { it.key.action == KeyAction.Space }.bounds

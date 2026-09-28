@@ -32,11 +32,33 @@ class FakeTextHost(
         cursor += text.length
     }
 
+    /** One grapheme, as the real hosts delete: a whole emoji (with modifiers and ZWJ joins), never half. */
     override fun deleteBackward() {
         if (cursor == 0) return
-        buffer.deleteAt(cursor - 1)
-        cursor--
+        val length = lastGraphemeLength(buffer.substring(0, cursor))
+        buffer.deleteRange(cursor - length, cursor)
+        cursor -= length
     }
+
+    private fun lastGraphemeLength(text: String): Int {
+        var end = text.length
+        while (true) {
+            var start = end - if (end >= 2 && text[end - 1].isLowSurrogate() && text[end - 2].isHighSurrogate()) 2 else 1
+            // Absorb modifiers that attach to the previous symbol: variation selector, skin tones.
+            while (start > 0 && (text[start] == '\uFE0F' || text.isSkinTone(start))) {
+                start -= if (start >= 2 && text[start - 1].isLowSurrogate() && text[start - 2].isHighSurrogate()) 2 else 1
+            }
+            // A zero-width joiner glues the previous symbol on (family, profession emoji).
+            if (start >= 2 && text[start - 1] == '\u200D') {
+                end = start - 1
+                continue
+            }
+            return text.length - start
+        }
+    }
+
+    private fun String.isSkinTone(index: Int): Boolean =
+        index + 1 < length && this[index] == '\uD83C' && this[index + 1] in '\uDFFB'..'\uDFFF'
 
     override fun moveCursor(offset: Int) {
         cursor = (cursor + offset).coerceIn(0, buffer.length)

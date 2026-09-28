@@ -30,7 +30,13 @@ data class AlternatesPopup(
 data class TouchConfig(
     val longPressMillis: Long = 350,
     val repeatStartMillis: Long = 400,
-    val repeatIntervalMillis: Long = 50,
+    val repeatIntervalMillis: Long = 60,
+    /** Held delete speeds up after this many repeats… */
+    val accelerateAfterRepeats: Int = 8,
+    val fastRepeatIntervalMillis: Long = 30,
+    /** …and, when word deletion is on, erases whole words after this many. */
+    val wordDeleteAfterRepeats: Int = 20,
+    val wordRepeatIntervalMillis: Long = 180,
     /** Horizontal travel on the space bar before it turns into a cursor slide. */
     val cursorSlideStart: Float = 24f,
     /** Travel per one-character cursor step while sliding. */

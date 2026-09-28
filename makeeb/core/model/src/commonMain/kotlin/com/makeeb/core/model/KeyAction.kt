@@ -10,6 +10,9 @@ sealed interface KeyAction {
 
     data object Backspace : KeyAction
 
+    /** Delete the word before the caret (and the spaces after it): holding Backspace long. */
+    data object DeleteWord : KeyAction
+
     data object Shift : KeyAction
 
     data object Space : KeyAction

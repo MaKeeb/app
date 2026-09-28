@@ -44,6 +44,7 @@ fun SettingsContent(
             SwitchRow("Double-space period", preferences.doubleSpacePeriod, { v -> onUpdate { it.copy(doubleSpacePeriod = v) } }, subtitle = "Tap space twice to end a sentence")
             SwitchRow("Autocorrect", preferences.autoCorrect, { v -> onUpdate { it.copy(autoCorrect = v) } }, subtitle = "Backspace right after a correction undoes it")
             SwitchRow("Show suggestions", preferences.showSuggestions, { v -> onUpdate { it.copy(showSuggestions = v) } })
+            SwitchRow("Hold delete to erase words", preferences.holdDeleteWords, { v -> onUpdate { it.copy(holdDeleteWords = v) } }, subtitle = "Holding delete speeds up, then removes whole words")
         }
         SettingsSection("Layout") {
             ChoiceRow(
