@@ -622,6 +622,29 @@ final class KeyboardVisualTests: XCTestCase {
         Thread.sleep(forTimeInterval: 3)
     }
 
+    /// A secret copied the way password managers copy one never reaches the clipboard panel;
+    /// ordinary text does.
+    func test17_sensitiveClip() {
+        openTab("Try it")
+        app.buttons["Copy concealed sample"].firstMatch.tap()
+        focus("Text")
+        assertMaKeebVisible("SC")
+        let clipboard = point("strip-clipboard", or: CGPoint(x: 30, y: keyboardBottom - 220 - strip / 2))
+        tap(clipboard, pause: 2.0)
+        func clip(_ text: String) -> XCUIElement { app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", text)).firstMatch }
+        results["SC-concealed-shown"] = clip("MaKeeb concealed sample").waitForExistence(timeout: 2) ? "yes" : "no"
+        save("I-CLIP-concealed")
+        tap(clipboard, pause: 0.8)
+        app.buttons["Copy sample text"].firstMatch.tap()
+        Thread.sleep(forTimeInterval: 1.5)
+        focus("Text")
+        tap(clipboard, pause: 2.0)
+        results["SC-plain-shown"] = clip("MaKeeb clipboard sample").waitForExistence(timeout: 5) ? "yes" : "no"
+        XCTAssertEqual(results["SC-concealed-shown"], "no", "a concealed clip must never be kept")
+        save("I-CLIP-plain")
+        tap(clipboard, pause: 0.8)
+    }
+
     func test08_companion() {
         openTab("Setup")
         save("I-VT-30-setup")

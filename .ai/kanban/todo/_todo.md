@@ -12,6 +12,5 @@
 10. [APP-39: On-device learning and forgetting](039-on-device-learning-and-forgetting.md)
 11. [APP-42: Emoji suggestions](042-emoji-suggestions.md)
 12. [APP-64: Pinned clips and snippets](064-pinned-clips-and-snippets.md)
-13. [APP-66: Sensitive clip protection](066-sensitive-clip-protection.md)
-14. [APP-77: Keyboard height and size](077-keyboard-height-and-size.md)
-15. [APP-81: Screen reader support](081-screen-reader-support.md)
+13. [APP-77: Keyboard height and size](077-keyboard-height-and-size.md)
+14. [APP-81: Screen reader support](081-screen-reader-support.md)

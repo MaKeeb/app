@@ -132,4 +132,15 @@ class KeyboardSessionTest {
         session.toggle(QuickSetting.Sound)
         assertFalse(prefs.preferences.value.keyPressSound)
     }
+
+    @Test
+    fun clipsFlaggedSensitiveAreNeverKept() = runTest {
+        val session = session()
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        runCurrent()
+        clipboard.copy(Clip("hunter2", isSensitive = true))
+        clipboard.copy(Clip("see you at noon"))
+        runCurrent()
+        assertEquals(listOf("see you at noon"), session.clipboardEntries.value.map { it.text })
+    }
 }

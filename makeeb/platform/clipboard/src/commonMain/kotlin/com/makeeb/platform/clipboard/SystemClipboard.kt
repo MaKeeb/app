@@ -5,7 +5,10 @@ import kotlinx.coroutines.flow.Flow
 /** A clip as seen by the keyboard. */
 data class Clip(
     val text: String,
-    /** The source app flagged it sensitive (Android 13+ `EXTRA_IS_SENSITIVE`); never persist it. */
+    /**
+     * The source flagged it sensitive: Android 13+ `EXTRA_IS_SENSITIVE`, or on iOS the
+     * nspasteboard.org concealed/transient/auto-generated types password managers set. Never keep it.
+     */
     val isSensitive: Boolean = false,
 )
 

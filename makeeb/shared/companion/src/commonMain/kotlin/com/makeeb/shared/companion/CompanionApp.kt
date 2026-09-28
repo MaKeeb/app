@@ -2,6 +2,7 @@ package com.makeeb.shared.companion
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,6 +96,13 @@ internal fun CompanionScreen(tab: CompanionTab, modifier: Modifier = Modifier) {
 /** Known clipboard content for the clipboard-panel test, so no real clipboard data shows up. */
 private const val SAMPLE_CLIP = "MaKeeb clipboard sample"
 
+/** Copied the way password managers copy a secret; the keyboard must never keep it. */
+private const val SAMPLE_SECRET = "MaKeeb concealed sample"
+
+/** Copies [text] marked sensitive, as password managers do (Android `EXTRA_IS_SENSITIVE`, iOS concealed type). */
+@Composable
+internal expect fun rememberSensitiveCopy(): (String) -> Unit
+
 /** One labelled field per input type: the manual QA surface and the visual test plan's harness. */
 private enum class QaField(val label: String, val options: KeyboardOptions, val singleLine: Boolean = true) {
     Text("Text", KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)),
@@ -125,8 +133,14 @@ private fun TryItScreen(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         val clipboard = LocalClipboardManager.current
-        OutlinedButton(onClick = { clipboard.setText(AnnotatedString(SAMPLE_CLIP)) }) {
-            Text("Copy sample text")
+        val copySensitive = rememberSensitiveCopy()
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { clipboard.setText(AnnotatedString(SAMPLE_CLIP)) }) {
+                Text("Copy sample text")
+            }
+            OutlinedButton(onClick = { copySensitive(SAMPLE_SECRET) }) {
+                Text("Copy concealed sample")
+            }
         }
         QaField.entries.forEach { field ->
             var text by rememberSaveable(field) { mutableStateOf("") }
