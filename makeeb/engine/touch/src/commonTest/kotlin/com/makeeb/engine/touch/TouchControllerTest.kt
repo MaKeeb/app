@@ -149,6 +149,18 @@ class TouchControllerTest {
     }
 
     @Test
+    fun spaceSlideCanMoveByWord() = runTest {
+        val touch = controller().also { it.cursorByWord = true }
+        val space = geometry.keys.first { it.key.action == KeyAction.Space }.bounds
+        touch.down(1, space.centerX, space.centerY)
+        touch.move(1, space.centerX - 30f, space.centerY) // past the slide threshold
+        touch.move(1, space.centerX - 30f - 36f * 2, space.centerY)
+        touch.up(1, space.centerX - 30f - 36f * 2, space.centerY)
+        assertTrue(actions.isNotEmpty() && actions.all { it == KeyAction.MoveCursorByWord(-1) }, "got $actions")
+        assertTrue(KeyAction.Space !in actions)
+    }
+
+    @Test
     fun spaceSlideMovesTheCursorInsteadOfTypingSpace() = runTest {
         val touch = controller()
         val space = geometry.keys.first { it.key.action == KeyAction.Space }.bounds

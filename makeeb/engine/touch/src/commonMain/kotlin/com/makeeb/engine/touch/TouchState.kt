@@ -41,6 +41,8 @@ data class TouchConfig(
     val cursorSlideStart: Float = 24f,
     /** Travel per one-character cursor step while sliding. */
     val cursorStep: Float = 14f,
+    /** Travel per word when sliding moves by word: words need a deliberate distance. */
+    val cursorWordStep: Float = 36f,
     /** How far above the key area popups may go (the suggestion strip height). */
     val overflowAbove: Float = 44f,
 ) {
@@ -49,6 +51,7 @@ data class TouchConfig(
         fun forDensity(density: Float, overflowAbove: Float = 44f * density) = TouchConfig(
             cursorSlideStart = 24f * density,
             cursorStep = 14f * density,
+            cursorWordStep = 36f * density,
             overflowAbove = overflowAbove,
         )
     }

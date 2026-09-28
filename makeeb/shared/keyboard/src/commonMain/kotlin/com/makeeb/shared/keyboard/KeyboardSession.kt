@@ -100,6 +100,7 @@ class KeyboardSession(
             this@KeyboardSession.preferences.collect { prefs ->
                 touch.previewEnabled = previewEnabled()
                 touch.deleteWordsWhenHeld = prefs.holdDeleteWords
+                touch.cursorByWord = prefs.cursorSlideByWord
                 engine.refreshLayout()
             }
         }

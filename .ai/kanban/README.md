@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 25 |
+| [Ready to start](todo/_todo.md) | 24 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 34 |
+| [In review](review/_review.md) | 35 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -22,6 +22,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-15](review/015-latin-layout-variants.md): Latin layout variants
 - [APP-33](review/033-suggestion-strip.md): Suggestion strip
 - [APP-36](review/036-one-tap-autocorrect-undo.md): One-tap autocorrect undo
+- [APP-49](review/049-spacebar-cursor-slide.md): Spacebar cursor slide
 - [APP-58](review/058-emoji-panel.md): Emoji panel
 - [APP-69](review/069-lightdark-theme-following-the-system.md): Light/dark theme following the system
 - [APP-84](review/084-works-fully-offline.md): Works fully offline
@@ -59,7 +60,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-34](todo/034-word-completion.md): Word completion
 - [APP-35](todo/035-autocorrect.md): Autocorrect
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
-- [APP-49](todo/049-spacebar-cursor-slide.md): Spacebar cursor slide
 - [APP-93](todo/093-guided-setup.md): Guided setup
 - [APP-94](todo/094-settings-app-with-in-keyboard-quick-settings.md): Settings app with in-keyboard quick settings
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard

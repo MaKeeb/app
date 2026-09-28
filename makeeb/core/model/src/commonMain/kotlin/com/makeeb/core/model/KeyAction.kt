@@ -33,5 +33,8 @@ sealed interface KeyAction {
     /** Move the caret by [offset] characters; negative moves left. */
     data class MoveCursor(val offset: Int) : KeyAction
 
+    /** Move the caret to the previous word's start (negative [direction]) or the next word's end. */
+    data class MoveCursorByWord(val direction: Int) : KeyAction
+
     data object None : KeyAction
 }

@@ -45,6 +45,22 @@ object TextBoundaries {
         return significant.isNotEmpty() && significant.last() in sentenceTerminators
     }
 
+    /** Characters to move back to the start of the previous word, skipping spaces and punctuation first. */
+    fun previousWordStart(textBeforeCursor: CharSequence): Int {
+        var i = textBeforeCursor.length
+        while (i > 0 && !isWordChar(textBeforeCursor[i - 1])) i--
+        while (i > 0 && isWordChar(textBeforeCursor[i - 1])) i--
+        return textBeforeCursor.length - i
+    }
+
+    /** Characters to move forward to the end of the next word, skipping spaces and punctuation first. */
+    fun nextWordEnd(textAfterCursor: CharSequence): Int {
+        var i = 0
+        while (i < textAfterCursor.length && !isWordChar(textAfterCursor[i])) i++
+        while (i < textAfterCursor.length && isWordChar(textAfterCursor[i])) i++
+        return i
+    }
+
     /** True when the caret is at the start of a word (field start or after whitespace). */
     fun isWordStart(textBeforeCursor: CharSequence): Boolean =
         textBeforeCursor.isEmpty() || textBeforeCursor.last().isWhitespace()

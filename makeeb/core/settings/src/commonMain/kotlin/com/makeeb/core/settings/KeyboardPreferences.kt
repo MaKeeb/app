@@ -9,6 +9,8 @@ data class KeyboardPreferences(
     val showSuggestions: Boolean = true,
     /** Holding delete speeds up, then erases whole words. */
     val holdDeleteWords: Boolean = true,
+    /** Sliding on the space bar moves the caret a word at a time instead of a character. */
+    val cursorSlideByWord: Boolean = false,
     // Feedback
     val keyPressHaptics: Boolean = true,
     val keyPressSound: Boolean = false,

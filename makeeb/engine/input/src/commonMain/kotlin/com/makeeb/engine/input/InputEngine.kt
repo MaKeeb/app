@@ -126,6 +126,13 @@ class InputEngine(
                 pendingRevert = null
                 resyncWithHost()
             }
+            is KeyAction.MoveCursorByWord -> {
+                val offset = if (action.direction < 0) -TextBoundaries.previousWordStart(host.textBeforeCursor(CONTEXT_LENGTH))
+                else TextBoundaries.nextWordEnd(host.textAfterCursor(CONTEXT_LENGTH))
+                if (offset != 0) host.moveCursor(offset)
+                pendingRevert = null
+                resyncWithHost()
+            }
             KeyAction.None -> Unit
         }
         if (action != KeyAction.Space) lastSpace = null

@@ -28,4 +28,14 @@ class TextBoundariesTest {
         assertFalse(TextBoundaries.isSentenceStart("Done."))
         assertFalse(TextBoundaries.isSentenceStart("and then "))
     }
+
+    @Test
+    fun wordJumpsSkipSpacesAndPunctuationThenTheWord() {
+        assertEquals(7, TextBoundaries.previousWordStart("hello world, "))
+        assertEquals(3, TextBoundaries.previousWordStart("it's wor"))
+        assertEquals(0, TextBoundaries.previousWordStart(""))
+        assertEquals(6, TextBoundaries.nextWordEnd(" hello world"))
+        assertEquals(7, TextBoundaries.nextWordEnd(", don't"))
+        assertEquals(2, TextBoundaries.nextWordEnd("  "))
+    }
 }

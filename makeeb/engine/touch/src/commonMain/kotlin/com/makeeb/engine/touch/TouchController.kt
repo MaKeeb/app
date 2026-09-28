@@ -67,6 +67,9 @@ class TouchController(
     /** Holding delete long switches from characters to whole words. */
     var deleteWordsWhenHeld: Boolean = true
 
+    /** Space-bar sliding moves the caret by word rather than by character. */
+    var cursorByWord: Boolean = false
+
     fun down(id: Long, x: Float, y: Float) {
         val placed = geometry?.keyAt(x, y) ?: return
         pointers[id]?.timer?.cancel()
@@ -121,13 +124,14 @@ class TouchController(
             Mode.CursorSlide -> {
                 pointer.slide += x - pointer.lastX
                 pointer.lastX = x
-                while (pointer.slide >= config.cursorStep) {
-                    listener.onAction(KeyAction.MoveCursor(1))
-                    pointer.slide -= config.cursorStep
+                val step = if (cursorByWord) config.cursorWordStep else config.cursorStep
+                while (pointer.slide >= step) {
+                    listener.onAction(if (cursorByWord) KeyAction.MoveCursorByWord(1) else KeyAction.MoveCursor(1))
+                    pointer.slide -= step
                 }
-                while (pointer.slide <= -config.cursorStep) {
-                    listener.onAction(KeyAction.MoveCursor(-1))
-                    pointer.slide += config.cursorStep
+                while (pointer.slide <= -step) {
+                    listener.onAction(if (cursorByWord) KeyAction.MoveCursorByWord(-1) else KeyAction.MoveCursor(-1))
+                    pointer.slide += step
                 }
             }
             Mode.Alternates -> popup = popup?.let { it.copy(selected = it.indexAt(x)) }

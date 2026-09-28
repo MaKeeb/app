@@ -225,6 +225,19 @@ class InputEngineTest {
     }
 
     @Test
+    fun cursorMovesByWordBothWays() {
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None, autoCorrect = false))
+        type("one two three")
+        engine.onKey(KeyAction.MoveCursorByWord(-1))
+        engine.onKey(KeyAction.MoveCursorByWord(-1))
+        type("x")
+        assertEquals("one xtwo three", host.text)
+        engine.onKey(KeyAction.MoveCursorByWord(1))
+        type("y")
+        assertEquals("one xtwoy three", host.text)
+    }
+
+    @Test
     fun doubleTapShiftLocksCaps() {
         val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
         engine.onKey(KeyAction.Shift)
