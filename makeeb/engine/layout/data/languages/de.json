@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "language": "de",
+  "name": "German",
+  "autonym": "Deutsch",
+  "layouts": [
+    "qwertz"
+  ],
+  "alternates": {
+    "a": "ä â à á æ ã å ā",
+    "e": "é è ê ë ė",
+    "n": "ñ ń",
+    "o": "ö ô ò ó õ œ ø ō",
+    "s": "ß ś š",
+    "u": "ü û ù ú ū"
+  },
+  "shifted": {
+    "ß": "ẞ"
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): tools/make-keyboard-text/res/values-de/donottranslate-more-keys.xml",
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/values/donottranslate.xml, java/res/xml/method.xml (layouts)",
+    "MaKeeb: shifted forms"
+  ]
+}

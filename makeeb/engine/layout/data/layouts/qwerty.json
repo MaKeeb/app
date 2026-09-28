@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "qwerty",
+  "name": "QWERTY",
+  "rows": [
+    "q w e r t y u i o p",
+    "a s d f g h j k l",
+    "z x c v b n m"
+  ],
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/xml/rows_qwerty.xml"
+  ]
+}

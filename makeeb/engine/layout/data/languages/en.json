@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "language": "en",
+  "name": "English",
+  "autonym": "English",
+  "layouts": [
+    "qwerty"
+  ],
+  "alternates": {
+    "a": "à á â ä æ ã å ā",
+    "c": "ç",
+    "e": "é è ê ë ē",
+    "i": "í î ï ī ì",
+    "n": "ñ",
+    "o": "ó ô ö ò œ ø ō õ",
+    "s": "ß",
+    "u": "ú û ü ù ū"
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): tools/make-keyboard-text/res/values-en/donottranslate-more-keys.xml",
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/values/donottranslate.xml, java/res/xml/method.xml (layouts)"
+  ]
+}

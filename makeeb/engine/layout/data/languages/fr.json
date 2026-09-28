@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "language": "fr",
+  "name": "French",
+  "autonym": "Français",
+  "layouts": [
+    "azerty",
+    "qwerty",
+    "qwertz"
+  ],
+  "alternates": {
+    "a": "à â æ á ä ã å ā ª",
+    "c": "ç ć č",
+    "e": "é è ê ë ę ė ē",
+    "i": "î ï ì í į ī",
+    "o": "ô œ ö ò ó õ ø ō º",
+    "u": "ù û ü ú ū",
+    "y": "ÿ"
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): tools/make-keyboard-text/res/values-fr/donottranslate-more-keys.xml",
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/values/donottranslate.xml, java/res/xml/method.xml (layouts)"
+  ]
+}

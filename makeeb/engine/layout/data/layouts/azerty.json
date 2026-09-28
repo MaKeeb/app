@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "azerty",
+  "name": "AZERTY",
+  "rows": [
+    "a z e r t y u i o p",
+    "q s d f g h j k l m",
+    "w x c v b n '"
+  ],
+  "keys": {
+    "'": {
+      "alternates": "’ \""
+    }
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/xml/rows_azerty.xml",
+    "MaKeeb: scripts/import-aosp-layouts.py MAKEEB_RULES"
+  ]
+}

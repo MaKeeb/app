@@ -1,0 +1,4 @@
+{
+  "layouts": ["qwerty", "qwertz", "azerty", "dvorak", "colemak", "workman"],
+  "languages": ["en", "de", "fr", "es", "it", "pt", "hu", "pl", "nl", "sv"]
+}

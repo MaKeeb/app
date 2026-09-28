@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "language": "sv",
+  "name": "Swedish",
+  "autonym": "Svenska",
+  "layouts": [
+    "qwerty"
+  ],
+  "alternates": {
+    "a": "ä å æ á à â ą ã",
+    "c": "ç ć č",
+    "d": "ð ď",
+    "e": "é è ê ë ę",
+    "i": "í ì î ï",
+    "l": "ł",
+    "n": "ń ñ ň",
+    "o": "ö ø œ ó ò ô õ ō",
+    "r": "ř",
+    "s": "ś š ş ß",
+    "t": "ť þ",
+    "u": "ü ú ù û ū",
+    "y": "ý ÿ",
+    "z": "ź ž ż"
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): tools/make-keyboard-text/res/values-sv/donottranslate-more-keys.xml",
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/values/donottranslate.xml, java/res/xml/method.xml (layouts)"
+  ]
+}

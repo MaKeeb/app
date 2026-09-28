@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "language": "hu",
+  "name": "Hungarian",
+  "autonym": "Magyar",
+  "layouts": [
+    "qwertz"
+  ],
+  "alternates": {
+    "a": "á à â ä æ ã å ā",
+    "e": "é è ê ë ę ė ē",
+    "i": "í î ï ì į ī",
+    "o": "ó ö ő ô ò õ œ ø ō",
+    "u": "ú ü ű û ù ū"
+  },
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): tools/make-keyboard-text/res/values-hu/donottranslate-more-keys.xml",
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/values/donottranslate.xml, java/res/xml/method.xml (layouts)"
+  ]
+}

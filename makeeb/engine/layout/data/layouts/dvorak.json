@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "dvorak",
+  "name": "Dvorak",
+  "rows": [
+    "' , . p y f g c r l",
+    "a o e u i d h t n s",
+    "q j k x b m w v z"
+  ],
+  "sources": [
+    "AOSP LatinIME 8b211dd233e9 (Apache-2.0): java/res/xml/rows_dvorak.xml",
+    "MaKeeb: scripts/import-aosp-layouts.py MAKEEB_RULES"
+  ]
+}
