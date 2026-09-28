@@ -49,6 +49,8 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
             theme = settings.getStringOrNull(Keys.THEME)
                 ?.let { stored -> ThemeMode.entries.firstOrNull { it.name == stored } }
                 ?: defaults.theme,
+            darkFromMinute = settings.getInt(Keys.DARK_FROM, defaults.darkFromMinute).coerceIn(0, MINUTES_PER_DAY - 1),
+            darkUntilMinute = settings.getInt(Keys.DARK_UNTIL, defaults.darkUntilMinute).coerceIn(0, MINUTES_PER_DAY - 1),
         )
     }
 
@@ -65,9 +67,15 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putFloat(Keys.HEIGHT_SCALE, heightScale)
         settings.putString(Keys.LETTER_LAYOUT, letterLayoutId)
         settings.putString(Keys.THEME, theme.name)
+        settings.putInt(Keys.DARK_FROM, darkFromMinute)
+        settings.putInt(Keys.DARK_UNTIL, darkUntilMinute)
     }
 
     /** Storage keys are persisted: never rename one without a migration. */
+    private companion object {
+        const val MINUTES_PER_DAY = 24 * 60
+    }
+
     private object Keys {
         const val AUTO_CAPITALIZE = "typing.auto_capitalize"
         const val DOUBLE_SPACE_PERIOD = "typing.double_space_period"
@@ -81,5 +89,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         const val HEIGHT_SCALE = "layout.height_scale"
         const val LETTER_LAYOUT = "layout.letters"
         const val THEME = "appearance.theme"
+        const val DARK_FROM = "appearance.dark_from_minute"
+        const val DARK_UNTIL = "appearance.dark_until_minute"
     }
 }

@@ -17,9 +17,9 @@ import com.makeeb.shared.keyboard.KeyboardMetrics
 import com.makeeb.shared.keyboard.KeyboardRenderer
 import com.makeeb.shared.keyboard.KeyboardSession
 import com.makeeb.shared.keyboard.StripAction
+import com.makeeb.core.common.currentMinuteOfDay
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardPanel
-import com.makeeb.core.settings.ThemeMode
 import com.makeeb.feature.clipboard.ClipboardPanel
 import com.makeeb.feature.emoji.EmojiPanel
 import com.makeeb.feature.keyboard.KeyboardKeys
@@ -40,11 +40,7 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
     val state by session.engine.state.collectAsState()
     val preferences by session.preferences.collectAsState()
     val geometry by session.geometry.collectAsState()
-    val dark = when (preferences.theme) {
-        ThemeMode.System -> isSystemInDarkTheme()
-        ThemeMode.Light -> false
-        ThemeMode.Dark -> true
-    }
+    val dark = preferences.useDarkTheme(isSystemInDarkTheme(), currentMinuteOfDay())
 
     MaKeebKeyboardTheme(darkTheme = dark) {
         Column(

@@ -77,13 +77,15 @@ fun SliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     valueLabel: String,
     modifier: Modifier = Modifier,
+    /** Discrete positions between the ends; 0 for a continuous slider. */
+    steps: Int = 0,
 ) {
     Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             RowText(title, null, Modifier.weight(1f))
             Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
+        Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, steps = steps)
     }
 }
 

@@ -9,6 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:common"))
             api(project(":shared:keyboard"))
             implementation(project(":ui:theme"))
             implementation(project(":feature:keyboard"))

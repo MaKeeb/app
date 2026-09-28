@@ -1,5 +1,6 @@
 package com.makeeb.shared.keyboard
 
+import com.makeeb.core.common.currentMinuteOfDay
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyIcon
 import com.makeeb.core.model.KeyboardPalette
@@ -28,6 +29,9 @@ data class KeyboardRender(
     val preview: RenderPreview?,
     val popup: RenderPopup?,
     val theme: ThemeMode,
+    /** For [ThemeMode.Scheduled]; see [KeyboardPreferences.useDarkTheme]. */
+    val darkFromMinute: Int = 21 * 60,
+    val darkUntilMinute: Int = 7 * 60,
     /** What fills the key area; panels other than [KeyboardPanel.Keys] are drawn natively. */
     val panel: KeyboardPanel = KeyboardPanel.Keys,
     /** The strip's buttons when [suggestions] is empty; [StripAction.Settings] sits apart, at the end. */
@@ -35,10 +39,10 @@ data class KeyboardRender(
     /** The cell of [suggestions] drawn in bold (the best word), or -1. */
     val bestSuggestion: Int = -1,
 ) {
-    fun palette(systemDark: Boolean): KeyboardPalette = when (theme) {
-        ThemeMode.System -> if (systemDark) KeyboardPalette.Dark else KeyboardPalette.Light
-        ThemeMode.Light -> KeyboardPalette.Light
-        ThemeMode.Dark -> KeyboardPalette.Dark
+    /** Resolved when drawn, so a scheduled theme switches at its time. */
+    fun palette(systemDark: Boolean): KeyboardPalette {
+        val prefs = KeyboardPreferences(theme = theme, darkFromMinute = darkFromMinute, darkUntilMinute = darkUntilMinute)
+        return if (prefs.useDarkTheme(systemDark, currentMinuteOfDay())) KeyboardPalette.Dark else KeyboardPalette.Light
     }
 }
 
@@ -95,6 +99,8 @@ object KeyboardRenderer {
             preview = touch.preview?.takeIf { showingKeys }?.let { RenderPreview(it.label, it.bounds.toRect()) },
             popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected) },
             theme = preferences.theme,
+            darkFromMinute = preferences.darkFromMinute,
+            darkUntilMinute = preferences.darkUntilMinute,
             panel = state.panel,
             stripActions = stripActions(state, canOpenSettings),
             bestSuggestion = if (showingKeys) state.suggestions.bestStripSlot() else -1,

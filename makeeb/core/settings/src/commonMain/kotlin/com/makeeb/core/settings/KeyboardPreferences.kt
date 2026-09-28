@@ -20,11 +20,24 @@ data class KeyboardPreferences(
     val letterLayoutId: String = "qwerty",
     // Appearance
     val theme: ThemeMode = ThemeMode.System,
+    /** [ThemeMode.Scheduled]: dark from this minute of the day until [darkUntilMinute] (may wrap past midnight). */
+    val darkFromMinute: Int = 21 * 60,
+    val darkUntilMinute: Int = 7 * 60,
 ) {
+    /** Whether the keyboard draws its dark palette now; [systemDark] is the OS appearance. */
+    fun useDarkTheme(systemDark: Boolean, minuteOfDay: Int): Boolean = when (theme) {
+        ThemeMode.System -> systemDark
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+        ThemeMode.Scheduled ->
+            if (darkFromMinute <= darkUntilMinute) minuteOfDay in darkFromMinute until darkUntilMinute
+            else minuteOfDay >= darkFromMinute || minuteOfDay < darkUntilMinute
+    }
+
     companion object {
         const val MIN_HEIGHT_SCALE = 0.8f
         const val MAX_HEIGHT_SCALE = 1.3f
     }
 }
 
-enum class ThemeMode { System, Light, Dark }
+enum class ThemeMode { System, Light, Dark, Scheduled }

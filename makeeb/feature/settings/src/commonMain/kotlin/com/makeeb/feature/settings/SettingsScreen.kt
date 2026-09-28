@@ -76,7 +76,24 @@ fun SettingsContent(
                 label = { it.name },
                 onSelect = { mode -> onUpdate { it.copy(theme = mode) } },
             )
+            if (preferences.theme == ThemeMode.Scheduled) {
+                HourRow("Dark from", preferences.darkFromMinute) { m -> onUpdate { it.copy(darkFromMinute = m) } }
+                HourRow("Dark until", preferences.darkUntilMinute) { m -> onUpdate { it.copy(darkUntilMinute = m) } }
+            }
         }
         ScrollEndSpacer()
     }
+}
+
+/** A whole hour of the day, stored as minutes. */
+@Composable
+private fun HourRow(title: String, minute: Int, onChange: (Int) -> Unit) {
+    SliderRow(
+        title = title,
+        value = (minute / 60).toFloat(),
+        onValueChange = { hour -> onChange(hour.roundToInt() * 60) },
+        valueRange = 0f..23f,
+        valueLabel = "${(minute / 60).toString().padStart(2, '0')}:00",
+        steps = 22,
+    )
 }
