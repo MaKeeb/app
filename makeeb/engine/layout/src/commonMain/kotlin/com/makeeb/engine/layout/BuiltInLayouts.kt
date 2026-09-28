@@ -62,7 +62,7 @@ internal object BuiltInLayouts {
             chars("*\"':;!?")
             backspace()
         }
-        bottomRow(KeyboardMode.Letters, "ABC", options)
+        bottomRow(KeyboardMode.Letters, "ABC", options, numberPadKey = true)
     }
 
     fun symbolsMore(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols-more", KeyboardMode.SymbolsMore) {
@@ -106,20 +106,23 @@ internal object BuiltInLayouts {
 
     /**
      * `?123 | globe-or-emoji | , | space | . | enter`, with field-specific keys for e-mail and URL
-     * fields: always ten units wide.
+     * fields and a number-pad key on the symbols page: always ten units wide.
      */
     private fun LayoutBuilder.bottomRow(
         modeTarget: KeyboardMode,
         modeLabel: String,
         options: LayoutOptions,
         variant: LetterVariant = LetterVariant.Text,
+        numberPadKey: Boolean = false,
     ) = row {
         mode(modeTarget, modeLabel)
         if (options.switchKey) globe() else emoji()
         when (variant) {
             LetterVariant.Text -> {
                 text(",", alternates = listOf(";", ":"))
-                space()
+                // The symbols page opens the number pad, as on Gboard; the space bar gives up a unit.
+                if (numberPadKey) mode(KeyboardMode.Numeric, "1234", width = 1f)
+                space(width = if (numberPadKey) 3f else 4f)
                 text(".", alternates = listOf("?", "!", "'", "\"", "-", "…"))
             }
             LetterVariant.Email -> {

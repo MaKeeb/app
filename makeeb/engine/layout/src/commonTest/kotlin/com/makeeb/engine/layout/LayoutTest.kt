@@ -38,6 +38,15 @@ class LayoutTest {
     }
 
     @Test
+    fun theSymbolsPageOpensTheNumberPad() {
+        val symbols = provider.layout(KeyboardMode.Symbols, LayoutOptions())
+        assertEquals(10f, symbols.unitsPerRow)
+        assertTrue(symbols.rows.last().keys.any { it.action == KeyAction.SwitchMode(KeyboardMode.Numeric) })
+        val numeric = provider.layout(KeyboardMode.Numeric, LayoutOptions())
+        assertTrue(numeric.rows.flatMap { it.keys }.any { it.action == KeyAction.SwitchMode(KeyboardMode.Letters) }, "and back")
+    }
+
+    @Test
     fun phonePadShowsKeypadLettersAndASpaceGlyph() {
         val phone = provider.layout(KeyboardMode.Phone, LayoutOptions())
         val keys = phone.rows.flatMap { it.keys }
