@@ -80,8 +80,9 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     val stripHeight: Double = KeyboardMetrics.STRIP_HEIGHT.toDouble()
 
     fun viewWillAppear() {
-        // The companion app writes preferences from another process.
+        // The companion app writes preferences and snippets from another process.
         preferences.reload()
+        session.reloadSnippets()
         KeyboardSignals.recordShown(controller.hasFullAccess)
         session.start(textHost, keyboardHost, controller.textDocumentProxy.toEditorAttributes())
     }
@@ -124,7 +125,7 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         val job = scope.launch {
             combine(session.engine.state, session.touch.state, session.geometry, session.preferences) { state, touch, geometry, prefs ->
                 KeyboardRenderer.render(state, touch, geometry, prefs, emojiResults(state.emojiSearch))
-            }.combine(combine(session.emojiRecentsState, session.clipboardEntries) { _, _ -> }) { render, _ -> render }
+            }.combine(combine(session.emojiRecentsState, session.clipboardEntries, session.snippets) { _, _, _ -> }) { render, _ -> render }
                 .collect(onRender)
         }
         return RenderSubscription(job)
@@ -189,6 +190,13 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     fun clearClips() = session.clearClips()
 
     private fun clip(id: Long) = session.clipboardEntries.value.firstOrNull { it.id == id }
+
+    /** The user's reusable texts; they need no Full Access. */
+    val snippets: List<String> get() = session.snippets.value
+
+    fun pasteSnippet(index: Int) {
+        session.snippets.value.getOrNull(index)?.let(session::onSnippet)
+    }
 
     // endregion
 

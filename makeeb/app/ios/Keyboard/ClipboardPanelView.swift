@@ -10,6 +10,11 @@ final class ClipboardPanelView: UIView, UICollectionViewDataSource, UICollection
     private let lettersButton = UIButton(type: .system)
     private let messageLabel = UILabel()
     private let grid: UICollectionView
+    /// The user's own texts, above the clips; they need no Full Access.
+    private let snippetScroll = UIScrollView()
+    private let snippetRow = UIStackView()
+    private var shownSnippets: [String] = []
+    private var snippetHeight: NSLayoutConstraint?
     private var clips: [ClipItem] = []
     private var palette: KeyboardPalette?
 
@@ -45,11 +50,18 @@ final class ClipboardPanelView: UIView, UICollectionViewDataSource, UICollection
         grid.delegate = self
         grid.register(ClipCell.self, forCellWithReuseIdentifier: ClipCell.reuseId)
 
+        snippetRow.axis = .horizontal
+        snippetRow.spacing = 8
+        snippetRow.translatesAutoresizingMaskIntoConstraints = false
+        snippetScroll.showsHorizontalScrollIndicator = false
+        snippetScroll.contentInsetAdjustmentBehavior = .never
+        snippetScroll.addSubview(snippetRow)
+
         let header = UIStackView(arrangedSubviews: [titleLabel, UIView(), clearButton, lettersButton])
         header.axis = .horizontal
         header.spacing = 12
         header.alignment = .center
-        for view in [header, grid, messageLabel] as [UIView] {
+        for view in [header, snippetScroll, grid, messageLabel] as [UIView] {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)
         }
@@ -58,7 +70,15 @@ final class ClipboardPanelView: UIView, UICollectionViewDataSource, UICollection
             header.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
             header.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
             header.heightAnchor.constraint(equalToConstant: 40),
-            grid.topAnchor.constraint(equalTo: header.bottomAnchor),
+            snippetScroll.topAnchor.constraint(equalTo: header.bottomAnchor),
+            snippetScroll.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            snippetScroll.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            snippetRow.topAnchor.constraint(equalTo: snippetScroll.contentLayoutGuide.topAnchor),
+            snippetRow.bottomAnchor.constraint(equalTo: snippetScroll.contentLayoutGuide.bottomAnchor),
+            snippetRow.leadingAnchor.constraint(equalTo: snippetScroll.contentLayoutGuide.leadingAnchor),
+            snippetRow.trailingAnchor.constraint(equalTo: snippetScroll.contentLayoutGuide.trailingAnchor),
+            snippetRow.heightAnchor.constraint(equalTo: snippetScroll.frameLayoutGuide.heightAnchor),
+            grid.topAnchor.constraint(equalTo: snippetScroll.bottomAnchor),
             grid.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2),
             grid.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2),
             grid.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -74,6 +94,7 @@ final class ClipboardPanelView: UIView, UICollectionViewDataSource, UICollection
 
     /// Called on every render while open: clips arrive, get pinned or deleted.
     func update(palette: KeyboardPalette) {
+        updateSnippets(palette: palette)
         self.palette = palette
         let onKey = UIColor(argb: palette.onKey)
         titleLabel.textColor = onKey
@@ -89,6 +110,37 @@ final class ClipboardPanelView: UIView, UICollectionViewDataSource, UICollection
             ? "Copied text shows up here."
             : "Allow Full Access for MaKeeb in Settings to use clipboard history."
         grid.reloadData()
+    }
+
+    private func updateSnippets(palette: KeyboardPalette) {
+        let snippets = bridge.snippets
+        if snippetHeight == nil {
+            snippetHeight = snippetScroll.heightAnchor.constraint(equalToConstant: 0)
+            snippetHeight?.isActive = true
+        }
+        snippetHeight?.constant = snippets.isEmpty ? 0 : 40
+        if snippets != shownSnippets {
+            shownSnippets = snippets
+            snippetRow.arrangedSubviews.forEach { $0.removeFromSuperview() }
+            for (index, snippet) in snippets.enumerated() {
+                let button = UIButton(type: .custom)
+                button.setTitle(snippet.replacingOccurrences(of: "\n", with: " "), for: .normal)
+                button.titleLabel?.font = .systemFont(ofSize: 14)
+                button.titleLabel?.lineBreakMode = .byTruncatingTail
+                button.layer.cornerRadius = 16
+                button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
+                button.widthAnchor.constraint(lessThanOrEqualToConstant: 200).isActive = true
+                button.accessibilityLabel = snippet
+                button.accessibilityHint = "Types this snippet"
+                button.accessibilityIdentifier = "snippet-\(index)"
+                button.addAction(UIAction { [weak self] _ in self?.bridge.pasteSnippet(index: Int32(index)) }, for: .touchUpInside)
+                snippetRow.addArrangedSubview(button)
+            }
+        }
+        for case let button as UIButton in snippetRow.arrangedSubviews {
+            button.backgroundColor = UIColor(argb: palette.key)
+            button.setTitleColor(UIColor(argb: palette.onKey), for: .normal)
+        }
     }
 
     // MARK: Grid

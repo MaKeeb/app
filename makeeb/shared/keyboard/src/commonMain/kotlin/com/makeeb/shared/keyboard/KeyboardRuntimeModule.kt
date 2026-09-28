@@ -56,6 +56,7 @@ val keyboardRuntimeModule = module {
             clipboardHistory = get(),
             ports = ports,
             scope = scope,
+            snippetsRepository = getOrNull(),
         )
     }
 }

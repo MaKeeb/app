@@ -13,7 +13,9 @@ const val APP_GROUP_ID = "group.com.makeeb"
  * Preferences in the App Group's user defaults. The companion app writes them; the extension
  * reads them (and writes only with Full Access), calling [PreferencesRepository.reload] when shown.
  */
-fun appGroupPreferencesRepository(appGroupId: String = APP_GROUP_ID): PreferencesRepository {
-    val defaults = NSUserDefaults(suiteName = appGroupId)
-    return SettingsPreferencesRepository(NSUserDefaultsSettings(defaults))
-}
+fun appGroupPreferencesRepository(appGroupId: String = APP_GROUP_ID): PreferencesRepository =
+    SettingsPreferencesRepository(NSUserDefaultsSettings(NSUserDefaults(suiteName = appGroupId)))
+
+/** Snippets in the same App Group; the extension only reads them. */
+fun appGroupSnippetsRepository(appGroupId: String = APP_GROUP_ID): SnippetsRepository =
+    SettingsSnippetsRepository(NSUserDefaultsSettings(NSUserDefaults(suiteName = appGroupId)))

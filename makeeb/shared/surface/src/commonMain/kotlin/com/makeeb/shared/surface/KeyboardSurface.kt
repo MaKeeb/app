@@ -114,6 +114,7 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                 }
                 KeyboardPanel.Clipboard -> {
                     val entries by session.clipboardEntries.collectAsState()
+                    val snippets by session.snippets.collectAsState()
                     ClipboardPanel(
                         entries = entries,
                         available = session.clipboardAvailable,
@@ -121,6 +122,8 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                         onTogglePin = { session.setClipPinned(it, !it.pinned) },
                         onDelete = session::removeClip,
                         onClearUnpinned = session::clearClips,
+                        snippets = snippets,
+                        onSnippet = session::onSnippet,
                         onClose = { session.showPanel(KeyboardPanel.Keys) },
                         modifier = area,
                     )

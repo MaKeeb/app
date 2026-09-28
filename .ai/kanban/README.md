@@ -6,8 +6,8 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 9 |
-| [In progress](doing/_doing.md) | 2 |
+| [Ready to start](todo/_todo.md) | 8 |
+| [In progress](doing/_doing.md) | 3 |
 | [In review](review/_review.md) | 52 |
 | [Done](done/_done.md) | 5 |
 
@@ -15,6 +15,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 - [APP-14](doing/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-35](doing/035-autocorrect.md): Autocorrect
+- [APP-64](doing/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 
 ## In review
 
@@ -79,7 +80,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
-- [APP-64](todo/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 - [APP-77](todo/077-keyboard-height-and-size.md): Keyboard height and size
 - [APP-81](todo/081-screen-reader-support.md): Screen reader support
 

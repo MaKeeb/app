@@ -7,6 +7,7 @@ import com.makeeb.core.model.Suggestion
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.QuickSetting
+import com.makeeb.core.settings.SnippetsRepository
 import com.makeeb.engine.clipboard.ClipboardEntry
 import com.makeeb.engine.clipboard.ClipboardHistory
 import com.makeeb.engine.emoji.Emoji
@@ -63,11 +64,14 @@ class KeyboardSession(
     private val clipboardHistory: ClipboardHistory,
     private val ports: KeyboardPorts,
     private val scope: CoroutineScope,
+    /** The user's reusable texts, listed in the clipboard panel; none when not provided. */
+    private val snippetsRepository: SnippetsRepository? = null,
 ) {
     val preferences: StateFlow<KeyboardPreferences> = preferencesRepository.preferences
     val emojiRecentsState: StateFlow<List<Emoji>> = emojiRecents.recents
     val clipboardEntries: StateFlow<List<ClipboardEntry>> = clipboardHistory.entries
     val clipboardAvailable: Boolean get() = ports.clipboardAvailable()
+    val snippets: StateFlow<List<String>> = snippetsRepository?.snippets ?: MutableStateFlow(emptyList())
 
     val touch = TouchController(
         scope = scope,
@@ -212,6 +216,13 @@ class KeyboardSession(
     }
 
     fun onPaste(entry: ClipboardEntry) = engine.commitRawText(entry.text)
+
+    fun onSnippet(text: String) = engine.commitRawText(text)
+
+    /** The companion app edits snippets in another process on iOS: read them afresh when shown. */
+    fun reloadSnippets() {
+        snippetsRepository?.reload()
+    }
 
     fun setClipPinned(entry: ClipboardEntry, pinned: Boolean) = clipboardHistory.setPinned(entry.id, pinned)
 

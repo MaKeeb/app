@@ -2,6 +2,7 @@ package com.makeeb.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,9 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.makeeb.core.settings.KeyboardPreferences
@@ -45,7 +48,8 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
         onPauseOrDispose {}
     }
     val preferences by viewModel.preferences.collectAsState()
-    SettingsContent(preferences, viewModel.letterLayouts, viewModel::update, modifier)
+    val snippets by viewModel.snippets.collectAsState()
+    SettingsContent(preferences, viewModel.letterLayouts, viewModel::update, modifier, Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet))
 }
 
 @Composable
@@ -54,9 +58,11 @@ fun SettingsContent(
     letterLayouts: List<LayoutInfo>,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
     modifier: Modifier = Modifier,
+    snippets: Snippets? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val sections = settingsSections(preferences, letterLayouts, onUpdate).mapNotNull { it.search(query) }
+    val sections = (settingsSections(preferences, letterLayouts, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
+        .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -90,6 +96,42 @@ fun SettingsContent(
             }
         }
         ScrollEndSpacer()
+    }
+}
+
+/** The user's reusable texts and how to change them. */
+class Snippets(val texts: List<String>, val onAdd: (String) -> Unit, val onRemove: (Int) -> Unit)
+
+private fun snippetsSection(snippets: Snippets) = SettingsGroup(
+    "Snippets",
+    listOf(SettingRow("Snippets", "Texts you use often, one tap away in the keyboard's clipboard panel", "quick text canned address signature clipboard") { SnippetsEditor(snippets) }),
+)
+
+@Composable
+private fun SnippetsEditor(snippets: Snippets) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            "Texts you use often, one tap away in the keyboard's clipboard panel.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        snippets.texts.forEachIndexed { index, text ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                TextButton(onClick = { snippets.onRemove(index) }) { Text("Remove") }
+            }
+        }
+        var draft by rememberSaveable { mutableStateOf("") }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it },
+                placeholder = { Text("New snippet") },
+                maxLines = 4,
+                modifier = Modifier.weight(1f).testTag("snippet-draft"),
+            )
+            TextButton(onClick = { snippets.onAdd(draft); draft = "" }, enabled = draft.isNotBlank()) { Text("Add") }
+        }
     }
 }
 

@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +44,8 @@ fun ClipboardPanel(
     onClearUnpinned: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    snippets: List<String> = emptyList(),
+    onSnippet: (String) -> Unit = {},
 ) {
     val colors = KeyboardTheme.colors
     Column(modifier) {
@@ -49,6 +54,31 @@ fun ClipboardPanel(
             Spacer(Modifier.weight(1f))
             HeaderAction("Clear", onClearUnpinned)
             HeaderAction("ABC", onClose)
+        }
+        // The user's own texts: they don't need the clipboard, so they show even without it.
+        if (snippets.isNotEmpty()) {
+            LazyRow(
+                Modifier.fillMaxWidth().height(40.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                items(snippets) { snippet ->
+                    Text(
+                        snippet.replace('\n', ' '),
+                        color = colors.onKey,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .widthIn(max = 200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(colors.key)
+                            .clickable { onSnippet(snippet) }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    )
+                }
+            }
         }
         when {
             !available -> Message("Allow Full Access for MaKeeb in Settings to use clipboard history.")

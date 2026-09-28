@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 import com.makeeb.core.model.KeyboardPalette
 import com.makeeb.core.settings.PreferencesRepository
+import com.makeeb.core.settings.SnippetsRepository
 import com.makeeb.core.settings.appGroupPreferencesRepository
+import com.makeeb.core.settings.appGroupSnippetsRepository
 import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.layout.LayoutProvider
 import com.makeeb.ui.theme.MaKeebAppTheme
@@ -31,6 +33,7 @@ import platform.UIKit.tabBarItem
 
 private val iosCompanionPlatformModule = module {
     single<PreferencesRepository> { appGroupPreferencesRepository() }
+    single<SnippetsRepository> { appGroupSnippetsRepository() }
     single<LayoutProvider> { BuiltInLayoutProvider() }
 }
 
