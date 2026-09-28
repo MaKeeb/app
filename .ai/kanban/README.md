@@ -6,13 +6,14 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 18 |
+| [Ready to start](todo/_todo.md) | 17 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 42 |
+| [In review](review/_review.md) | 43 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
 
+- [APP-1](review/001-key-grid-with-multitouch-and-rollover.md): Key grid with multitouch and rollover
 - [APP-2](review/002-key-press-preview-popup.md): Key press preview popup
 - [APP-3](review/003-long-press-alternate-characters.md): Long-press alternate characters
 - [APP-4](review/004-shift-and-caps-lock.md): Shift and caps lock
@@ -58,7 +59,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 ## Ready to start
 
-- [APP-1](todo/001-key-grid-with-multitouch-and-rollover.md): Key grid with multitouch and rollover
 - [APP-14](todo/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-17](todo/017-fast-language-switching.md): Fast language switching
 - [APP-34](todo/034-word-completion.md): Word completion

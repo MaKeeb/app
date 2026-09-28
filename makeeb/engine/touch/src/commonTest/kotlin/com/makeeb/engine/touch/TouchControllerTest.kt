@@ -93,6 +93,66 @@ class TouchControllerTest {
     }
 
     @Test
+    fun rolloverTypesKeysInTheOrderTheyWerePressed() = runTest {
+        val touch = controller()
+        val (hx, hy) = centre('h')
+        val (ix, iy) = centre('i')
+        touch.down(1, hx, hy)
+        touch.down(2, ix, iy) // lands before the first finger lifts
+        touch.up(2, ix, iy) // and lifts first
+        touch.up(1, hx, hy)
+        assertEquals(listOf<KeyAction>(KeyAction.Text("h"), KeyAction.Text("i")), actions)
+    }
+
+    @Test
+    fun rolloverCoversSpaceButNotAHeldModifier() = runTest {
+        val touch = controller()
+        val space = geometry.keys.first { it.key.action == KeyAction.Space }.bounds
+        val shift = geometry.keys.first { it.key.action == KeyAction.Shift }.bounds
+        val (ax, ay) = centre('a')
+        touch.down(1, space.centerX, space.centerY)
+        touch.down(2, ax, ay)
+        assertEquals(listOf<KeyAction>(KeyAction.Space), actions, "space typed as the next key lands")
+        touch.up(1, space.centerX, space.centerY)
+        touch.up(2, ax, ay)
+        actions.clear()
+
+        touch.down(3, shift.centerX, shift.centerY)
+        touch.down(4, ax, ay)
+        assertTrue(actions.isEmpty(), "a held shift waits for its own release")
+        touch.up(4, ax, ay)
+        touch.up(3, shift.centerX, shift.centerY)
+        assertEquals(listOf(KeyAction.Text("a"), KeyAction.Shift), actions)
+    }
+
+    @Test
+    fun aCancelledTouchTypesNothing() = runTest {
+        val touch = controller()
+        val (x, y) = centre('k')
+        touch.down(1, x, y)
+        touch.cancel(1)
+        touch.up(1, x, y) // a stray release after the cancel
+        assertTrue(actions.isEmpty())
+        assertTrue(touch.state.value.pressed.isEmpty())
+    }
+
+    @Test
+    fun edgeTapsReachTheNearestKey() = runTest {
+        val touch = controller()
+        fun tapAt(x: Float, y: Float): KeyAction {
+            actions.clear()
+            touch.down(1, x, y)
+            touch.up(1, x, y)
+            return actions.single()
+        }
+        assertEquals(KeyAction.Text("q"), tapAt(0f, 0f))
+        assertEquals(KeyAction.Text("q"), tapAt(1f, -20f)) // just above the keys, inside the strip overlap
+        assertEquals(KeyAction.Text("p"), tapAt(999f, 1f))
+        assertEquals(KeyAction.Enter, tapAt(999f, 399f))
+        assertEquals(KeyAction.Text("a"), tapAt(0f, 150f)) // the gap left of the indented middle row
+    }
+
+    @Test
     fun longPressOpensAlternatesAndDragSelects() = runTest {
         val touch = controller()
         val (x, y) = centre('e')

@@ -1,6 +1,8 @@
 package com.makeeb.android
 
+import android.content.pm.ApplicationInfo
 import android.inputmethodservice.InputMethodService
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.runtime.mutableIntStateOf
@@ -21,6 +23,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.makeeb.shared.keyboard.KeyLatency
 import com.makeeb.shared.keyboard.KeyboardPorts
 import com.makeeb.shared.keyboard.KeyboardSession
 import com.makeeb.shared.surface.KeyboardSurface
@@ -73,6 +76,10 @@ class MaKeebInputMethodService :
         )
         session = get { parametersOf(ports, scope) }
         session.density = resources.displayMetrics.density
+        // Debug builds log per-key main-thread cost (`adb logcat -s MaKeebLatency`); durations only.
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            session.latency = KeyLatency({ Log.d("MaKeebLatency", it) })
+        }
     }
 
     override fun onCreateInputView(): View {

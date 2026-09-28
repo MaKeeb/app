@@ -97,7 +97,9 @@ private suspend fun PointerInputScope.forwardPointers(touch: TouchController) {
                 val y = change.position.y
                 when {
                     change.changedToDownIgnoreConsumed() -> touch.down(id, x, y)
-                    change.changedToUpIgnoreConsumed() -> touch.up(id, x, y)
+                    // A release that arrives already consumed is Compose's synthetic cancel (the
+                    // system took the gesture, e.g. a navigation swipe): type nothing.
+                    change.changedToUpIgnoreConsumed() -> if (change.isConsumed) touch.cancel(id) else touch.up(id, x, y)
                     change.pressed && change.position != change.previousPosition -> touch.move(id, x, y)
                 }
                 change.consume()

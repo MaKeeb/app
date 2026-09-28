@@ -47,10 +47,12 @@ func physFootprint() -> UInt64 {
 
 ## Android
 
+- Measure frames on the `benchmark` build type (`./gradlew :app:android:assembleBenchmark`): R8, not debuggable, debug-signed, installed as `com.makeeb.benchmark`. Debug Compose is about four times slower: typing on the Pixel 6 Pro measured 31 ms median frames in debug against 8 ms (p95 13 ms, 0.4% janky) in benchmark (2026-09-28). `.ai/local/visual-test/fixes-android.py <serial> <dir> --latency --benchmark` types two sentences and prints `gfxinfo`; it uninstalls the benchmark app and restores the IME afterwards.
+- Per-key main-thread cost: debug builds log `KeyLatency` summaries every 50 keys (`adb logcat -s MaKeebLatency`: p50/p95/max of the engine edit plus suggestions plus host calls). Measured at 1.8 ms p50 and 2.8 ms p95 on the Pixel in debug (2026-09-28); keep it well under one frame.
 - The IME runs in the app process: `adb -s emulator-5554 shell dumpsys meminfo com.makeeb.debug`.
 - Frames: `dumpsys gfxinfo com.makeeb.debug framestats`, or a Perfetto trace with the `input`, `view`, `gfx` and `sched` categories. For touch-to-commit, compare the input event timestamp with the `commitText` binder call. Add temporary `android.os.Trace` sections in androidMain or the service while investigating, and remove them before committing.
 - Cold start: run `am force-stop com.makeeb.debug`, then focus a text field and time the first show.
-- The emulator renders in software (`swiftshader_indirect`). Its rendering numbers are only good for before/after comparisons. Only confirm on a physical device when the user asks (`.ai/instructions.md`).
+- The emulator renders in software (`swiftshader_indirect`). Its rendering numbers are only good for before/after comparisons; measure on the Pixel (`.ai/instructions.md`).
 - Compose: check recomposition counts for the keyboard surface in Layout Inspector (`kmp-cmp`).
 
 ## JVM

@@ -76,6 +76,7 @@ class TouchController(
 
     fun down(id: Long, x: Float, y: Float) {
         val placed = geometry?.keyAt(x, y) ?: return
+        rollOver(exceptId = id)
         pointers[id]?.timer?.cancel()
         val pointer = Pointer(placed, x, y, timeSource.markNow())
         pointers[id] = pointer
@@ -179,6 +180,23 @@ class TouchController(
         pointers.clear()
         popup = null
         publish()
+    }
+
+    /**
+     * Fast typists land the next key before lifting the last. Keys still held as plain taps are
+     * typed now, in the order they were pressed, instead of in the order the fingers lift ("hi",
+     * not "ih"). Only characters and space: a held modifier (shift, a mode key) keeps waiting for
+     * its own release.
+     */
+    private fun rollOver(exceptId: Long) {
+        for ((otherId, other) in pointers) {
+            val action = other.placed.key.action
+            if (otherId == exceptId || other.mode != Mode.Tap) continue
+            if (action !is KeyAction.Text && action != KeyAction.Space) continue
+            other.timer?.cancel()
+            other.mode = Mode.Consumed
+            listener.onAction(action)
+        }
     }
 
     /** Fast and mostly vertical: a slower slide up is a correction to the key above. */

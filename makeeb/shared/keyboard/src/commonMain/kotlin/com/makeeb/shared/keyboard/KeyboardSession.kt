@@ -72,9 +72,15 @@ class KeyboardSession(
         scope = scope,
         listener = object : TouchListener {
             override fun onKeyDown(key: Key) = playFeedback(key)
-            override fun onAction(action: KeyAction) = engine.onKey(action)
+            override fun onAction(action: KeyAction) {
+                val probe = latency
+                if (probe == null) engine.onKey(action) else probe.measure { engine.onKey(action) }
+            }
         },
     )
+
+    /** Set by debug builds to time every key action; null in release. */
+    var latency: KeyLatency? = null
 
     private val mutableGeometry = MutableStateFlow<LayoutGeometry?>(null)
     val geometry: StateFlow<LayoutGeometry?> = mutableGeometry.asStateFlow()
