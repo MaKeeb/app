@@ -45,6 +45,11 @@ class InputConnectionTextHost(
         ic.deleteSurroundingText(lastGraphemeLength(before), 0)
     }
 
+    /** By code points (API 24), so even a mistaken count never splits a surrogate pair. */
+    override fun deleteGrapheme(grapheme: String) {
+        connection()?.deleteSurroundingTextInCodePoints(grapheme.codePointCount(0, grapheme.length), 0)
+    }
+
     override fun replaceBeforeCursor(length: Int, replacement: String) {
         val ic = connection() ?: return
         ic.beginBatchEdit()

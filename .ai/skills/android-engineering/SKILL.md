@@ -31,7 +31,7 @@ Baseline: minSdk 26, targetSdk 36, compileSdk 37 (`libs.versions.toml`). Anythin
 
 ## InputConnection: every read is IPC
 
-- Getters (`getTextBeforeCursor`, `getTextAfterCursor`, `getSelectedText`, `getSurroundingText`) are synchronous binder calls into the app, with a 2 s timeout. A slow app stalls our main thread and the user's typing. Budget: one read per keystroke. Today that read is `textBeforeCursor(CONTEXT_LENGTH)` in `InputEngine.afterEdit`; the APP-109 card removes it.
+- Getters (`getTextBeforeCursor`, `getTextAfterCursor`, `getSelectedText`, `getSurroundingText`) are synchronous binder calls into the app, with a 2 s timeout. A slow app stalls our main thread and the user's typing. Budget: no reads per keystroke. The engine's `TextMirror` fetches a window of text once and applies its own edits to it; `onUpdateSelection` → `InputEngine.onSelectionChanged` tells the late reports of our own edits from real external changes, and only the latter trigger a read. Edits that delete what the mirror says is there (autocorrect, suggestion picks, delete-word) verify first: one read per word.
 - Writes are one-way calls, applied in order. `onUpdateSelection` for our own write arrives later, so `onExternalChange` must tolerate seeing its own edits.
 - Group multi-step edits with `TextHost.batchEdit {}` (`beginBatchEdit`/`endBatchEdit`), so the app applies them as one change and reports one selection update.
 - Prefer one native call over several: `deleteSurroundingTextInCodePoints` (API 24) for emoji and surrogate pairs, and `replaceText` (API 34) for atomic autocorrect, behind a version check.

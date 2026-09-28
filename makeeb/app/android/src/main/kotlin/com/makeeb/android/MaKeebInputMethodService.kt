@@ -29,6 +29,7 @@ import com.makeeb.platform.feedback.AudioManagerSoundFeedback
 import com.makeeb.platform.feedback.VibratorHapticFeedback
 import com.makeeb.platform.host.ImeServiceKeyboardHost
 import com.makeeb.platform.host.InputConnectionTextHost
+import com.makeeb.platform.host.TextSelection
 import com.makeeb.platform.host.toEditorAttributes
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -102,7 +103,8 @@ class MaKeebInputMethodService :
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        session.start(textHost, keyboardHost, info.toEditorAttributes())
+        val selection = TextSelection(info.initialSelStart, info.initialSelEnd).takeIf { it.start >= 0 && it.end >= it.start }
+        session.start(textHost, keyboardHost, info.toEditorAttributes(), selection)
         moveLifecycleTo(Lifecycle.State.RESUMED)
     }
 
@@ -121,7 +123,8 @@ class MaKeebInputMethodService :
         candidatesEnd: Int,
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
-        session.engine.onExternalChange()
+        // Also reported, late, for the keyboard's own edits; the engine's text mirror tells them apart.
+        session.engine.onSelectionChanged(newSelStart, newSelEnd)
     }
 
     /** Never take over the screen with the extract UI in landscape. */

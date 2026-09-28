@@ -24,7 +24,7 @@ KeyboardSession (:shared:keyboard) wires it together, plays feedback, and expose
 ## The TextHost contract
 
 Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `FakeTextHost` must honour this. If you change the contract, change all three in the same change.
-- Reads are snapshots. They can be truncated (iOS) or slow (Android IPC). The engine reads `textBeforeCursor(CONTEXT_LENGTH = 64)` once per edit, in `afterEdit`. Don't add a second read on the keystroke path; the APP-109 card is meant to remove the first one.
+- Reads are snapshots. They can be truncated (iOS) or slow (Android IPC). Where `TextHost.readsAreCheap` is false (Android) the engine reads through `TextMirror`, a local copy kept in step with the engine's own edits and reconciled by `onSelectionChanged`; reads on the keystroke path cost nothing. Deleting what the copy claims is there goes through `confirmMirror()` first. iOS reads the proxy directly (in-process) and calls `onExternalChange()` on every text/selection callback.
 - `deleteBackward` removes one grapheme (or the selection), not one UTF-16 unit.
 - `replaceBeforeCursor(length, text)` is how corrections and suggestions land. The default implementation deletes `length` graphemes, which is only correct when every character is its own grapheme. Words with combining marks or emoji would over-delete, so adapters override it with a native call.
 - `performEditorAction` returns false on iOS, and the engine inserts `\n` instead. `FakeTextHost(supportsEditorActions = false)` reproduces this.

@@ -5,6 +5,7 @@ import com.makeeb.platform.host.TextHost
 
 /** Stands in between input sessions so the engine never holds a stale connection. */
 internal object DetachedTextHost : TextHost {
+    override val readsAreCheap = true
     override fun textBeforeCursor(maxLength: Int) = ""
     override fun textAfterCursor(maxLength: Int) = ""
     override fun selectedText() = ""

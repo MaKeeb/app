@@ -19,6 +19,7 @@ import com.makeeb.engine.prediction.SuggestionEngine
 import com.makeeb.engine.prediction.TypingContext
 import com.makeeb.platform.host.KeyboardHost
 import com.makeeb.platform.host.TextHost
+import com.makeeb.platform.host.TextSelection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,9 @@ class InputEngine(
     private var host: TextHost = DetachedTextHost
     private var keyboardHost: KeyboardHost? = null
 
+    /** Serves reads where they are expensive (Android); null where the host's own reads are cheap. */
+    private var mirror: TextMirror? = null
+
     private val mutableState = MutableStateFlow(KeyboardState(layout = layoutFor(KeyboardMode.Letters, EditorAttributes())))
     val state: StateFlow<KeyboardState> = mutableState.asStateFlow()
 
@@ -60,8 +64,10 @@ class InputEngine(
 
     // region Session lifecycle
 
-    fun startInput(textHost: TextHost, keyboardHost: KeyboardHost, attributes: EditorAttributes) {
-        host = textHost
+    /** [selection] is where the field's selection starts, when the platform says (Android). */
+    fun startInput(textHost: TextHost, keyboardHost: KeyboardHost, attributes: EditorAttributes, selection: TextSelection? = null) {
+        mirror = if (textHost.readsAreCheap) null else TextMirror(textHost, selection)
+        host = mirror ?: textHost
         this.keyboardHost = keyboardHost
         pendingRevert = null
         rejectedCorrection = null
@@ -79,6 +85,7 @@ class InputEngine(
 
     fun finishInput() {
         host = DetachedTextHost
+        mirror = null
         keyboardHost = null
         mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys) }
     }
@@ -94,10 +101,24 @@ class InputEngine(
     }
 
     /**
-     * The field's text or selection changed, possibly not by us (the user tapped elsewhere, the
-     * app rewrote the text). Android: `onUpdateSelection`; iOS: `textDidChange`/`selectionDidChange`.
+     * The field's text or selection changed, possibly not by us, and the platform can't say how
+     * (iOS: `textDidChange`/`selectionDidChange`). Everything is read afresh.
      */
     fun onExternalChange() {
+        mirror?.invalidate()
+        resyncAfterExternalChange()
+    }
+
+    /**
+     * The field reports its selection (Android: `onUpdateSelection`), which it also does, late,
+     * for the keyboard's own edits. Only a change the keyboard didn't make is acted on.
+     */
+    fun onSelectionChanged(start: Int, end: Int) {
+        val known = mirror ?: return onExternalChange()
+        if (known.onSelectionChanged(TextSelection(start, end))) resyncAfterExternalChange()
+    }
+
+    private fun resyncAfterExternalChange() {
         val revert = pendingRevert
         if (revert != null && !host.textBeforeCursor(revert.committed.length).endsWith(revert.committed)) {
             pendingRevert = null
@@ -154,6 +175,7 @@ class InputEngine(
             afterEdit(composing = "")
             return
         }
+        confirmMirror()
         val word = state.value.composing
         rejectedCorrection = null
         host.replaceBeforeCursor(word.length, suggestion.text + " ")
@@ -167,7 +189,7 @@ class InputEngine(
         val output = if (current.shift.isUppercase) text.uppercase() else text
         if (output.length == 1 && output[0] in CORRECTING_PUNCTUATION && current.composing.isNotEmpty()) {
             commitSeparator(output)
-        } else if (output.length == 1 && output[0] in CORRECTING_PUNCTUATION && followsWordAndSpace(current.editor)) {
+        } else if (output.length == 1 && output[0] in CORRECTING_PUNCTUATION && followsWordAndSpace(current.editor) && confirmMirror()) {
             // "word " + "," → "word, ": punctuation belongs against the word, the space after it.
             host.replaceBeforeCursor(1, "$output ")
             afterEdit(composing = "", consumeOneShot = true)
@@ -182,7 +204,7 @@ class InputEngine(
         val prefs = preferences.value
         val before = host.textBeforeCursor(2)
         if (prefs.doubleSpacePeriod && sinceLastSpace != null && sinceLastSpace < DOUBLE_SPACE_WINDOW &&
-            before.length == 2 && before[1] == ' ' && before[0].isLetterOrDigit()
+            before.length == 2 && before[1] == ' ' && before[0].isLetterOrDigit() && confirmMirror()
         ) {
             pendingRevert = null
             host.replaceBeforeCursor(1, ". ")
@@ -196,10 +218,16 @@ class InputEngine(
 
     /** Commit a word separator, autocorrecting the word before it when confident. */
     private fun commitSeparator(separator: String) {
-        val word = state.value.composing
-        val correction = word.takeIf { it.isNotEmpty() && it != rejectedCorrection && autoCorrectEnabled() }
+        fun correctionFor(word: String) = word.takeIf { it.isNotEmpty() && it != rejectedCorrection && autoCorrectEnabled() }
             ?.let { suggestionEngine.suggest(TypingContext(it)).autoCorrection }
             ?.takeIf { it != word }
+        var word = state.value.composing
+        var correction = correctionFor(word)
+        // A correction replaces what the mirror says was typed: make sure the field agrees.
+        if (correction != null && !confirmMirror()) {
+            word = state.value.composing
+            correction = correctionFor(word)
+        }
         rejectedCorrection = null
 
         if (correction != null) {
@@ -216,6 +244,7 @@ class InputEngine(
     private fun backspace() {
         val revert = pendingRevert
         pendingRevert = null
+        if (revert != null) confirmMirror()
         if (revert != null && host.textBeforeCursor(revert.committed.length) == revert.committed) {
             host.replaceBeforeCursor(revert.committed.length, revert.original)
             rejectedCorrection = revert.original
@@ -232,6 +261,7 @@ class InputEngine(
      */
     private fun deleteWord() {
         pendingRevert = null
+        confirmMirror()
         val before = host.textBeforeCursor(CONTEXT_LENGTH)
         val trimmed = before.trimEnd()
         val spaces = before.length - trimmed.length
@@ -278,13 +308,25 @@ class InputEngine(
 
     // region State derivation
 
+    /**
+     * Before an edit that deletes what the mirror says was typed, check the field still agrees
+     * ([TextMirror.verify]). When it doesn't, the state is rebuilt from the field and this
+     * returns false. Always true where there is no mirror.
+     */
+    private fun confirmMirror(): Boolean {
+        val known = mirror ?: return true
+        if (known.verify()) return true
+        resyncWithHost()
+        return false
+    }
+
     private fun resyncWithHost() {
         afterEdit(composing = TextBoundaries.trailingWord(host.textBeforeCursor(CONTEXT_LENGTH)))
     }
 
     /**
      * Recompute everything derived from the text around the caret: auto-shift and suggestions.
-     * One host read per edit keeps IPC to a minimum.
+     * On Android the read comes from the [TextMirror], not the app.
      */
     private fun afterEdit(composing: String, consumeOneShot: Boolean = false) {
         val textBefore = host.textBeforeCursor(CONTEXT_LENGTH)
@@ -366,7 +408,7 @@ class InputEngine(
     // endregion
 
     private companion object {
-        /** Enough context for auto-cap and two previous words; small to keep IPC cheap. */
+        /** Enough context for auto-cap and two previous words. */
         const val CONTEXT_LENGTH = 64
         val DOUBLE_SPACE_WINDOW = 800.milliseconds
         val DOUBLE_TAP_WINDOW = 350.milliseconds

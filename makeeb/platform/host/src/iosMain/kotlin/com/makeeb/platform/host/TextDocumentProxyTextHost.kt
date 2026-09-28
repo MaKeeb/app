@@ -10,6 +10,8 @@ import platform.UIKit.UITextDocumentProxyProtocol
 class TextDocumentProxyTextHost(
     private val proxy: () -> UITextDocumentProxyProtocol,
 ) : TextHost {
+    /** The proxy holds the context in-process; reading it is not a round trip to the app. */
+    override val readsAreCheap: Boolean = true
 
     override fun textBeforeCursor(maxLength: Int): String =
         proxy().documentContextBeforeInput.orEmpty().takeLast(maxLength)

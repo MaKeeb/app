@@ -27,6 +27,7 @@ import com.makeeb.platform.feedback.KeyFeedbackType
 import com.makeeb.platform.feedback.SoundFeedback
 import com.makeeb.platform.host.KeyboardHost
 import com.makeeb.platform.host.TextHost
+import com.makeeb.platform.host.TextSelection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,9 +123,10 @@ class KeyboardSession(
         }
     }
 
-    fun start(textHost: TextHost, keyboardHost: KeyboardHost, attributes: EditorAttributes) {
+    /** [selection] is the field's selection at the start, when the platform reports one (Android). */
+    fun start(textHost: TextHost, keyboardHost: KeyboardHost, attributes: EditorAttributes, selection: TextSelection? = null) {
         this.keyboardHost = keyboardHost
-        engine.startInput(textHost, keyboardHost, attributes)
+        engine.startInput(textHost, keyboardHost, attributes, selection)
         clipboardHistory.expire()
         clipboardJob?.cancel()
         if (ports.clipboardAvailable()) {
