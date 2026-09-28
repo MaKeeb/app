@@ -15,6 +15,10 @@ import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
 import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
+import com.makeeb.engine.prediction.SuggestionEngine
+import com.makeeb.engine.prediction.Prediction
+import com.makeeb.engine.prediction.TypingContext
+import com.makeeb.engine.prediction.TapPoint
 import com.makeeb.testing.FakeKeyboardHost
 import com.makeeb.testing.FakeTextHost
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -362,5 +366,23 @@ class InputEngineTest {
         preferences.value = KeyboardPreferences(emojiSuggestions = false)
         "pizza".forEach { emojiEngine.onKey(KeyAction.Text(it.toString())) }
         assertTrue(emojiEngine.state.value.suggestions.none { it.kind == Suggestion.Kind.Emoji }, "off in settings")
+    }
+
+    @Test
+    fun tapsFollowTheComposingWordToTheSuggestionEngine() {
+        val seen = mutableListOf<TypingContext>()
+        val recording = object : SuggestionEngine {
+            override fun suggest(context: TypingContext, limit: Int): Prediction = Prediction.Empty.also { seen += context }
+            override fun learn(word: String) = Unit
+        }
+        val tapped = InputEngine(BuiltInLayoutProvider(), recording, preferences, time)
+        tapped.startInput(FakeTextHost(), keyboardHost, EditorAttributes(capitalization = Capitalization.None))
+        tapped.onKey(KeyAction.Text("h"), TapPoint(5.5f, 1.5f))
+        tapped.onKey(KeyAction.Text("w"), TapPoint(1.9f, 0.5f))
+        tapped.onKey(KeyAction.Text("x"))
+        assertEquals(listOf(TapPoint(5.5f, 1.5f), TapPoint(1.9f, 0.5f), null), seen.last().taps)
+        tapped.onKey(KeyAction.Backspace)
+        assertEquals(listOf(TapPoint(5.5f, 1.5f), TapPoint(1.9f, 0.5f)), seen.last().taps, "a delete drops the last tap")
+        assertTrue(seen.last().keys?.centre('q') != null, "key positions from the letters layout")
     }
 }

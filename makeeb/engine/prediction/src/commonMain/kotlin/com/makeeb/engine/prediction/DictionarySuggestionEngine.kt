@@ -48,7 +48,7 @@ class DictionarySuggestionEngine(
                 // Candidates within plain edits, then costed as typing errors (WeightedEdits).
                 dictionary.corrections(typed, maxEdits, CORRECTION_CANDIDATES).forEach { match ->
                     if (match.edits > 0) {
-                        val cost = WeightedEdits.distance(typed, match.entry.word, context.keys) + LM_WEIGHT * lmCost(match.entry.frequency)
+                        val cost = WeightedEdits.distance(typed, match.entry.word, context.keys, context.taps) + LM_WEIGHT * lmCost(match.entry.frequency)
                         if (cost < bestCost && mayCorrectTo(match.entry, typed)) {
                             bestCost = cost
                             best = match.entry.word

@@ -44,16 +44,22 @@ object WeightedEdits {
     /** Rows are taller than keys are wide; this converts a row step into key widths. */
     private const val ROW_ASPECT = 1.4f
 
-    fun distance(typed: String, candidate: String, keys: KeyPositions?): Float {
+    /**
+     * [taps], where known, say where each letter of [typed] was tapped: a tap near the edge of the
+     * wanted key is then an even cheaper slip than one on the typed key's centre.
+     */
+    fun distance(typed: String, candidate: String, keys: KeyPositions?, taps: List<TapPoint?> = emptyList()): Float {
         val t = KeyFold.fold(typed)
         val c = KeyFold.fold(candidate)
+        // Folding can change the length (ß → ss); taps then no longer line up with letters.
+        val tapAt = if (taps.size == t.length && t.length == typed.length) taps else emptyList()
         // rows[i][j]: cost of turning t[0 until i] into c[0 until j].
         val rows = Array(t.length + 1) { FloatArray(c.length + 1) }
         for (j in 1..c.length) rows[0][j] = rows[0][j - 1] + omission(c, j - 1)
         for (i in 1..t.length) {
             rows[i][0] = rows[i - 1][0] + insertion(t, i - 1, keys)
             for (j in 1..c.length) {
-                var best = rows[i - 1][j - 1] + substitution(t[i - 1], c[j - 1], first = j == 1, keys)
+                var best = rows[i - 1][j - 1] + substitution(t[i - 1], c[j - 1], first = j == 1, keys, tapAt.getOrNull(i - 1))
                 best = minOf(best, rows[i][j - 1] + omission(c, j - 1))
                 best = minOf(best, rows[i - 1][j] + insertion(t, i - 1, keys))
                 if (i > 1 && j > 1 && t[i - 1] == c[j - 2] && t[i - 2] == c[j - 1] && t[i - 1] != t[i - 2]) {
@@ -66,10 +72,13 @@ object WeightedEdits {
     }
 
     /** A key further away is a less likely slip: the cost grows with the squared distance. */
-    private fun substitution(typed: Char, wanted: Char, first: Boolean, keys: KeyPositions?): Float {
+    private fun substitution(typed: Char, wanted: Char, first: Boolean, keys: KeyPositions?, tap: TapPoint?): Float {
         if (typed == wanted) return 0f
-        val d = keyDistance(typed, wanted, keys) ?: return SUBSTITUTION
-        if (d <= NEIGHBOUR_DISTANCE) return PROXIMITY + if (first) FIRST_PROXIMITY else 0f
+        val fromTap = tap?.let { tapDistance(it, wanted, keys) }
+        val d = fromTap ?: keyDistance(typed, wanted, keys) ?: return SUBSTITUTION
+        // From a real tap, the cost follows how close it came to the wanted key: a key centre
+        // away is a plain neighbour slip, a tap on the shared edge nearly none.
+        if (d <= NEIGHBOUR_DISTANCE) return PROXIMITY * (if (fromTap != null) d * d else 1f) + if (first) FIRST_PROXIMITY else 0f
         val beyond = d - NEIGHBOUR_DISTANCE
         return SUBSTITUTION + FAR_KEY_WEIGHT * beyond * beyond
     }
@@ -90,6 +99,13 @@ object WeightedEdits {
 
     private fun neighbours(a: Char, b: Char, keys: KeyPositions?): Boolean =
         (keyDistance(a, b, keys) ?: Float.MAX_VALUE) <= NEIGHBOUR_DISTANCE
+
+    private fun tapDistance(tap: TapPoint, key: Char, keys: KeyPositions?): Float? {
+        val centre = keys?.centre(key) ?: return null
+        val dx = tap.x - centre.first
+        val dy = (tap.y - centre.second) * ROW_ASPECT
+        return sqrt(dx * dx + dy * dy)
+    }
 
     /** Centre to centre, in key widths; null without positions for both. */
     private fun keyDistance(a: Char, b: Char, keys: KeyPositions?): Float? {

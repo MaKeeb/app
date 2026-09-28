@@ -26,6 +26,12 @@ interface TouchListener {
     fun onKeyDown(key: Key)
 
     fun onAction(action: KeyAction)
+
+    /**
+     * A tap typed [action] at ([x], [y]), in geometry coordinates. Where the finger landed within
+     * the key is what lets autocorrect tell a slip from a word it doesn't know.
+     */
+    fun onTap(action: KeyAction, x: Float, y: Float) = onAction(action)
 }
 
 /**
@@ -47,6 +53,9 @@ class TouchController(
     private class Pointer(var placed: PlacedKey, val downX: Float, val downY: Float, val downAt: TimeMark) {
         var mode = Mode.Tap
         var lastX = downX
+        /** The latest position, for where a tap is typed. */
+        var x = downX
+        var y = downY
         var slide = 0f
         var timer: Job? = null
     }
@@ -110,6 +119,8 @@ class TouchController(
 
     fun move(id: Long, x: Float, y: Float) {
         val pointer = pointers[id] ?: return
+        pointer.x = x
+        pointer.y = y
         when (pointer.mode) {
             Mode.Tap -> {
                 val action = pointer.placed.key.action
@@ -154,7 +165,7 @@ class TouchController(
         val pointer = pointers.remove(id) ?: return
         pointer.timer?.cancel()
         when (pointer.mode) {
-            Mode.Tap -> listener.onAction(pointer.placed.key.action)
+            Mode.Tap -> listener.onTap(pointer.placed.key.action, pointer.x, pointer.y)
             Mode.Alternates -> {
                 val current = popup
                 popup = null
@@ -195,7 +206,7 @@ class TouchController(
             if (action !is KeyAction.Text && action != KeyAction.Space) continue
             other.timer?.cancel()
             other.mode = Mode.Consumed
-            listener.onAction(action)
+            listener.onTap(action, other.x, other.y)
         }
     }
 

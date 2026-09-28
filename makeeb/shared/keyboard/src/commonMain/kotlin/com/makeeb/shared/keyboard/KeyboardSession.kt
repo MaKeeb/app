@@ -13,6 +13,7 @@ import com.makeeb.engine.emoji.Emoji
 import com.makeeb.engine.emoji.EmojiCatalog
 import com.makeeb.engine.emoji.EmojiRecents
 import com.makeeb.engine.input.InputEngine
+import com.makeeb.engine.prediction.TapPoint
 import com.makeeb.engine.layout.Key
 import com.makeeb.engine.layout.KeyStyle
 import com.makeeb.engine.layout.KeyboardLayout
@@ -72,9 +73,13 @@ class KeyboardSession(
         scope = scope,
         listener = object : TouchListener {
             override fun onKeyDown(key: Key) = playFeedback(key)
-            override fun onAction(action: KeyAction) {
+            override fun onAction(action: KeyAction) = handle(action, tap = null)
+
+            override fun onTap(action: KeyAction, x: Float, y: Float) = handle(action, geometry.value?.let { tapPoint(it, x, y) })
+
+            private fun handle(action: KeyAction, tap: TapPoint?) {
                 val probe = latency
-                if (probe == null) engine.onKey(action) else probe.measure { engine.onKey(action) }
+                if (probe == null) engine.onKey(action, tap) else probe.measure { engine.onKey(action, tap) }
             }
         },
     )
@@ -213,6 +218,14 @@ class KeyboardSession(
     fun removeClip(entry: ClipboardEntry) = clipboardHistory.remove(entry.id)
 
     fun clearClips() = clipboardHistory.clearUnpinned()
+
+    /** A tap in geometry coordinates, in the letters layout's key widths and rows ([TapPoint]). */
+    private fun tapPoint(geometry: LayoutGeometry, x: Float, y: Float): TapPoint? {
+        val units = geometry.layout.unitsPerRow
+        if (units <= 0f || geometry.rowHeight <= 0f) return null
+        val unitWidth = (geometry.width - 2 * geometry.horizontalInset) / units
+        return TapPoint((x - geometry.horizontalInset) / unitWidth, y / geometry.rowHeight)
+    }
 
     private fun rebuildGeometry() {
         val (width, height) = keysAreaSize ?: return

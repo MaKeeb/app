@@ -12,7 +12,12 @@ data class TypingContext(
     val keys: KeyPositions? = null,
     /** The word starts a sentence: a capital there doesn't mean a name. */
     val atSentenceStart: Boolean = true,
+    /** Where each letter of [composing] was tapped, when known (same length, else ignored). */
+    val taps: List<TapPoint?> = emptyList(),
 )
+
+/** A tap on the letters layout, in key widths across and rows down (the [KeyPositions] units). */
+data class TapPoint(val x: Float, val y: Float)
 
 data class Prediction(
     /** Best first. The UI decides how to lay them out. */

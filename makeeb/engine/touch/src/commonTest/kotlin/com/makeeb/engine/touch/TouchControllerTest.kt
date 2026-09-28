@@ -20,6 +20,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class TouchControllerTest {
     private val actions = mutableListOf<KeyAction>()
+    private val taps = mutableListOf<Pair<Float, Float>>()
     private val geometry = LayoutGeometry(
         BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions()),
         width = 1000f,
@@ -32,6 +33,11 @@ class TouchControllerTest {
             override fun onKeyDown(key: Key) = Unit
             override fun onAction(action: KeyAction) {
                 actions += action
+            }
+
+            override fun onTap(action: KeyAction, x: Float, y: Float) {
+                taps += x to y
+                onAction(action)
             }
         },
         config = TouchConfig(overflowAbove = 50f),
@@ -292,5 +298,16 @@ class TouchControllerTest {
         touch.move(1, space.centerX + 30f + 14f * 3, space.centerY)
         touch.up(1, space.centerX + 30f + 14f * 3, space.centerY)
         assertEquals(List<KeyAction>(3) { KeyAction.MoveCursor(1) }, actions)
+    }
+
+    @Test
+    fun aTapReportsWhereItLanded() = runTest {
+        val touch = controller()
+        val e = geometry.keyFor('e')!!.bounds
+        touch.down(1, e.left + 3f, e.centerY)
+        touch.move(1, e.left + 5f, e.centerY + 2f)
+        touch.up(1, e.left + 5f, e.centerY + 2f)
+        assertEquals(listOf<KeyAction>(KeyAction.Text("e")), actions)
+        assertEquals(listOf(e.left + 5f to e.centerY + 2f), taps)
     }
 }

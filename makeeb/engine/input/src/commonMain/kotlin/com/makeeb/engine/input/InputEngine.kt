@@ -18,6 +18,7 @@ import com.makeeb.engine.layout.LayoutOptions
 import com.makeeb.engine.layout.LayoutProvider
 import com.makeeb.engine.prediction.KeyPositions
 import com.makeeb.engine.prediction.SuggestionEngine
+import com.makeeb.engine.prediction.TapPoint
 import com.makeeb.engine.prediction.TypingContext
 import com.makeeb.platform.host.KeyboardHost
 import com.makeeb.platform.host.TextHost
@@ -134,7 +135,9 @@ class InputEngine(
 
     // region Input
 
-    fun onKey(action: KeyAction) {
+    /** [tap] is where a typed letter was tapped, in layout units, when the touch layer knows. */
+    fun onKey(action: KeyAction, tap: TapPoint? = null) {
+        pendingTap = tap?.takeIf { action is KeyAction.Text }
         if (state.value.emojiSearch != null && searchKey(action)) return
         when (action) {
             is KeyAction.Text -> typeText(action.text)
@@ -390,6 +393,7 @@ class InputEngine(
      * On Android the read comes from the [TextMirror], not the app.
      */
     private fun afterEdit(composing: String, consumeOneShot: Boolean = false) {
+        alignTaps(state.value.composing, composing)
         val textBefore = host.textBeforeCursor(CONTEXT_LENGTH)
         val prefs = preferences.value
         mutableState.update { current ->
@@ -427,6 +431,24 @@ class InputEngine(
         return words.take(2) + Suggestion(emoji, Suggestion.Kind.Emoji)
     }
 
+    /** Where each letter of the composing word was tapped; null where unknown (a resync, a paste). */
+    private var composingTaps: List<TapPoint?> = emptyList()
+
+    /** The tap of the key being handled, until [afterEdit] files it. */
+    private var pendingTap: TapPoint? = null
+
+    /** Keeps [composingTaps] in step: a letter typed appends its tap, a delete drops the last. */
+    private fun alignTaps(previous: String, composing: String) {
+        val known = composingTaps.take(previous.length).let { it + List(previous.length - it.size) { null } }
+        composingTaps = when {
+            composing == previous -> known
+            composing.length == previous.length + 1 && composing.startsWith(previous) -> known + pendingTap
+            composing.length < previous.length && previous.startsWith(composing) -> known.take(composing.length)
+            else -> List(composing.length) { null }
+        }
+        pendingTap = null
+    }
+
     /** What the suggestion engine needs about [composing], the word ending [textBefore]. */
     private fun typingContext(composing: String, textBefore: String): TypingContext {
         val before = if (textBefore.endsWith(composing)) textBefore.dropLast(composing.length) else textBefore
@@ -435,6 +457,7 @@ class InputEngine(
             previousWords = TextBoundaries.previousWords(textBefore, count = 2),
             keys = letterKeys(),
             atSentenceStart = TextBoundaries.isSentenceStart(before),
+            taps = composingTaps.takeIf { it.size == composing.length }.orEmpty(),
         )
     }
 
