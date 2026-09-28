@@ -29,11 +29,11 @@ Pure shared logic and a good fit for commonMain.
 
 ## Tasks
 
-- [ ] Research layout data formats
+- [x] Research layout data formats
 - [ ] Stage A: layout data from AOSP, with a parity test
 - [ ] Stage B: layouts from data, and alternates that follow the language
 - [ ] Stage C: a small hand-written JSON reader in place of kotlinx.serialization
 
 ## Progress
 
-Layouts are a Kotlin DSL today. Candidate formats: FlorisBoard JSON or CLDR Keyboard 3.0.
+Research done: docs/research/layout-formats.md (2026-09-28). CLDR Keyboard 3.0 has almost no touch layouts yet and FlorisBoard dropped its JSON format; recommended: a small MaKeeb JSON schema (letter rows + per-language data such as alternates) converted at build time from AOSP (Apache-2.0) with CLDR checks, while the engine keeps building the number row, function keys, bottom row and symbols pages (so the mode-switch geometry holds by construction). Stage A (today's layouts as data with a parity test) can start; later stages wait on your decisions (§9.9).
