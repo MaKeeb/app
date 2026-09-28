@@ -104,7 +104,9 @@ internal object BuiltInLayouts {
         } else {
             row { chars(topRowDigits) }
         }
-        row { chars("@#\$_&-+()/") }
+        // Brackets of every shape behind the parentheses, as on Gboard: < and > have no key of their
+        // own without the number row.
+        row { chars("@#\$_&-+()/", alternates = mapOf('(' to "<[{", ')' to ">]}")) }
         row {
             mode(KeyboardMode.SymbolsMore, "=\\<")
             chars("*\"':;!?")

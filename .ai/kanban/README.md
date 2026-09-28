@@ -7,13 +7,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 16 |
-| [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 44 |
+| [In progress](doing/_doing.md) | 0 |
+| [In review](review/_review.md) | 45 |
 | [Done](done/_done.md) | 5 |
-
-## In progress
-
-- [APP-133](doing/133-keys-stay-put-between-letters-and-symbols.md): Keys stay put between letters and symbols
 
 ## In review
 
@@ -51,6 +47,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-128](review/128-ios-keyboard-keep-the-system-liquid-glass-background.md): iOS keyboard: keep the system Liquid Glass background
 - [APP-129](review/129-ios-settings-reach-the-keyboard-number-row.md): iOS: settings reach the keyboard (number row)
 - [APP-130](review/130-install-on-a-physical-iphone.md): Install on a physical iPhone
+- [APP-133](review/133-keys-stay-put-between-letters-and-symbols.md): Keys stay put between letters and symbols
 - [APP-10](review/010-optional-number-row.md): Optional number row
 - [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts

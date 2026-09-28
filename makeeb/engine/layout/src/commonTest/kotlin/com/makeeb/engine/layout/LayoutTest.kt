@@ -144,4 +144,12 @@ class LayoutTest {
         assertEquals(980f, geometry.keyFor('p')!!.bounds.right)
         assertEquals("q", geometry.keyAt(2f, 25f)!!.key.label)
     }
+
+    @Test
+    fun anglesAndBracketsAreHeldBehindTheParentheses() {
+        val symbols = BuiltInLayoutProvider().layout(KeyboardMode.Symbols, LayoutOptions())
+        fun alternatesOf(text: String) = symbols.rows.flatMap { it.keys }.first { (it.action as? KeyAction.Text)?.text == text }.alternates
+        assertEquals(listOf("<", "[", "{"), alternatesOf("("))
+        assertEquals(listOf(">", "]", "}"), alternatesOf(")"))
+    }
 }
