@@ -99,6 +99,13 @@ class InputEngineTest {
     }
 
     @Test
+    fun noAutocorrectWithTheCaretInsideAWord() {
+        val host = start(FakeTextHost("The", cursor = 1))
+        type("eh ")
+        assertEquals("Teh |he", host.toString(), "typing inside a word is never corrected")
+    }
+
+    @Test
     fun autocorrectRespectsPreferenceAndField() {
         preferences.value = KeyboardPreferences(autoCorrect = false)
         assertEquals("Teh ", start().also { type("teh ") }.text)

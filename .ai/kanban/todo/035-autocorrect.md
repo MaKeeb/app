@@ -33,4 +33,4 @@ Replace likely typos on space or punctuation using edit distance, keyboard proxi
 
 ## Progress
 
-Damerau edit distance + frequency; applied on space and punctuation. Missing: keyboard-proximity weighting, aggressiveness setting, per-language off switch. Found 2026-09-28: autocorrect fires with the caret inside a word ("T|he" + "ok " corrected "Tok" to "To"); it should not correct when the text after the caret continues the word.
+Damerau edit distance + frequency; applied on space and punctuation. Missing: keyboard-proximity weighting, aggressiveness setting, per-language off switch. Since APP-135 (2026-09-28): only known typos are corrected and never with the caret inside a word; the real rework follows docs/research/dictionaries-autocorrect.md (stage 3).

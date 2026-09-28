@@ -22,6 +22,22 @@ class DictionarySuggestionEngineTest {
     }
 
     @Test
+    fun wordsMissingFromTheStarterListAreLeftAlone() {
+        // "cat" isn't in the starter list and sits one edit from "at": it used to become "at".
+        val cat = engine.suggest(TypingContext("cat"))
+        assertNull(cat.autoCorrection)
+        assertTrue(cat.suggestions.any { it.text == "cat" }, "the typed word stays one tap away")
+    }
+
+    @Test
+    fun knownTyposAndMissingApostrophesAreFixed() {
+        assertEquals("don't", engine.suggest(TypingContext("dont")).autoCorrection)
+        assertEquals("I'm", engine.suggest(TypingContext("im")).autoCorrection)
+        assertEquals("I", engine.suggest(TypingContext("i")).autoCorrection)
+        assertEquals("the", engine.suggest(TypingContext("teh")).suggestions.first().text, "the correction leads the strip")
+    }
+
+    @Test
     fun completesPrefixes() {
         val words = engine.suggest(TypingContext("hel"), limit = 5).suggestions.map { it.text }
         assertTrue("hello" in words && "help" in words, "got $words")

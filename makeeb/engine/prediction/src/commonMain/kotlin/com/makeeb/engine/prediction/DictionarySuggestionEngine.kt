@@ -48,10 +48,12 @@ class DictionarySuggestionEngine(
             }
         }
 
+        // Only known typos are corrected on space (KnownTypos), plus the capitals of a known word
+        // typed in lower case ("i" → "I"); other near misses stay suggestions.
+        val capitalised = exact?.word?.takeIf { it != typed && it.any(Char::isUpperCase) && typed == typed.lowercase() }
+        val autoCorrection = capitalised ?: KnownTypos.correctionFor(typed)?.takeIf { exact == null }?.let { matchCase(it, typed) }
+        autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         val ranked = candidates.values.sortedByDescending { it.score }
-        val autoCorrection = ranked.firstOrNull()
-            ?.takeIf { exact == null && it.kind == Suggestion.Kind.Correction && it.score >= AUTOCORRECT_THRESHOLD }
-            ?.text
 
         // Offer the literal typed text when it is not a known word, so the user can keep it.
         val typedOption = if (exact == null) listOf(Suggestion(typed, Suggestion.Kind.Typed, Double.NEGATIVE_INFINITY)) else emptyList()
@@ -72,7 +74,7 @@ class DictionarySuggestionEngine(
 
     private fun normalise(frequency: Int): Double = frequency / 255.0
 
-    /** Carry the user's casing over: "Teh" → "The", "TEH" → "THE"; canonical case otherwise. */
+    /** Carry the user's casing over: "Teh" → "The", "TEH" → "THE"; canonical case otherwise ("i" → "I"). */
     private fun matchCase(word: String, typed: String): String = when {
         typed.length > 1 && typed.all { !it.isLetter() || it.isUpperCase() } -> word.uppercase()
         typed.first().isUpperCase() -> word.replaceFirstChar { it.uppercaseChar() }
@@ -83,7 +85,6 @@ class DictionarySuggestionEngine(
         const val EXACT_BONUS = 0.5
         const val COMPLETION_PENALTY = 0.05
         const val EDIT_PENALTY = 0.5
-        const val AUTOCORRECT_THRESHOLD = 0.0
         const val MIN_LEARNED_LENGTH = 2
     }
 }

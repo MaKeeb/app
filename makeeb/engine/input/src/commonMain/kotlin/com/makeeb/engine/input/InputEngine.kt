@@ -266,7 +266,9 @@ class InputEngine(
 
     /** Commit a word separator, autocorrecting the word before it when confident. */
     private fun commitSeparator(separator: String) {
-        fun correctionFor(word: String) = word.takeIf { it.isNotEmpty() && it != rejectedCorrection && autoCorrectEnabled() }
+        // Never with the caret inside a word: "T|he" + "ok " is not the word "Tok".
+        val insideWord = host.textAfterCursor(1).firstOrNull()?.isLetterOrDigit() == true
+        fun correctionFor(word: String) = word.takeIf { it.isNotEmpty() && it != rejectedCorrection && autoCorrectEnabled() && !insideWord }
             ?.let { suggestionEngine.suggest(TypingContext(it)).autoCorrection }
             ?.takeIf { it != word }
         var word = state.value.composing

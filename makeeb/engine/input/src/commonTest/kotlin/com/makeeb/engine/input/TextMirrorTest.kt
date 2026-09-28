@@ -41,11 +41,13 @@ class TextMirrorTest {
     @Test
     fun typingReadsTheFieldOnceNotOnEveryKey() {
         val host = start(FakeTextHost("Dear Sam, "))
-        val afterStart = host.reads
-        type(host, "see you at noon ")
+        assertEquals(1, host.reads, "one fetch of the text before the caret at the start")
+        type(host, "see ")
+        val afterFirstWord = host.reads
+        assertTrue(afterFirstWord <= 2, "at most one more: the text after the caret, fetched once")
+        type(host, "you at noon ")
         assertEquals("Dear Sam, see you at noon |", host.toString())
-        assertEquals(afterStart, host.reads, "no reads while typing words that aren't corrected")
-        assertEquals(1, afterStart, "one fetch of context at the start")
+        assertEquals(afterFirstWord, host.reads, "no reads while typing words that aren't corrected")
     }
 
     @Test

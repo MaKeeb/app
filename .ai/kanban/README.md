@@ -8,7 +8,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 16 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 46 |
+| [In review](review/_review.md) | 47 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -49,6 +49,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-130](review/130-install-on-a-physical-iphone.md): Install on a physical iPhone
 - [APP-133](review/133-keys-stay-put-between-letters-and-symbols.md): Keys stay put between letters and symbols
 - [APP-134](review/134-research-open-dictionaries-and-autocorrect-algorithms.md): Research: open dictionaries and autocorrect algorithms
+- [APP-135](review/135-autocorrect-stops-damaging-real-words.md): Autocorrect stops damaging real words
 - [APP-10](review/010-optional-number-row.md): Optional number row
 - [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts
