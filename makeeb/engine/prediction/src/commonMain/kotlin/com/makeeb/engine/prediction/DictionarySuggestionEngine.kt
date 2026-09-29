@@ -108,7 +108,9 @@ class DictionarySuggestionEngine(
         val typo = best?.takeIf {
             main.isComprehensive && exact == null && mayCorrect(context) && bestCost + margin(typed, bestFrequency, context.strength) < literalCost()
         }?.let { matchCase(it, typed) }
-        val correction = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
+        // A known learned word (typed twice, or kept once) is the user's, even where it looks like a known typo.
+        val userWord = user?.lookup(typed)?.word.equals(typed, ignoreCase = true)
+        val correction = KnownTypos.correctionFor(typed)?.takeIf { !userWord }?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
         correction?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         // With a selected language the dictionary can't judge, the correction stays one tap away.
         val autoCorrection = correction?.takeIf { covers(context.languages) }
@@ -137,10 +139,18 @@ class DictionarySuggestionEngine(
         return Following(model, previous, fromSentenceStart, words).also { following = it }
     }
 
-    /** Only words the main dictionary lacks: it knows the rest already, and they would crowd out the new ones. */
-    override fun learn(word: String) {
+    override fun learn(word: String) = learn(word, kept = false)
+
+    override fun keep(word: String) = learn(word, kept = true)
+
+    /**
+     * Only words the main dictionary lacks: it knows the rest already, and they would crowd out the
+     * new ones. The user dictionary counts a word as known (and stops it being corrected) only
+     * once it is committed twice or [kept] once.
+     */
+    private fun learn(word: String, kept: Boolean) {
         if (word.length < MIN_LEARNED_LENGTH || main.lookup(word) != null) return
-        user?.learn(word)
+        user?.learn(word, kept)
     }
 
     override fun isLearned(word: String): Boolean = user?.isLearned(word) == true && main.lookup(word) == null

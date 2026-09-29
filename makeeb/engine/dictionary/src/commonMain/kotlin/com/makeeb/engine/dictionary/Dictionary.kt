@@ -37,7 +37,8 @@ interface Dictionary {
 
 /** A [Dictionary] the user adds to: learned words, shortcuts, the personal dictionary. */
 interface MutableDictionary : Dictionary {
-    fun learn(word: String)
+    /** [kept]: the user chose this word on purpose (picked it as typed, or undid a correction of it). */
+    fun learn(word: String, kept: Boolean = false)
 
     fun forget(word: String)
 

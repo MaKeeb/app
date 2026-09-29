@@ -5,16 +5,23 @@ import kotlin.math.pow
 /** A word the keyboard learned from the user's typing. */
 data class LearnedWord(
     val word: String,
-    /** How often it was learned: typed and kept, or picked from the strip. */
+    /** How often it was committed: typed and left, or picked from the strip. */
     val count: Int,
     /** When it was last learned, on the dictionary's [UserDictionary.clock]. */
     val lastUsed: Long,
+    /** The user kept it on purpose at least once: picked it as typed, or undid its autocorrection. */
+    val kept: Boolean = false,
 )
 
 /**
  * Words the user typed that the main dictionary lacks: names, slang, jargon. Learning never
  * happens in incognito fields; that gate lives in the input engine, which is the only caller of
  * [learn]. [LearnedWordsStore] keeps them across restarts.
+ *
+ * A word is known only on evidence, as in LatinIME's user history: once committed twice, or kept
+ * on purpose once ([learn] with `kept`). A typo that slipped through once is not evidence (autocorrect
+ * may have been off or paused), so until then the word is offered as a completion but [lookup],
+ * [corrections] and [entries] don't see it: it neither blocks autocorrect nor becomes its target.
  *
  * It stays small: at most [capacity] words. When it fills up, the least useful go first, the ones
  * learned least often, discounted by how long ago (half as useful every [HALF_LIFE] words learned
@@ -39,7 +46,9 @@ class UserDictionary(
     /** The most words kept. */
     val capacity: Int = DEFAULT_CAPACITY,
 ) : MutableDictionary {
-    private class Entry(var word: String, var count: Int, var lastUsed: Long)
+    private class Entry(var word: String, var count: Int, var lastUsed: Long, var kept: Boolean) {
+        val known: Boolean get() = kept || count >= KNOWN_AFTER
+    }
 
     /** Folded key → its spellings, most often learned first. */
     private val byKey = HashMap<String, MutableList<Entry>>()
@@ -55,11 +64,11 @@ class UserDictionary(
     var size: Int = 0
         private set
 
-    override fun learn(word: String) {
+    override fun learn(word: String, kept: Boolean) {
         val key = KeyFold.fold(word)
         if (key.isEmpty() || word.length > MAX_WORD_LENGTH || word.any { it.isWhitespace() || it.isISOControl() }) return
         clock++
-        add(key, word, count = 1, lastUsed = clock)
+        add(key, word, count = 1, lastUsed = clock, kept = kept)
         evictIfFull()
     }
 
@@ -80,9 +89,10 @@ class UserDictionary(
         size = 0
     }
 
+    /** Every learned word, known or not yet: all of them can be forgotten. */
     override fun isLearned(word: String): Boolean = byKey[KeyFold.fold(word)]?.any { it.word.equals(word, ignoreCase = true) } == true
 
-    fun words(): List<LearnedWord> = byKey.values.flatMap { spellings -> spellings.map { LearnedWord(it.word, it.count, it.lastUsed) } }
+    fun words(): List<LearnedWord> = byKey.values.flatMap { spellings -> spellings.map { LearnedWord(it.word, it.count, it.lastUsed, it.kept) } }
 
     /**
      * Puts [earlier] words under the ones held now, as if they had been learned first: they came
@@ -96,17 +106,17 @@ class UserDictionary(
         clear()
         earlier.forEach { word ->
             val key = KeyFold.fold(word.word)
-            if (key.isNotEmpty() && word.count > 0) add(key, word.word, word.count, word.lastUsed)
+            if (key.isNotEmpty() && word.count > 0) add(key, word.word, word.count, word.lastUsed, word.kept)
         }
-        since.forEach { add(KeyFold.fold(it.word), it.word, it.count, it.lastUsed + earlierClock) }
+        since.forEach { add(KeyFold.fold(it.word), it.word, it.count, it.lastUsed + earlierClock, it.kept) }
         clock = earlierClock + sinceClock
         evictIfFull()
     }
 
-    /** The spelling typed exactly when it exists, otherwise the most learned one under the key. */
+    /** A known word: the spelling typed exactly when it exists, otherwise the most learned one under the key. */
     override fun lookup(word: String): WordEntry? {
         val spellings = byKey[KeyFold.fold(word)] ?: return null
-        val entry = spellings.firstOrNull { it.word == word } ?: spellings.first()
+        val entry = spellings.firstOrNull { it.known && it.word == word } ?: spellings.firstOrNull { it.known } ?: return null
         return entry.toWordEntry()
     }
 
@@ -149,7 +159,7 @@ class UserDictionary(
                 while (index < keys.size && sharesPrefix(keys[index], key, depth)) index++
             } else {
                 val distance = rows[depth][target.length]
-                if (distance <= maxEdits) byKey.getValue(key).forEach { matches += WordMatch(it.toWordEntry(), distance) }
+                if (distance <= maxEdits) byKey.getValue(key).forEach { if (it.known) matches += WordMatch(it.toWordEntry(), distance) }
             }
         }
         return matches
@@ -157,20 +167,23 @@ class UserDictionary(
             .take(limit)
     }
 
-    override fun entries(): Sequence<WordEntry> = byKey.values.flatMap { spellings -> spellings.map { it.toWordEntry() } }.asSequence()
+    /** Known words only: decoders scanning the vocabulary shouldn't land on a one-off typo. */
+    override fun entries(): Sequence<WordEntry> =
+        byKey.values.flatMap { spellings -> spellings.filter { it.known }.map { it.toWordEntry() } }.asSequence()
 
-    private fun add(key: String, word: String, count: Int, lastUsed: Long) {
+    private fun add(key: String, word: String, count: Int, lastUsed: Long, kept: Boolean) {
         val spellings = byKey[key] ?: ArrayList<Entry>(1).also {
             byKey[key] = it
             keys.add(lowerBound(key), key)
         }
         val same = spellings.firstOrNull { it.word.equals(word, ignoreCase = true) }
         if (same == null) {
-            spellings += Entry(word, count.coerceAtMost(MAX_COUNT), lastUsed)
+            spellings += Entry(word, count.coerceAtMost(MAX_COUNT), lastUsed, kept)
             size++
         } else {
             same.count = (same.count + count).coerceAtMost(MAX_COUNT)
             same.lastUsed = maxOf(same.lastUsed, lastUsed)
+            same.kept = same.kept || kept
             if (word == word.lowercase()) same.word = word
         }
         spellings.sortByDescending { it.count }
@@ -199,7 +212,9 @@ class UserDictionary(
         }
     }
 
-    private fun usefulness(entry: Entry): Double = entry.count * 2.0.pow(-(clock - entry.lastUsed) / HALF_LIFE)
+    /** Keeping a word on purpose counts as a second use, so one-off typos go before kept words. */
+    private fun usefulness(entry: Entry): Double =
+        (entry.count + if (entry.kept) 1 else 0) * 2.0.pow(-(clock - entry.lastUsed) / HALF_LIFE)
 
     private fun lowerBound(key: String): Int = keys.binarySearch(key).let { if (it >= 0) it else -(it + 1) }
 
@@ -214,6 +229,9 @@ class UserDictionary(
 
         /** Words learned since, after which a word counts half as much when making room. */
         const val HALF_LIFE = 1_000.0
+
+        /** Commits that make a word known without the user keeping it on purpose. */
+        const val KNOWN_AFTER = 2
 
         /** A new word ranks like a mid-frequency dictionary word; each use raises it. */
         private const val LEARNED_BASE_FREQUENCY = 120

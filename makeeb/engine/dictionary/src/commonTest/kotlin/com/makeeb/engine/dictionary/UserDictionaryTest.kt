@@ -11,7 +11,7 @@ class UserDictionaryTest {
     @Test
     fun learnsAndForgetsInAnyCase() {
         val user = UserDictionary("en")
-        user.learn("MaKeeb")
+        user.learn("MaKeeb", kept = true)
         assertEquals("MaKeeb", user.lookup("makeeb")?.word)
         assertTrue(user.isLearned("MAKEEB"))
         user.forget("makeeb")
@@ -20,10 +20,32 @@ class UserDictionaryTest {
     }
 
     @Test
+    fun aWordTypedOnceIsOfferedButNotYetKnown() {
+        val user = UserDictionary("en")
+        user.learn("hwllo")
+        assertEquals(listOf("hwllo"), user.completions("hwl", 3).map { it.word }, "offered as a completion")
+        assertTrue(user.isLearned("hwllo"), "and can be forgotten")
+        assertNull(user.lookup("hwllo"), "but not a known word: it doesn't block autocorrect")
+        assertTrue(user.corrections("hwlo", maxEdits = 1, limit = 3).isEmpty(), "nor become its target")
+        assertTrue(user.entries().none())
+
+        user.learn("hwllo")
+        assertEquals("hwllo", user.lookup("hwllo")?.word, "typed twice: known")
+        assertEquals(listOf("hwllo"), user.corrections("hwlo", maxEdits = 1, limit = 3).map { it.entry.word })
+    }
+
+    @Test
+    fun keepingAWordOnceMakesItKnown() {
+        val user = UserDictionary("en")
+        user.learn("zorblax", kept = true)
+        assertEquals("zorblax", user.lookup("zorblax")?.word)
+    }
+
+    @Test
     fun eachUseRaisesTheWord() {
         val user = UserDictionary("en")
         user.learn("zorblax")
-        val once = user.lookup("zorblax")!!.frequency
+        val once = user.completions("zorblax", 1).single().frequency
         user.learn("zorblax")
         assertTrue(user.lookup("zorblax")!!.frequency > once)
         assertEquals(1, user.size)
@@ -78,7 +100,7 @@ class UserDictionaryTest {
         val letters = "abcdeilnorstu"
         val words = List(400) { String(CharArray(3 + random.nextInt(6)) { letters[random.nextInt(letters.length)] }) }.distinct()
         val user = UserDictionary("en")
-        words.forEach(user::learn)
+        words.forEach { user.learn(it, kept = true) }
         val trie = TrieDictionary("en", user.words().map { WordEntry(it.word, user.lookup(it.word)!!.frequency) })
 
         fun List<WordMatch>.normalised() = map { it.entry.word to it.edits }.toSet()
@@ -95,7 +117,7 @@ class UserDictionaryTest {
     @Test
     fun correctionsCountATranspositionAsOneEdit() {
         val user = UserDictionary("en")
-        user.learn("zorblax")
+        user.learn("zorblax", kept = true)
         assertEquals(listOf(WordMatch(user.lookup("zorblax")!!, 1)), user.corrections("zrOblax", maxEdits = 1, limit = 3))
     }
 
@@ -103,12 +125,12 @@ class UserDictionaryTest {
     fun restorePutsSavedWordsUnderNewOnes() {
         val user = UserDictionary("en")
         user.learn("fresh")
-        user.learn("Shared")
+        user.learn("Shared", kept = true)
         user.restore(listOf(LearnedWord("saved", 4, 90), LearnedWord("shared", 2, 100)), earlierClock = 100)
         assertEquals(102L, user.clock)
         val words = user.words().associateBy { it.word }
         assertEquals(LearnedWord("saved", 4, 90), words["saved"])
         assertEquals(LearnedWord("fresh", 1, 101), words["fresh"])
-        assertEquals(LearnedWord("shared", 3, 102), words["shared"], "counts add up, and lower case wins")
+        assertEquals(LearnedWord("shared", 3, 102, kept = true), words["shared"], "counts add up, and lower case wins")
     }
 }

@@ -24,6 +24,7 @@ import com.makeeb.testing.FakeTextHost
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
@@ -247,10 +248,10 @@ class InputEngineTest {
         start()
         assertTrue(engine.state.value.incognito)
         type("zorblax ")
-        assertNull(userDictionary.lookup("zorblax"))
+        assertFalse(userDictionary.isLearned("zorblax"))
         engine.setIncognito(false)
         type("zorblax ")
-        assertEquals("zorblax", userDictionary.lookup("zorblax")?.word)
+        assertTrue(userDictionary.isLearned("zorblax"))
     }
 
     @Test
@@ -307,11 +308,55 @@ class InputEngineTest {
     fun incognitoFieldsNeverLearn() {
         start(attributes = EditorAttributes(incognito = true, capitalization = Capitalization.None))
         type("zorblax ")
-        assertNull(userDictionary.lookup("zorblax"))
+        assertFalse(userDictionary.isLearned("zorblax"))
 
         start(attributes = EditorAttributes(capitalization = Capitalization.None))
         type("zorblax ")
-        assertEquals("zorblax", userDictionary.lookup("zorblax")?.word)
+        assertTrue(userDictionary.isLearned("zorblax"))
+    }
+
+    @Test
+    fun aTypoThatSlippedThroughOnceIsStillCorrectedNextTime() {
+        preferences.value = preferences.value.copy(autoCorrect = false)
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh ")
+        preferences.value = preferences.value.copy(autoCorrect = true)
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh ")
+        assertEquals("the ", host.text)
+    }
+
+    @Test
+    fun aWordCommittedTwiceIsNoLongerCorrected() {
+        preferences.value = preferences.value.copy(autoCorrect = false)
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh teh ")
+        preferences.value = preferences.value.copy(autoCorrect = true)
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh ")
+        assertEquals("teh ", host.text)
+    }
+
+    @Test
+    fun undoingAnAutocorrectionKeepsTheWordAtOnce() {
+        val first = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh ")
+        assertEquals("the ", first.text)
+        engine.onKey(KeyAction.Backspace)
+        type(" ")
+        assertEquals("teh ", first.text)
+
+        val next = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("teh ")
+        assertEquals("teh ", next.text, "kept once: the user's word now")
+    }
+
+    @Test
+    fun pickingTheWordAsTypedKeepsItAtOnce() {
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("zorblax")
+        engine.onSuggestionSelected(engine.state.value.suggestions.single { it.kind == Suggestion.Kind.Typed })
+        assertEquals("zorblax", userDictionary.lookup("zorblax")?.word, "known after one pick")
     }
 
     @Test

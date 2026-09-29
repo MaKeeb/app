@@ -90,9 +90,9 @@ class LearnedWordsStore(
         }
     }
 
-    override fun learn(word: String) {
+    override fun learn(word: String, kept: Boolean) {
         val before = dictionary.clock
-        dictionary.learn(word)
+        dictionary.learn(word, kept)
         if (dictionary.clock != before) changed()
     }
 

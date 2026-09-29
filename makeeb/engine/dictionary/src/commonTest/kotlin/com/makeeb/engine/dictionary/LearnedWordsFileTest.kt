@@ -8,7 +8,7 @@ import kotlin.test.assertSame
 
 class LearnedWordsFileTest {
     private val snapshot = LearnedWordsSnapshot(
-        words = listOf(LearnedWord("zorblax", 3, 17), LearnedWord("Zanele", 1, 1), LearnedWord("naïveté", 200, 5_000_000_000)),
+        words = listOf(LearnedWord("zorblax", 3, 17), LearnedWord("Zanele", 1, 1, kept = true), LearnedWord("naïveté", 200, 5_000_000_000)),
         clock = 5_000_000_000,
         clearRequest = 2,
     )

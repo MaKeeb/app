@@ -38,6 +38,7 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 - **Double-space period**: a second space within 800 ms after a letter or digit becomes ". ".
 - **Shift**: Off → OneShot, and a double tap within 350 ms goes to Locked. Auto-capitalisation sets OneShot according to `Capitalization`, and typing a character clears OneShot.
 - **Learning** goes only through `learn()`, which skips incognito fields (the field's flag or the user's toggle; password fields always are) and fields that turn autocorrection off (user names, codes, addresses; iOS has no other no-learning hint). Never call `suggestionEngine.learn` directly. `DictionarySuggestionEngine.learn` then keeps only words the main dictionary lacks.
+- **Learning is evidence-based** (as LatinIME's user history): a learned word is *known* (it blocks autocorrect, including `KnownTypos`, and can be an autocorrect target) only once committed twice, or kept on purpose once: picking the `Suggestion.Kind.Typed` word, or committing a word whose autocorrection was undone (`rejectedCorrection`), which go to `SuggestionEngine.keep`. Below that it is still offered as a completion. A typo that slipped through once (autocorrect off, paused or modest) is corrected the next time.
 - **Panels** (emoji, clipboard) commit through `commitRawText`: no shift, no autocorrect.
 - Timing constants use the injected `TimeSource`, never the wall clock.
 

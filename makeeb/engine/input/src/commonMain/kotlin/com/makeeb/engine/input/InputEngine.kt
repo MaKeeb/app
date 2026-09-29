@@ -252,7 +252,8 @@ class InputEngine(
         rejectedCorrection = null
         // A predicted word (nothing typed yet) is inserted; anything else replaces the word typed.
         if (word.isEmpty()) host.commitText(suggestion.text + " ") else host.replaceBeforeCursor(word.length, suggestion.text + " ")
-        learn(suggestion.text)
+        // Picking the word as typed says it is meant, however unusual.
+        learn(suggestion.text, kept = suggestion.kind == Suggestion.Kind.Typed)
         // The space came with the word: a quick space next is not a double space, and punctuation
         // next takes the space's place, as after a typed space.
         lastSpace = null
@@ -307,6 +308,8 @@ class InputEngine(
             word = state.value.composing
             correction = correctionFor(word)
         }
+        // Undoing its autocorrection and committing it anyway says the word is meant.
+        val kept = word.isNotEmpty() && word == rejectedCorrection
         rejectedCorrection = null
 
         if (correction != null) {
@@ -315,7 +318,7 @@ class InputEngine(
         } else {
             host.commitText(separator)
             pendingRevert = null
-            if (word.isNotEmpty()) learn(word)
+            if (word.isNotEmpty()) learn(word, kept)
         }
         afterEdit(composing = "", consumeOneShot = true)
     }
@@ -567,11 +570,13 @@ class InputEngine(
      * All learning goes through here. Never in incognito (the field asked for it, or the user did;
      * password fields always are), nor in fields that turn autocorrection off: user names, codes
      * and addresses aren't vocabulary, and iOS gives no other hint that a field shouldn't be
-     * learned from.
+     * learned from. [kept]: the user chose the word on purpose, which counts for more than typing
+     * it ([SuggestionEngine.keep]).
      */
-    private fun learn(word: String) {
+    private fun learn(word: String, kept: Boolean = false) {
         val current = state.value
-        if (!current.incognito && current.editor.autoCorrect) suggestionEngine.learn(word)
+        if (current.incognito || !current.editor.autoCorrect) return
+        if (kept) suggestionEngine.keep(word) else suggestionEngine.learn(word)
     }
 
     private fun layoutFor(mode: KeyboardMode, editor: EditorAttributes): KeyboardLayout {

@@ -43,6 +43,20 @@ class LearnedWordsStoreTest {
     }
 
     @Test
+    fun whatMakesAWordKnownSurvivesToo() = runTest {
+        val store = loadedStore()
+        store.learn("zorblax", kept = true)
+        store.learn("hwllo")
+        store.flush()
+        runCurrent()
+        val next = loadedStore()
+        assertEquals("zorblax", next.lookup("zorblax")?.word, "kept once: known")
+        assertEquals(null, next.lookup("hwllo"), "typed once: not yet")
+        next.learn("hwllo")
+        assertEquals("hwllo", next.lookup("hwllo")?.word, "the count carried over")
+    }
+
+    @Test
     fun changesAreSavedInOneBatch() = runTest {
         val store = loadedStore()
         listOf("zorblax", "quibbit", "flarn").forEach(store::learn)

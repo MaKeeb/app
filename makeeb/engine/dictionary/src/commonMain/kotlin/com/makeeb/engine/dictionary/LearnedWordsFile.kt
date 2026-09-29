@@ -24,6 +24,7 @@ class LearnedWordsSnapshot(
  *   varint   UTF-8 length, then the bytes
  *   varint   count
  *   varint   last used
+ *   u8       flags: 1 = kept on purpose
  * u32      CRC-32 of everything before it, little-endian
  * ```
  *
@@ -54,6 +55,7 @@ internal object LearnedWordsFile {
             out.bytes(bytes)
             out.varint(word.count.toLong())
             out.varint(word.lastUsed)
+            out.byte(if (word.kept) KEPT else 0)
         }
         val crc = Crc32.of(out.buffer, 0, out.size)
         repeat(4) { out.byte((crc ushr (8 * it)) and 0xFF) }
@@ -73,12 +75,13 @@ internal object LearnedWordsFile {
             val clock = input.varint()
             val clearRequest = input.varint()
             val count = input.varint()
-            // Every word takes at least four bytes, so a count beyond that is damage, not a list.
-            if (count > (end - HEADER_SIZE) / 4) return Contents.Damaged
+            // Every word takes at least five bytes, so a count beyond that is damage, not a list.
+            if (count > (end - HEADER_SIZE) / 5) return Contents.Damaged
             val words = List(count.toInt()) {
                 val length = input.varint().toInt()
                 val word = input.bytes(length).decodeToString(throwOnInvalidSequence = true)
-                LearnedWord(word, input.varint().coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), input.varint())
+                val uses = input.varint().coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                LearnedWord(word, uses, lastUsed = input.varint(), kept = input.byte() and KEPT != 0)
             }
             if (!input.atEnd) return Contents.Damaged
             Contents.Words(LearnedWordsSnapshot(words, clock, clearRequest))
@@ -127,6 +130,11 @@ internal object LearnedWordsFile {
             }
         }
 
+        fun byte(): Int {
+            require(position < end) { "past the end" }
+            return bytes[position++].toInt() and 0xFF
+        }
+
         fun bytes(length: Int): ByteArray {
             require(length in 1..MAX_WORD_BYTES && position + length <= end) { "bad length" }
             return bytes.copyOfRange(position, position + length).also { position += length }
@@ -137,6 +145,7 @@ internal object LearnedWordsFile {
     private const val VERSION = 1
     private const val HEADER_SIZE = 5
     private const val CRC_SIZE = 4
+    private const val KEPT = 1
 
     /** Far longer than any word; a longer length is damage. */
     private const val MAX_WORD_BYTES = 256

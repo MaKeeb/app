@@ -109,6 +109,33 @@ class DictionarySuggestionEngineTest {
     }
 
     @Test
+    fun aTypoCommittedOnceIsStillCorrectedButTwiceOrKeptItIsTheUsers() {
+        fun engine(user: UserDictionary) = DictionarySuggestionEngine(lexicon("hello" to 200, "help" to 190, "world" to 180), user)
+        val once = engine(UserDictionary("en"))
+        // Slipped through with autocorrect off or paused.
+        once.learn("hwllo")
+        assertEquals("hello", once.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "once is no evidence")
+        assertTrue(once.suggest(TypingContext("hwl", keys = qwerty)).suggestions.any { it.text == "hwllo" }, "though it is offered")
+
+        once.learn("hwllo")
+        assertNull(once.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "typed twice: meant")
+
+        val kept = engine(UserDictionary("en"))
+        kept.keep("wirld")
+        assertNull(kept.suggest(TypingContext("wirld", keys = qwerty)).autoCorrection, "kept once: meant")
+    }
+
+    @Test
+    fun aKeptWordIsNotAKnownTypoAnyMore() {
+        val once = DictionarySuggestionEngine(StarterDictionaries.english(), UserDictionary("en"))
+        once.learn("teh")
+        assertEquals("the", once.suggest(TypingContext("teh")).autoCorrection)
+        val kept = DictionarySuggestionEngine(StarterDictionaries.english(), UserDictionary("en"))
+        kept.keep("teh")
+        assertNull(kept.suggest(TypingContext("teh")).autoCorrection)
+    }
+
+    @Test
     fun aNeighbouringKeySlipInACommonWordIsCorrected() {
         val engine = DictionarySuggestionEngine(lexicon("hello" to 200, "help" to 190, "world" to 180, "jello" to 60))
         assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "w is next to e")

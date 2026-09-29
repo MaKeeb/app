@@ -51,8 +51,17 @@ interface SuggestionEngine {
      */
     fun suggest(context: TypingContext, limit: Int = 3): Prediction
 
-    /** Record a word the user committed. Never called for incognito fields. */
+    /**
+     * Record a word the user committed. Never called for incognito fields. Once is not enough to
+     * stop correcting it: it may be a typo that slipped through with autocorrect off or paused.
+     */
     fun learn(word: String)
+
+    /**
+     * Record a word the user kept on purpose: picked as typed from the strip, or restored by undoing
+     * its autocorrection. Once is enough to stop correcting it.
+     */
+    fun keep(word: String) = learn(word)
 
     /** Whether [word] is one the engine learned from the user rather than a dictionary word; only those can be forgotten. */
     fun isLearned(word: String): Boolean = false
