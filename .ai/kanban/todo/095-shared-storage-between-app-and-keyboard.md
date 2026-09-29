@@ -29,4 +29,4 @@ iOS: needs an App Group, and Apple's guide ties the shared container to Open Acc
 
 ## Progress
 
-App Group user defaults; the extension reloads on every appearance. Settings verified end to end on iOS (App Group, number row). Missing: sharing dictionaries and themes.
+App Group user defaults; the extension reloads on every appearance. Settings verified end to end on iOS (App Group, number row). Missing: sharing dictionaries and themes. Dictionaries now shared (2026-09-29): the companion writes downloaded packs to the App Group, the extension maps them read-only (APP-37). Themes wait for the theme editor (APP-71).

@@ -773,6 +773,10 @@ final class KeyboardVisualTests: XCTestCase {
 
         openTab("Settings")
         let remove = app.buttons["Remove"].firstMatch
+        for _ in 0..<8 where !remove.exists {
+            coordinate(CGPoint(x: 380, y: 600)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 350)))
+            Thread.sleep(forTimeInterval: 0.8)
+        }
         if remove.waitForExistence(timeout: 5) { remove.tap() }
         Thread.sleep(forTimeInterval: 1.0)
     }
@@ -830,6 +834,64 @@ final class KeyboardVisualTests: XCTestCase {
         save("I-LEARN-after")
         XCTAssertEqual(results["LW-suggested"], "yes")
         XCTAssertEqual(results["LW-after-forget"], "gone")
+    }
+
+    /// With Magyar primary, its dictionary downloads from Settings (a local catalogue in test
+    /// builds) and the keyboard uses it: "szeretnem" gains its accent. Removes it again.
+    func test23_packs() {
+        selectLanguages(["Magyar"], name: "hu")
+        selectLanguages(["Magyar", "English"], name: "hu-en")
+        // Compose on iOS exposes only what is on screen: scroll down to the Dictionaries rows.
+        let download = app.buttons["Download"].firstMatch
+        for _ in 0..<8 where !download.exists {
+            coordinate(CGPoint(x: 380, y: 600)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 350)))
+            Thread.sleep(forTimeInterval: 0.8)
+        }
+        results["PK-download-offered"] = download.waitForExistence(timeout: 3) ? "yes" : "no"
+        scrollIntoView(download)
+        let installed = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Installed'")).firstMatch
+        let started = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Downloading' OR label BEGINSWITH 'Installed'")).firstMatch
+        // A tap at the tail of a scroll's fling only stops it: tap again until the download starts.
+        for _ in 0..<3 where !started.exists {
+            if download.exists { download.tap() }
+            _ = started.waitForExistence(timeout: 3)
+        }
+        results["PK-installed"] = installed.waitForExistence(timeout: 60) ? installed.label : "no"
+        save("I-PACK-installed")
+
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("PK")
+        type("szeretnem ")
+        Thread.sleep(forTimeInterval: 0.8)
+        results["PK-field"] = value("Text")
+        save("I-PACK-typing")
+        XCTAssertEqual(results["PK-field"], "Szeretném ", "the Hungarian dictionary gives the accent")
+        results["PK-drag-hides-keyboard"] = dragHidesKeyboard() ? "yes" : "no"
+
+        openTab("Settings")
+        let remove = app.buttons["Remove"].firstMatch
+        for _ in 0..<8 where !remove.exists {
+            coordinate(CGPoint(x: 380, y: 600)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 350)))
+            Thread.sleep(forTimeInterval: 0.8)
+        }
+        if remove.waitForExistence(timeout: 5) {
+            scrollIntoView(remove)
+            remove.tap()
+        }
+        selectLanguages(["English"], name: "en")
+    }
+
+    /// Scrolls the companion's list until [element] sits well inside the visible area.
+    func scrollIntoView(_ element: XCUIElement) {
+        for _ in 0..<8 {
+            let f = element.frame
+            if f.minY > 140 && f.maxY < 760 { break }
+            let dy: CGFloat = f.midY > 450 ? -250 : 250
+            coordinate(CGPoint(x: 380, y: 450)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 450 + dy)))
+            Thread.sleep(forTimeInterval: 0.6)
+        }
+        Thread.sleep(forTimeInterval: 1.2)
     }
 
     /** Drags the companion's list a little upwards; true when that took the keyboard down. */

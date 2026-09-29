@@ -7,13 +7,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 56 |
 | [Next](next/_next.md) | 11 |
 | [Ready to start](todo/_todo.md) | 2 |
-| [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 64 |
+| [In progress](doing/_doing.md) | 0 |
+| [In review](review/_review.md) | 65 |
 | [Done](done/_done.md) | 5 |
-
-## In progress
-
-- [APP-37](doing/037-per-language-dictionary-packs.md): Per-language dictionary packs
 
 ## In review
 
@@ -34,6 +30,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-34](review/034-word-completion.md): Word completion
 - [APP-35](review/035-autocorrect.md): Autocorrect
 - [APP-36](review/036-one-tap-autocorrect-undo.md): One-tap autocorrect undo
+- [APP-37](review/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-49](review/049-spacebar-cursor-slide.md): Spacebar cursor slide
 - [APP-58](review/058-emoji-panel.md): Emoji panel
 - [APP-69](review/069-lightdark-theme-following-the-system.md): Light/dark theme following the system

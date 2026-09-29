@@ -205,4 +205,17 @@ class DictionarySuggestionEngineTest {
         assertNull(engine.suggest(TypingContext("szis", keys = qwerty, languages = listOf("hu", "en", "sv"))).autoCorrection, "Swedish has no lexicon yet")
         assertTrue(engine.suggest(TypingContext("hel", languages = both)).suggestions.none { it.text == "hello" }, "suggestions stay the primary's")
     }
+
+    @Test
+    fun anotherLanguagesExactWordIsNotTakenForTheprimarysName() {
+        // Hungarian news capitalises "Hello" (Hello Kitty): as the primary's only spelling it would
+        // capitalise English "hello" mid-sentence.
+        val hungarian = object : TrieDictionary("hu", listOf(WordEntry("Hello", 150), WordEntry("London", 160), WordEntry("szia", 200))) {
+            override val isComprehensive = true
+        }
+        val engine = DictionarySuggestionEngine(SelectedDictionaries(hungarian, listOf(lexicon("hello" to 200))), UserDictionary("hu"))
+        val both = listOf("hu", "en")
+        assertNull(engine.suggest(TypingContext("hello", languages = both, atSentenceStart = false)).autoCorrection, "English hello stays lower case")
+        assertEquals("London", engine.suggest(TypingContext("london", languages = both, atSentenceStart = false)).autoCorrection, "a name only a name still gets its capital")
+    }
 }
