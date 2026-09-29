@@ -7,6 +7,8 @@ import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.SnippetsRepository
 import com.makeeb.core.settings.androidPreferencesRepository
 import com.makeeb.core.settings.androidSnippetsRepository
+import com.makeeb.platform.network.HttpTransport
+import com.makeeb.platform.network.UrlConnectionTransport
 import com.makeeb.platform.storage.AssetBundledFiles
 import com.makeeb.platform.storage.BundledFiles
 import com.makeeb.platform.storage.CredentialProtectedFiles
@@ -37,7 +39,9 @@ private val androidPlatformModule = module {
     // Dictionary packs are stored uncompressed in the APK and mapped in place (build.gradle.kts).
     single<BundledFiles> { AssetBundledFiles(androidContext().assets) }
     // Downloaded packs: the companion installs them and the keyboard maps them, in this process.
+    // Only the companion downloads; the keyboard never touches the network.
     single<PackFiles> { DirectoryPackFiles.forContext(androidContext()) }
+    single<HttpTransport> { UrlConnectionTransport() }
     // Learned words: credential-encrypted, so locked until the first unlock after a boot.
     single<PrivateFiles> { CredentialProtectedFiles(androidContext()) }
 }

@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 import com.makeeb.core.model.KeyboardPalette
+import com.makeeb.core.settings.APP_GROUP_ID
 import com.makeeb.core.settings.AppGroupLearnedWordsReset
 import com.makeeb.core.settings.LearnedWordsResetRequest
 import com.makeeb.core.settings.PreferencesRepository
@@ -19,6 +20,10 @@ import com.makeeb.core.settings.appGroupPreferencesRepository
 import com.makeeb.core.settings.appGroupSnippetsRepository
 import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.layout.LayoutProvider
+import com.makeeb.platform.network.HttpTransport
+import com.makeeb.platform.network.UrlSessionTransport
+import com.makeeb.platform.storage.AppGroupPackFiles
+import com.makeeb.platform.storage.PackFiles
 import com.makeeb.ui.theme.MaKeebAppTheme
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -39,6 +44,10 @@ private val iosCompanionPlatformModule = module {
     single<LayoutProvider> { BuiltInLayoutProvider() }
     // Learned words live in the keyboard extension's container: the app can only ask for a clear.
     single<LearnedWordsResetRequest> { AppGroupLearnedWordsReset }
+    // Dictionary packs: downloaded by the app into the App Group, which the keyboard extension
+    // reads without Full Access.
+    single<PackFiles> { AppGroupPackFiles(APP_GROUP_ID) }
+    single<HttpTransport> { UrlSessionTransport() }
 }
 
 /**

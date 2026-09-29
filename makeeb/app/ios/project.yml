@@ -35,6 +35,12 @@ targets:
         UILaunchScreen: {}
         # Required by Compose Multiplatform for full refresh rate on ProMotion displays.
         CADisableMinimumFrameDurationOnPhone: true
+        # Dictionary packs come from their GitHub release over HTTPS. Local networking (plain HTTP
+        # to localhost and .local hosts) is only for test builds pointed at a pack server on a
+        # Mac (docs/dictionaries/pack-catalogue.md); it relaxes nothing for internet hosts.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: MaKeeb downloads dictionaries from a computer on your local network only when a test build is set up to.
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

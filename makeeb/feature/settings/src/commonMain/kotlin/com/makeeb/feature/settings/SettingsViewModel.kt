@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.SnippetsRepository
-import com.makeeb.engine.dictionary.BundledPacks
 import com.makeeb.engine.layout.LanguageInfo
 import com.makeeb.engine.layout.LayoutInfo
 import com.makeeb.engine.layout.LayoutProvider
@@ -24,9 +23,6 @@ class SettingsViewModel(
     val preferences: StateFlow<KeyboardPreferences> = repository.preferences
     val letterLayouts: List<LayoutInfo> = layouts.letterLayouts
     val languages: List<LanguageInfo> = layouts.languages
-
-    /** Languages with a full lexicon, which autocorrect needs before it replaces words. */
-    val dictionaryLanguages: Set<String> = BundledPacks.languages
 
     /** What the long-press keys will offer for these languages, per letter. */
     fun accents(languageTags: List<String>): Map<String, List<String>> = layouts.accents(languageTags)

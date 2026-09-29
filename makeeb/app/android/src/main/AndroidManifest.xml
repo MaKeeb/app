@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Key vibration at the user's chosen strength (a normal permission, granted at install).
-         No INTERNET: typing never touches the network. -->
+    <!-- Key vibration at the user's chosen strength (a normal permission, granted at install). -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- The companion app downloads dictionary packs (docs/dictionaries/pack-catalogue.md). The
+         keyboard never uses the network: typing works offline, with whatever packs are installed. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MaKeebApplication"

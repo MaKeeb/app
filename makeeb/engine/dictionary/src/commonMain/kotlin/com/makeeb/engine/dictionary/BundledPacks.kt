@@ -10,7 +10,4 @@ object BundledPacks {
 
     /** The language subtag the bundled pack serves: English, whatever the region. */
     const val LANGUAGE = "en"
-
-    /** Language subtags that have a full lexicon without downloads. */
-    val languages: Set<String> = setOf(LANGUAGE)
 }

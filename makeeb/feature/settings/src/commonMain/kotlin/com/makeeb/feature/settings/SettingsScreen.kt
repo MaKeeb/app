@@ -34,7 +34,6 @@ import com.makeeb.core.settings.matchesSettingsSearch
 import com.makeeb.engine.layout.LanguageInfo
 import com.makeeb.engine.layout.LayoutInfo
 import com.makeeb.ui.components.ChoiceRow
-import com.makeeb.ui.components.MultiChoiceRow
 import com.makeeb.ui.components.ScrollEndSpacer
 import com.makeeb.ui.components.SettingsSection
 import com.makeeb.ui.components.SliderRow
@@ -49,14 +48,18 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
     learnedWords: LearnedWordsViewModel = koinViewModel(),
+    packs: LanguagePacksViewModel = koinViewModel(),
 ) {
-    // Picks up what the keyboard's quick settings changed while the app was in the background.
+    // Picks up what the keyboard's quick settings changed while the app was in the background,
+    // and packs installed from setup (or a connection that came back).
     LifecycleResumeEffect(viewModel) {
         viewModel.reload()
+        packs.refresh()
         onPauseOrDispose {}
     }
     val preferences by viewModel.preferences.collectAsState()
     val snippets by viewModel.snippets.collectAsState()
+    val packState by packs.state.collectAsState()
     SettingsContent(
         preferences,
         viewModel.letterLayouts,
@@ -65,8 +68,9 @@ fun SettingsScreen(
         modifier,
         Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet),
         viewModel::accents,
-        viewModel.dictionaryLanguages,
+        packState.lexiconLanguages,
         learnedWords = if (learnedWords.access == LearnedWordsViewModel.Access.None) null else { { LearnedWordsEditor(learnedWords) } },
+        dictionaries = { selected -> LanguagePacksList(selected, packState, packs::install, packs::cancel, packs::remove, packs::refresh) },
     )
 }
 
@@ -80,14 +84,16 @@ fun SettingsContent(
     snippets: Snippets? = null,
     /** What the long-press keys offer for a set of languages ([com.makeeb.engine.layout.LayoutProvider.accents]). */
     accents: (List<String>) -> Map<String, List<String>> = { emptyMap() },
-    /** Language subtags with a full lexicon; null when unknown (no autocorrect note). */
+    /** Language subtags with a full lexicon (built in or installed); null when unknown (no autocorrect note). */
     dictionaryLanguages: Set<String>? = null,
     /** The learned-words editor ([LearnedWordsEditor]); none where the app can't reach them. */
     learnedWords: (@Composable () -> Unit)? = null,
+    /** The selected languages' dictionaries ([LanguagePacksList]), under the languages; none without packs. */
+    dictionaries: (@Composable (List<LanguageInfo>) -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val extras = listOfNotNull(snippets?.let(::snippetsSection), learnedWords?.let { learnedWordsSection(it) })
-    val sections = (settingsSections(preferences, letterLayouts, languages, accents, dictionaryLanguages, onUpdate) + extras)
+    val sections = (settingsSections(preferences, letterLayouts, languages, accents, dictionaryLanguages, dictionaries, onUpdate) + extras)
         .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().dismissKeyboardOnDrag().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -174,7 +180,8 @@ private fun autocorrectSubtitle(selected: List<LanguageInfo>, dictionaryLanguage
     val missing = dictionaryLanguages?.let { have -> selected.filter { it.tag.substringBefore('-') !in have } }.orEmpty()
     if (missing.isEmpty()) return "Backspace right after a correction undoes it"
     val names = missing.joinToString(" and ") { it.autonym }
-    return "Suggests corrections without making them while $names ${if (missing.size == 1) "has" else "have"} no dictionary yet"
+    return "Suggests corrections without making them while $names ${if (missing.size == 1) "has" else "have"} no dictionary " +
+        "(Layout → Dictionaries)"
 }
 
 /** A group of rows on the settings screen. */
@@ -200,14 +207,10 @@ private fun settingsSections(
     languages: List<LanguageInfo>,
     accents: (List<String>) -> Map<String, List<String>>,
     dictionaryLanguages: Set<String>?,
+    dictionaries: (@Composable (List<LanguageInfo>) -> Unit)?,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
 ): List<SettingsGroup> {
-    // As the keyboard resolves them: each tag or its base language; languages without data (a
-    // phone language MaKeeb doesn't have yet) aren't shown; none at all reads as English.
-    val selectedLanguages = preferences.languageTags
-        .mapNotNull { tag -> languages.firstOrNull { it.tag == tag } ?: languages.firstOrNull { it.tag == tag.substringBefore('-') } }
-        .distinct()
-        .ifEmpty { listOfNotNull(languages.firstOrNull { it.tag == "en" }) }
+    val selectedLanguages = selectedLanguages(preferences, languages)
 
     fun switch(title: String, checked: Boolean, keywords: String, subtitle: String? = null, set: (KeyboardPreferences, Boolean) -> KeyboardPreferences) =
         SettingRow(title, subtitle, keywords) {
@@ -240,7 +243,7 @@ private fun settingsSections(
         ),
         SettingsGroup(
             "Layout",
-            listOf(
+            listOfNotNull(
                 SettingRow("Letters", keywords = "layout language qwerty qwertz azerty dvorak colemak workman") {
                     ChoiceRow(
                         title = "Letters",
@@ -257,20 +260,15 @@ private fun settingsSections(
                     keywords = "language accents diacritics long press alternates umlaut characters " +
                         languages.joinToString(" ") { "${it.name} ${it.autonym}" },
                 ) {
-                    val tags = selectedLanguages.map { it.tag }
-                    MultiChoiceRow(
-                        title = "Languages",
-                        subtitle = "Long-press a letter for the accents of every language you pick, on any layout",
-                        options = languages,
-                        selected = selectedLanguages,
-                        label = { it.autonym },
-                        // Picking adds at the end, so the first stays the primary; one always stays.
-                        onToggle = { language ->
-                            val next = if (language.tag in tags) tags - language.tag else tags + language.tag
-                            if (next.isNotEmpty()) onUpdate { it.copy(languageTags = next) }
-                        },
-                        footer = accents(tags).values.joinToString("  ·  ") { it.joinToString(" ") }.ifEmpty { null },
-                    )
+                    LanguagesPicker(selectedLanguages, languages, accents, onUpdate)
+                },
+                // Right under the languages, so picking one offers its dictionary there.
+                dictionaries?.let { content ->
+                    SettingRow(
+                        "Dictionaries",
+                        "Download a dictionary for each language",
+                        "dictionary dictionaries download language pack offline words autocorrect suggestions update remove",
+                    ) { content(selectedLanguages) }
                 },
                 switch("Number row", preferences.numberRow, "digits numbers") { p, v -> p.copy(numberRow = v) },
             ) + keyboardSizeRows(preferences, onUpdate),

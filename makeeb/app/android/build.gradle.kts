@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":shared:surface"))
     implementation(project(":shared:companion"))
     implementation(project(":core:settings"))
+    implementation(project(":platform:network"))
     implementation(libs.koin.android)
 
     // Compose hosting: ComposeView in the IME window, setContent in the activity.
