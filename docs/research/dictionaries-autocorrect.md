@@ -450,6 +450,25 @@ cost(literal) = Σ spatial(tᵢ, typed keyᵢ) + λ · (−ln P_unk(typed))
 
 **Stage 3 core (2026-09-29):** candidates from the plain edit walk, rescored with LatinIME's weighted edit costs over the layout's key positions (`WeightedEdits`) plus a frequency LM term; autocorrect needs the best to beat the literal by a margin (0.8, +0.3 for ≤3 letters, +0.5 for targets below frequency 100) and passes the don't-correct rules. Typos fixed 72.6%, false corrections 0.0%, typo target in the strip 80.8%, keystroke savings 34.7%, unknown names and slang changed 1 of 27 (margin 0.4 fixed ~1 point more but changed 6).
 
+**Stage 5, next-word prediction (2026-09-29):** a pruned trigram model with stupid backoff (an `NGRM` section, docs/dictionaries/mkd-format.md), counted from Leipzig `eng_news_2024_1M` and `eng-com_web-public_2018_1M` over the AOSP vocabulary (37.4M words, 94.7% known). The pack grew from 4.04 MB to 6.64 MB, 2.61 MB of it n-grams. The harness now also reports predictions, and the same measures on 8,000 corpus sentences held out of the counts.
+
+| | Before | After |
+|---|---|---|
+| Keystroke savings, completions only | 34.7% | 41.0% (the context raises predicted completions, §6.6) |
+| Keystroke savings, tapping a predicted next word too | – | 46.3% |
+| Next-word predictions in the strip (mid-sentence, 1,045 places) | – | best 19.1%, top 3 29.7% |
+| Typos fixed / typo target in the strip | 72.6% / 80.8% | 72.6% / 80.8% |
+| False corrections (clean typing) | 0 of 1,170 | 0 of 1,170 |
+| Unknown names and slang changed | 1 of 27 | 1 of 27 (the same one: vibing → giving) |
+| Held-out corpus text: model top 3, mid-sentence / sentence starts | – | 28.5% / 19.2% (best 17.5% / 11.7%) |
+| Held-out corpus text, 1,000 sentences typed: savings | 35.2% | 40.4% completions only, 44.9% with predictions |
+| JVM cost: one prediction / the space key (p50) | – / 6 µs | 3.0 µs (p95 4.4 µs) / 38 µs |
+
+- **Trigrams earn their bytes.** Without them, top-3 accuracy falls from 29.7% to 22.5% on the everyday sentences and from 28.5% to 24.0% on held-out text, for 1.6 MB less.
+- **The completion boost helps steadily.** Savings rise from 34.7% (off) to 39.8% (weight 0.3), 41.0% (0.6, chosen) and 41.4% (1.0), with the same trend on held-out text. It never touches autocorrect, and a known word as typed keeps its slot.
+- **Pruning barely moves accuracy** between 2.4 and 4.2 MB of n-grams. Dropping trigram contexts that don't change the top three saved a fifth of the section at no cost.
+- **Autocorrect is unchanged.** On the held-out corpus sentences (news, typed in lower case), autocorrect changes 30 of 17,965 words, the same with or without n-grams: they are names typed without their capital.
+
 Stage 0's policy only corrects whitelisted typos (`KnownTypos`), and random neighbour-key substitutions never produce those, so the typo-fix rate is 0%. Stage 3 has to raise it without raising the false-correction rate. On device, the pack raised per-key main-thread cost on the Pixel 6 Pro (debug build) from p50 1.9 ms / p95 2.4–3.0 ms to p50 3.1–3.4 ms / p95 5.4–8.7 ms. The first 50 keys, before the JIT warms up, reached p95 17 ms. Almost all of that is the unweighted edit-distance walk: 12–16k DP rows for a 6+ letter word with two allowed edits. That walk is what Stage 3's bounded beam search, run off the main thread (§6.10), replaces.
 
 ### 6.9 Swipe typing (pointer only)
@@ -669,7 +688,7 @@ Check where the bundled pack lives on iOS so it is not duplicated between the ap
 | 2 | **`word-completion`** | Best-first top-k; diacritic and case folding; apostrophe handling; completion-versus-typed ranking | Harness keystroke savings measured; "naive" → "naïve" |
 | 3 | **`autocorrect`** + `proximity-correction` | Weighted beam search with LatinIME-style costs; key-centre proximity first, then real tap points from `TouchController`; margin-based decision and the rules in §6.7; aggressiveness setting and per-language switch | False-correction rate and typo-fix rate on the harness beat the stage-1 baseline; no regressions in the existing autocorrect and revert tests |
 | 4 | **`dictionary-packs`** + **`language-switching`** | Pack metadata and download index; the companion app installs packs (Android app storage; iOS App Group, readable without Full Access); de, fr, es, it and pt packs built with Leipzig; licences screen; lazy mapping of the active language plus a recently used one; multilingual validity | A pack installs, verifies and maps on both platforms; switching languages does not grow the heap |
-| 5 | **`next-word-prediction`** | v1: AOSP's three successors per word (Apache, available now). v2: a pruned trigram model with stupid backoff from Leipzig counts; mixing with user n-grams | Top-3 next-word accuracy measured on Tatoeba or Common Voice sentences |
+| 5 | **`next-word-prediction`** | v1: AOSP's three successors per word (Apache, available now). v2: a pruned trigram model with stupid backoff from Leipzig counts; mixing with user n-grams | Top-3 next-word accuracy measured on Tatoeba or Common Voice sentences. *2026-09-29: went straight to v2 (the pinned AOSP `.combined` list has no bigram lines); measured on the harness sentences and on held-out Leipzig sentences (§6.8). User n-grams wait for `on-device-learning`* |
 | 6 | **`on-device-learning`** (+ `personal-dictionary`) | Persistent user store with decay, caps, blocklist and forget-from-suggestion; incognito respected; editor placed per platform (§8) | Learned words survive a restart; blocked words never reappear; nothing is learned in incognito fields |
 | Later | `glide-typing`, `system-spell-checker`, `contact-name-suggestions`, key adaptation, a DAFSA or FST lexicon for large vocabularies, a small neural LM option (Android-first, only if it fits the budget) | – | – |
 

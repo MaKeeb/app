@@ -4,9 +4,12 @@ import com.makeeb.core.model.Suggestion
 
 /** What the engine knows about the caret position when asking for suggestions. */
 data class TypingContext(
-    /** The partial word being typed; empty right after a space. */
+    /** The partial word being typed; empty right after a space, when the next word is predicted. */
     val composing: String,
-    /** Complete words before it, oldest first (for next-word prediction). */
+    /**
+     * Complete words before it in the same sentence, oldest first: the context next-word
+     * statistics condition on (`TextBoundaries.wordsBefore`).
+     */
     val previousWords: List<String> = emptyList(),
     /** Where the letters sit on the layout in use, so neighbouring-key slips cost less. */
     val keys: KeyPositions? = null,
@@ -14,6 +17,8 @@ data class TypingContext(
     val atSentenceStart: Boolean = true,
     /** Where each letter of [composing] was tapped, when known (same length, else ignored). */
     val taps: List<TapPoint?> = emptyList(),
+    /** Nothing but a sentence start comes before [previousWords]. */
+    val previousWordsStartSentence: Boolean = false,
 )
 
 /** A tap on the letters layout, in key widths across and rows down (the [KeyPositions] units). */
@@ -31,6 +36,10 @@ data class Prediction(
 }
 
 interface SuggestionEngine {
+    /**
+     * Suggestions for the word being typed, or, when [TypingContext.composing] is empty, the words
+     * likely to come next ([Suggestion.Kind.NextWord]; none when the engine has no statistics).
+     */
     fun suggest(context: TypingContext, limit: Int = 3): Prediction
 
     /** Record a word the user committed. Never called for incognito fields. */

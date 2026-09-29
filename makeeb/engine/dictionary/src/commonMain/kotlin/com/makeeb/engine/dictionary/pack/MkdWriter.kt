@@ -12,17 +12,26 @@ data class MkdWord(val text: String, val frequency: Int, val offensive: Boolean 
  * same bytes.
  */
 object MkdWriter {
-    fun write(words: Iterable<MkdWord>, meta: Map<String, String>): ByteArray {
+    /**
+     * [ngrams] refers to words by id, and ids depend only on [words]: write the pack once without
+     * it, look the corpus up in that pack, then write again with the same words and the table.
+     */
+    fun write(words: Iterable<MkdWord>, meta: Map<String, String>, ngrams: MkdNgramTable? = null): ByteArray {
         require(meta["language"]?.isNotBlank() == true) { "meta needs a language" }
         val table = wordTable(words)
         val allMeta = LinkedHashMap(meta).apply {
             put("keyFold", MkdFormat.FOLD_V2)
             put("words", table.size.toString())
+            if (ngrams != null) {
+                put("bigrams", ngrams.bigramCount.toString())
+                put("trigrams", ngrams.trigramCount.toString())
+            }
         }
-        val sections = listOf(
+        val sections = listOfNotNull(
             MkdFormat.META to metaSection(allMeta),
             MkdFormat.LEXI to lexiconSection(table),
             MkdFormat.WORD to wordSection(table),
+            ngrams?.let { MkdFormat.NGRM to MkdNgramEncoder.encode(it, table.size) },
         )
         return assemble(sections)
     }
@@ -220,7 +229,7 @@ object MkdWriter {
 }
 
 /** A growable little-endian byte buffer. */
-private class ByteWriter {
+internal class ByteWriter {
     private var buffer = ByteArray(1024)
     var size = 0
         private set
@@ -237,6 +246,10 @@ private class ByteWriter {
     fun u32(value: Int) = repeat(4) { u8(value shr (8 * it)) }
 
     fun bytes(bytes: ByteArray) = bytes.forEach { u8(it.toInt()) }
+
+    fun patchU8(at: Int, value: Int) {
+        buffer[at] = value.toByte()
+    }
 
     fun patchU24(at: Int, value: Int) = repeat(3) { buffer[at + it] = (value shr (8 * it)).toByte() }
 

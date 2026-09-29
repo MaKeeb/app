@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 8 |
+| [Ready to start](todo/_todo.md) | 7 |
 | [In progress](doing/_doing.md) | 2 |
-| [In review](review/_review.md) | 53 |
+| [In review](review/_review.md) | 54 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
@@ -62,6 +62,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-10](review/010-optional-number-row.md): Optional number row
 - [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts
+- [APP-38](review/038-next-word-prediction.md): Next-word prediction
 - [APP-42](review/042-emoji-suggestions.md): Emoji suggestions
 - [APP-59](review/059-emoji-search.md): Emoji search
 - [APP-63](review/063-clipboard-history.md): Clipboard history
@@ -78,7 +79,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
-- [APP-38](todo/038-next-word-prediction.md): Next-word prediction
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
 - [APP-77](todo/077-keyboard-height-and-size.md): Keyboard height and size
 - [APP-81](todo/081-screen-reader-support.md): Screen reader support

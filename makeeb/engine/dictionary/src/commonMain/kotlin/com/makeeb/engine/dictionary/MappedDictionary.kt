@@ -1,6 +1,7 @@
 package com.makeeb.engine.dictionary
 
 import com.makeeb.engine.dictionary.pack.MkdFormat
+import com.makeeb.engine.dictionary.pack.MkdNgrams
 import com.makeeb.engine.dictionary.pack.MkdPack
 import com.makeeb.engine.dictionary.pack.codePoints
 import com.makeeb.platform.storage.ByteRegion
@@ -21,6 +22,8 @@ import com.makeeb.platform.storage.ByteRegion
  * - Keys fold case, diacritics and apostrophes (the pack's `keyFold`). When several spellings
  *   share a key ("us", "US"; "naive", "naïve"), [lookup] returns the one typed exactly, else the
  *   most frequent.
+ * - [nextWords] reads the pack's NGRM section in place when it has one: a prediction decodes at
+ *   most three short successor lists and builds strings only for the words it returns.
  */
 class MappedDictionary(
     val pack: MkdPack,
@@ -45,20 +48,38 @@ class MappedDictionary(
     internal var lastCorrectionRows = 0
         private set
 
-    override fun lookup(word: String): WordEntry? {
+    override val nextWords: NextWordModel? = MkdNgrams.open(pack)?.let(::PackNextWords)
+
+    override fun lookup(word: String): WordEntry? = wordId(word).takeIf { it >= 0 }?.let(::entry)
+
+    /**
+     * The id [lookup] would answer with, or -1. With [sentenceInitial], a capital that only marks
+     * a sentence start ("Will you", not "US") prefers the lower-case spelling where both exist.
+     * The pack builder tokenises its corpora with this too.
+     */
+    fun wordId(word: String, sentenceInitial: Boolean = false): Int {
         val key = codePoints(MkdFormat.fold(word, keyFold))
-        if (key.isEmpty()) return null
+        if (key.isEmpty()) return -1
         val node = Node(region)
         val matched = descend(key, node)
-        if (matched != node.labelLength || !node.isTerminal) return null
+        if (matched != node.labelLength || !node.isTerminal) return -1
         if (node.wordCount > 1) {
-            val typed = word.encodeToByteArray()
-            for (i in 0 until node.wordCount) {
-                val id = node.wordId(i)
-                if (pack.wordEquals(id, typed)) return entry(id)
+            if (sentenceInitial && word.first().isUpperCase() && word.drop(1).none(Char::isUpperCase)) {
+                spelling(node, word.lowercase())?.let { return it }
             }
+            spelling(node, word)?.let { return it }
         }
-        return entry(node.wordId(0))
+        return node.wordId(0)
+    }
+
+    /** The id of the word at [node] spelt exactly [text], if there is one. */
+    private fun spelling(node: Node, text: String): Int? {
+        val bytes = text.encodeToByteArray()
+        for (i in 0 until node.wordCount) {
+            val id = node.wordId(i)
+            if (pack.wordEquals(id, bytes)) return id
+        }
+        return null
     }
 
     override fun completions(prefix: String, limit: Int): List<WordEntry> {
@@ -346,6 +367,72 @@ class MappedDictionary(
         }
 
         fun results(): List<WordMatch> = List(found) { WordMatch(entry(ids[it]), edits[it]) }
+    }
+
+    /**
+     * Stupid backoff over the pack's lists: the trigram list of the last two words scores as it
+     * is, the last word's bigram list one [MkdNgrams.backoff] lower, the unigrams two lower. A word
+     * keeps the score of the highest order that lists it. Scores are score bytes (lower is
+     * better) until the words are built.
+     */
+    private inner class PackNextWords(private val ngrams: MkdNgrams) : NextWordModel {
+        override fun predict(previous: List<String>, fromSentenceStart: Boolean, limit: Int): List<NextWord> {
+            if (limit <= 0) return emptyList()
+            val count = previous.size
+            val last = if (count >= 1) wordId(previous[count - 1], sentenceInitial = fromSentenceStart && count == 1) else -1
+            val before = when {
+                count >= 2 -> wordId(previous[count - 2], sentenceInitial = fromSentenceStart && count == 2)
+                count == 1 && fromSentenceStart -> MkdFormat.SENTENCE_START
+                else -> -1
+            }
+            val candidates = Candidates()
+            if (last >= 0) {
+                if (before >= 0) candidates.addAll(ngrams.trigrams(before, last), penalty = 0)
+                candidates.addAll(ngrams.bigrams(last), penalty = ngrams.backoff)
+            } else if (count == 0 && fromSentenceStart) {
+                candidates.addAll(ngrams.sentenceStarts(), penalty = ngrams.backoff)
+            }
+            candidates.addAll(ngrams.unigrams(), penalty = 2 * ngrams.backoff)
+            return candidates.best(limit)
+        }
+
+        private inner class Candidates {
+            private var ids = IntArray(64)
+            private var scores = IntArray(64)
+            private var size = 0
+
+            fun addAll(list: Long, penalty: Int) {
+                ngrams.forEachSuccessor(list) { id, score ->
+                    if (!suggestOffensive && pack.isOffensive(id)) return@forEachSuccessor
+                    for (i in 0 until size) if (ids[i] == id) return@forEachSuccessor
+                    if (size == ids.size) {
+                        ids = ids.copyOf(size * 2)
+                        scores = scores.copyOf(size * 2)
+                    }
+                    ids[size] = id
+                    scores[size] = score + penalty
+                    size++
+                }
+            }
+
+            /** The [limit] lowest scores, ties to the more frequent (lower) id. */
+            fun best(limit: Int): List<NextWord> {
+                val out = ArrayList<NextWord>(minOf(limit, size))
+                val scale = ngrams.scoreScale.toFloat()
+                while (out.size < limit) {
+                    var pick = -1
+                    for (i in 0 until size) {
+                        if (ids[i] < 0) continue
+                        if (pick < 0 || scores[i] < scores[pick] || (scores[i] == scores[pick] && ids[i] < ids[pick])) pick = i
+                    }
+                    if (pick < 0) break
+                    val id = ids[pick]
+                    out += NextWord(pack.wordText(id), pack.wordFrequency(id), -scores[pick] / scale)
+                    ids[pick] = -1
+                }
+                return out
+            }
+        }
     }
 
     /** One decoded trie node. Reused across a query: read() overwrites every field. */

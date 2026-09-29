@@ -27,7 +27,7 @@ import com.makeeb.core.model.stripSlots
 import com.makeeb.ui.theme.KeyboardTheme
 
 /**
- * The strip above the keys: suggestions while typing (punctuation right after a word), otherwise
+ * The strip above the keys: suggestions while typing (next-word predictions mid-sentence), otherwise
  * the [toolbar]. The best suggestion always sits in the middle slot, where the thumb rests.
  */
 @Composable

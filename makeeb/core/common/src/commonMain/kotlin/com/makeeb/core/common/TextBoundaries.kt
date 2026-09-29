@@ -18,16 +18,52 @@ object TextBoundaries {
         return textBeforeCursor.substring(start).trimStart('\'', '’', '-')
     }
 
-    /** Up to [count] complete words before the current one, oldest first. */
-    fun previousWords(textBeforeCursor: CharSequence, count: Int): List<String> {
-        val current = trailingWord(textBeforeCursor)
-        val before = textBeforeCursor.substring(0, textBeforeCursor.length - current.length)
-        return before
-            .split(' ', '\n', '\t')
-            .map { word -> word.filter(::isWordChar) }
-            .filter { it.isNotEmpty() }
-            .takeLast(count)
+    /**
+     * The words a next-word model conditions on: up to [count] complete words before the current
+     * one, oldest first, within the current sentence. Punctuation inside a sentence (commas,
+     * quotes, brackets) is skipped, so "Hi, how are" gives `[how, are]`; a sentence end
+     * ([endsSentence]) or the start of the text stops the search and sets
+     * [SentenceWords.fromSentenceStart]. The dictionary builder tokenises its corpora by the same
+     * rules, so the contexts it counts are the ones the keyboard asks about.
+     */
+    fun wordsBefore(textBeforeCursor: CharSequence, count: Int): SentenceWords {
+        var end = textBeforeCursor.length
+        while (end > 0 && isWordChar(textBeforeCursor[end - 1])) end--
+        val words = ArrayList<String>(count)
+        while (true) {
+            var start = end
+            while (start > 0 && !isWordChar(textBeforeCursor[start - 1])) start--
+            if (start == 0 || endsSentence(textBeforeCursor.subSequence(start, end))) {
+                return SentenceWords(words.asReversed().toList(), fromSentenceStart = true)
+            }
+            if (words.size == count) return SentenceWords(words.asReversed().toList(), fromSentenceStart = false)
+            end = start
+            while (start > 0 && isWordChar(textBeforeCursor[start - 1])) start--
+            val word = trimWord(textBeforeCursor.subSequence(start, end))
+            if (word.isNotEmpty()) words += word
+            end = start
+        }
     }
+
+    /**
+     * Whether the non-word characters between two words end a sentence: a line break, or a
+     * sentence terminator with whitespace after it (closing quotes and brackets may come between:
+     * `Stop." Then`). "3.5" and "e.g" don't; "Hi. Then" does, as [isSentenceStart] would say.
+     */
+    fun endsSentence(separators: CharSequence): Boolean {
+        var terminator = false
+        for (char in separators) {
+            when {
+                char == '\n' -> return true
+                char in sentenceTerminators -> terminator = true
+                char.isWhitespace() && terminator -> return true
+            }
+        }
+        return false
+    }
+
+    /** A run of [isWordChar]s without the apostrophes and hyphens at its ends: "'hello'" → "hello". */
+    fun trimWord(run: CharSequence): String = run.trim('\'', '’', '-').toString()
 
     /**
      * True when the caret sits where a new sentence starts: at the start of the field, after a
@@ -65,3 +101,11 @@ object TextBoundaries {
     fun isWordStart(textBeforeCursor: CharSequence): Boolean =
         textBeforeCursor.isEmpty() || textBeforeCursor.last().isWhitespace()
 }
+
+/** The words before the caret in its sentence ([TextBoundaries.wordsBefore]). */
+data class SentenceWords(
+    /** Oldest first. */
+    val words: List<String>,
+    /** Nothing but the start of the sentence (or of the text) comes before [words]. */
+    val fromSentenceStart: Boolean,
+)

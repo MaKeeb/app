@@ -57,6 +57,9 @@ class InputEngine(
     private var lastShiftPress: ComparableTimeMark? = null
     private var lastSpace: ComparableTimeMark? = null
 
+    /** The last edit was a strip word and the space after it; punctuation typed next takes that space. */
+    private var suggestionSpace = false
+
     /** The last autocorrection, undone if the very next key is Backspace. */
     private var pendingRevert: AutoCorrection? = null
 
@@ -77,6 +80,7 @@ class InputEngine(
         pendingRevert = null
         rejectedCorrection = null
         lastSpace = null
+        suggestionSpace = false
         val mode = attributes.initialMode
         mutableState.value = KeyboardState(
             layout = layoutFor(mode, attributes),
@@ -124,6 +128,7 @@ class InputEngine(
     }
 
     private fun resyncAfterExternalChange() {
+        suggestionSpace = false
         val revert = pendingRevert
         if (revert != null && !host.textBeforeCursor(revert.committed.length).endsWith(revert.committed)) {
             pendingRevert = null
@@ -165,6 +170,7 @@ class InputEngine(
             KeyAction.None -> Unit
         }
         if (action != KeyAction.Space) lastSpace = null
+        suggestionSpace = false
     }
 
     // region Emoji search
@@ -214,6 +220,7 @@ class InputEngine(
     /** Commit text from a panel (emoji, clipboard) verbatim: no shift, no autocorrect. */
     fun commitRawText(text: String) {
         pendingRevert = null
+        suggestionSpace = false
         host.commitText(text)
         // An emoji picked from search results leaves the search open for the next one.
         if (state.value.emojiSearch != null) return
@@ -222,6 +229,7 @@ class InputEngine(
 
     fun onSuggestionSelected(suggestion: Suggestion) {
         pendingRevert = null
+        suggestionSpace = false
         if (suggestion.kind == Suggestion.Kind.Emoji) {
             confirmMirror()
             // The emoji takes the word's place, like any suggestion.
@@ -240,9 +248,14 @@ class InputEngine(
         confirmMirror()
         val word = state.value.composing
         rejectedCorrection = null
-        host.replaceBeforeCursor(word.length, suggestion.text + " ")
+        // A predicted word (nothing typed yet) is inserted; anything else replaces the word typed.
+        if (word.isEmpty()) host.commitText(suggestion.text + " ") else host.replaceBeforeCursor(word.length, suggestion.text + " ")
         learn(suggestion.text)
-        afterEdit(composing = "")
+        // The space came with the word: a quick space next is not a double space, and punctuation
+        // next takes the space's place, as after a typed space.
+        lastSpace = null
+        afterEdit(composing = "", consumeOneShot = true)
+        suggestionSpace = true
     }
 
     private fun typeText(text: String) {
@@ -359,8 +372,9 @@ class InputEngine(
             }
             current.copy(shift = next)
         }
-        // Caps lock turns suggestions to capitals, and leaving it turns them back.
-        if (state.value.composing.isNotEmpty()) resyncWithHost()
+        // Caps lock turns suggestions to capitals, and leaving it turns them back; Shift
+        // capitalises predictions as it does the next letter.
+        if (state.value.composing.isNotEmpty() || state.value.suggestions.any { it.kind == Suggestion.Kind.NextWord }) resyncWithHost()
     }
 
     private fun switchMode(mode: KeyboardMode) {
@@ -408,7 +422,7 @@ class InputEngine(
             current.copy(
                 composing = composing,
                 shift = shift,
-                suggestions = if (shift == ShiftState.Locked) suggestions.map { it.copy(text = it.text.uppercase()) } else suggestions,
+                suggestions = casedForShift(suggestions, shift, current.editor),
             )
         }
     }
@@ -421,9 +435,26 @@ class InputEngine(
             Capitalization.None -> false
         }
 
+    /**
+     * Suggestions follow the shift key as typed letters do. Caps lock turns them all to capitals.
+     * A one-shot shift (a sentence start where the field and the user's setting capitalise, or
+     * Shift pressed) capitalises a predicted word; typed words already carry the user's case.
+     */
+    private fun casedForShift(suggestions: List<Suggestion>, shift: ShiftState, editor: EditorAttributes): List<Suggestion> = when {
+        shift == ShiftState.Locked -> suggestions.map { it.copy(text = it.text.uppercase()) }
+        shift == ShiftState.OneShot -> suggestions.map { suggestion ->
+            when {
+                suggestion.kind != Suggestion.Kind.NextWord || suggestion.text.any(Char::isUpperCase) -> suggestion
+                editor.capitalization == Capitalization.Characters -> suggestion.copy(text = suggestion.text.uppercase())
+                else -> suggestion.copy(text = suggestion.text.replaceFirstChar(Char::uppercaseChar))
+            }
+        }
+        else -> suggestions
+    }
+
     private fun suggestionsFor(editor: EditorAttributes, prefs: KeyboardPreferences, composing: String, textBefore: String): List<Suggestion> {
         if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword) return emptyList()
-        if (composing.isEmpty()) return punctuationShortcuts(editor, textBefore)
+        if (composing.isEmpty()) return predictions(editor, textBefore).ifEmpty { punctuationShortcuts(editor, textBefore) }
         val words = suggestionEngine.suggest(typingContext(composing, textBefore)).suggestions
         val emoji = composing.takeIf { prefs.emojiSuggestions && it.length >= MIN_EMOJI_WORD }?.let(emojiForWord)
             ?: return words
@@ -449,12 +480,29 @@ class InputEngine(
         pendingTap = null
     }
 
+    /**
+     * The words likely to come next, mid-sentence after a space: where the punctuation shortcuts
+     * were, in the same fields, and also after a comma, semicolon or colon. They take all three
+     * slots, best in the middle; the shortcuts come back only when there are no predictions (no
+     * pack yet). "," and "." sit either side of the space bar and "?" "!" on the full stop's
+     * long press, and all of them still take the space's place ([followsWordAndSpace]). At the
+     * start of a field or a sentence nothing is predicted and the strip keeps its toolbar.
+     */
+    private fun predictions(editor: EditorAttributes, textBefore: String): List<Suggestion> {
+        if (!isRunningText(editor) || textBefore.length < 2 || textBefore.last() != ' ') return emptyList()
+        val before = textBefore[textBefore.length - 2]
+        if (!before.isLetterOrDigit() && before !in CLAUSE_PUNCTUATION) return emptyList()
+        return suggestionEngine.suggest(typingContext("", textBefore)).suggestions.filter { it.kind == Suggestion.Kind.NextWord }
+    }
+
     /** What the suggestion engine needs about [composing], the word ending [textBefore]. */
     private fun typingContext(composing: String, textBefore: String): TypingContext {
         val before = if (textBefore.endsWith(composing)) textBefore.dropLast(composing.length) else textBefore
+        val sentence = TextBoundaries.wordsBefore(before, count = 2)
         return TypingContext(
             composing = composing,
-            previousWords = TextBoundaries.previousWords(textBefore, count = 2),
+            previousWords = sentence.words,
+            previousWordsStartSentence = sentence.fromSentenceStart,
             keys = letterKeys(),
             atSentenceStart = TextBoundaries.isSentenceStart(before),
             taps = composingTaps.takeIf { it.size == composing.length }.orEmpty(),
@@ -485,9 +533,9 @@ class InputEngine(
         return letterKeys
     }
 
-    /** The previous key was a space that ended a word, in running text. */
+    /** The previous key was a space that ended a word (or a strip word came with one), in running text. */
     private fun followsWordAndSpace(editor: EditorAttributes): Boolean {
-        if (lastSpace == null || editor.fieldType != FieldType.Text) return false
+        if ((lastSpace == null && !suggestionSpace) || editor.fieldType != FieldType.Text) return false
         val before = host.textBeforeCursor(2)
         return before.length == 2 && before[1] == ' ' && before[0].isLetterOrDigit()
     }
@@ -498,10 +546,13 @@ class InputEngine(
      */
     private fun punctuationShortcuts(editor: EditorAttributes, textBefore: String): List<Suggestion> {
         val afterWord = textBefore.length >= 2 && textBefore.last() == ' ' && textBefore[textBefore.length - 2].isLetterOrDigit()
-        val runningText = editor.fieldType == FieldType.Text && editor.imeAction != ImeAction.Search && editor.imeAction != ImeAction.Go
-        if (!runningText || !afterWord) return emptyList()
+        if (!isRunningText(editor) || !afterWord) return emptyList()
         return PUNCTUATION_SHORTCUTS.map { Suggestion(it, Suggestion.Kind.Punctuation) }
     }
+
+    /** Sentences, not queries or addresses: no search or go fields. */
+    private fun isRunningText(editor: EditorAttributes): Boolean =
+        editor.fieldType == FieldType.Text && editor.imeAction != ImeAction.Search && editor.imeAction != ImeAction.Go
 
     private fun autoCorrectEnabled(): Boolean {
         val editor = state.value.editor
@@ -538,6 +589,9 @@ class InputEngine(
         val DOUBLE_TAP_WINDOW = 350.milliseconds
         val CORRECTING_PUNCTUATION = setOf('.', ',', '!', '?', ';', ':')
         val PUNCTUATION_SHORTCUTS = listOf(",", ".", "?", "!")
+
+        /** Punctuation inside a sentence, after which the next word is still predicted. */
+        val CLAUSE_PUNCTUATION = setOf(',', ';', ':')
         /** Short words name too many emoji by accident ("i", "ok"…). */
         const val MIN_EMOJI_WORD = 3
     }

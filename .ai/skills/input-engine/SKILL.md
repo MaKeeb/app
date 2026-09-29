@@ -43,7 +43,13 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 
 ## Suggestions and dictionaries
 
-- `SuggestionEngine.suggest(TypingContext)` returns `Prediction(suggestions, autoCorrection)`. `TypingContext.previousWords` (up to two) is there for next-word prediction (APP-38).
+- `SuggestionEngine.suggest(TypingContext)` returns `Prediction(suggestions, autoCorrection)`. `TypingContext.previousWords` holds up to two words before the current one in the same sentence (`TextBoundaries.wordsBefore`: commas and quotes are skipped, a sentence end stops it), and `previousWordsStartSentence` says whether a sentence start comes right before them.
+- **Next-word prediction:** with nothing typed, `suggest` returns `Suggestion.Kind.NextWord`s from the main dictionary's `NextWordModel`. That is the pack's `NGRM` section: trigram → bigram → unigram stupid backoff, Leipzig counts (docs/dictionaries/mkd-format.md). The same predictions raise the completions they contain while a word is typed, but never change autocorrect.
+  - `InputEngine` asks for them only mid-sentence after a space, in running text: after a word, or after `, ; :`. They take all three slots, best in the middle, where the punctuation shortcuts were. The shortcuts return only when there are no predictions (no pack yet).
+  - At the start of a field or a sentence, the strip keeps its toolbar (emoji, clipboard, incognito, settings).
+  - Predictions follow the shift key like letters do: a one-shot shift capitalises them, caps lock upper-cases them.
+  - Tapping one inserts it with a space; punctuation typed next takes that space (`suggestionSpace`).
+  - The builder tokenises its corpora by the same rules as `wordsBefore` (`CorpusTokens`); keep the two in step (`NgramCountsTest`).
 - The main dictionary is a `MappedDictionary` over the bundled MKD pack `en_US.mkd` (160k words from AOSP LatinIME), read in place through `ByteRegion` (`:platform:storage`). `BundledDictionaryLoader` (`:shared:keyboard`) maps it off the main thread. Until then, or if the pack is missing, `DeferredDictionary` serves `StarterDictionaries`, a tiny in-code list that tests also use. `UserDictionary` is an in-heap `TrieDictionary`. The format and its reasoning are in docs/dictionaries/mkd-format.md.
 - `suggest` runs on the main thread on every keystroke. Its cost must be bounded and must not grow with dictionary size, and it should allocate little.
   - `MappedDictionary.completions` is a best-first search, about 1 µs per query on the JVM.
@@ -51,7 +57,7 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 - Offensive words (AOSP `possibly_offensive`) are known to `lookup` but never offered by completions or corrections.
 - Never load word lists into Kotlin collections in the keyboard. Packs are built at build time by `:tools:dictionaries` from pinned, hash-checked sources.
 - Check word-list licences before importing any. AOSP lists are Apache-2.0. HeliBoard's dictionary repository is GPL-3.0 as a whole, so rebuild from the original sources (research §9). Anything else needs a review. Record attributions in `THIRD_PARTY_NOTICES.md`.
-- Measure changes with the typing harness: `./gradlew :tools:dictionaries:typingHarness` reports keystroke savings, false corrections and typo fixes on held-out text (baseline in research §6.8).
+- Measure changes with the typing harness: `./gradlew :tools:dictionaries:typingHarness` reports keystroke savings (with and without tapping predictions), next-word accuracy, false corrections and typo fixes on held-out text, plus the model's accuracy and cost on corpus sentences held out of the counts (baseline in research §6.8).
 - Scope: statistical prediction, autocorrect, learning and swipe decoding are in scope. LLM or generative features are not (`.ai/instructions.md` → Scope).
 
 ## Layouts and touch

@@ -35,3 +35,17 @@ MaKeeb ships or builds from the following third-party material. The list covers 
 - **Used in:** the test-only table `makeeb/engine/layout/src/commonTest/kotlin/com/makeeb/engine/layout/CldrExemplars.kt`, which checks that every letter a bundled language needs can be typed. It does not ship in the apps.
 - **Source:** `cldr-json` 48.2.2, `cldr-misc-full/main/<language>/characters.json` (`exemplarCharacters`): https://github.com/unicode-org/cldr-json/tree/48.2.2
 - **Licence:** Unicode License v3 (SPDX: Unicode-3.0), https://www.unicode.org/license.txt. Copyright © 1991-2025 Unicode, Inc.
+
+## Leipzig Corpora Collection (English news and web text)
+
+- **Used in:** the next-word statistics (the `NGRM` section) of the bundled English pack `en_US.mkd`. The pack holds only pruned word-pair and word-triple frequencies, not the text. It is generated at build time by `makeeb/tools/dictionaries`; neither the corpora nor the pack are stored in this repository.
+- **Source:** Leipzig Corpora Collection, Wortschatz Leipzig, Leipzig University (https://wortschatz.uni-leipzig.de/en/download):
+  - `eng_news_2024_1M` (English news, 2024, 1M sentences): https://downloads.wortschatz-leipzig.de/corpora/eng_news_2024_1M.tar.gz, SHA-256 `8f1d4d07b9771f8a7fc219ad587d5382eabf5009ef563f1bc4c12a467a8e3a97`.
+  - `eng-com_web-public_2018_1M` (English .com web pages, 2018, 1M sentences): https://downloads.wortschatz-leipzig.de/corpora/eng-com_web-public_2018_1M.tar.gz, SHA-256 `de8849fe30c7d5bf3502f620093232f4dceca10a6ac19a9ad49f474b62df0a5f`.
+- **Licence:** Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. The Wortschatz terms of usage (https://wortschatz.uni-leipzig.de/en/usage) state that "the text corpora offered for download are made available under the Creative Commons licence CC BY". Data used through the Wortschatz web portal is CC BY-NC and is not used.
+- **Attribution:** D. Goldhahn, T. Eckart and U. Quasthoff (2012): Building Large Monolingual Dictionaries at the Leipzig Corpora Collection: From 100 to 200 Languages. In: Proceedings of the 8th International Language Resources and Evaluation Conference (LREC 2012).
+- **Changes:**
+  - Only the sentence files are read. They are normalised to NFC, split into words, and counted over the AOSP word list. Words outside it are not kept.
+  - Word, bigram and trigram counts are pruned to the most frequent successors, offensive words are left out, and the rest is quantised to one byte per entry.
+  - One sentence in 250 is held out of the counts to evaluate the predictions.
+- **Pack licence:** `en_US.mkd` combines both sources. Its `META` records `licence=Apache-2.0 AND CC-BY-4.0`, with each source's attribution.

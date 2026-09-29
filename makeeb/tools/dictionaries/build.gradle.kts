@@ -8,9 +8,12 @@ plugins {
 //
 // - `dictionaryPacks` downloads each pinned source into build/downloads (cached, SHA-256 checked)
 //   and writes the bundled packs to build/packs. app/android packages them as uncompressed
-//   assets; the iOS keyboard extension bundles them (app/ios/project.yml).
+//   assets; the iOS keyboard extension bundles them (app/ios/project.yml). The first build also
+//   downloads the next-word corpora (about 520 MB) and counts them (about a minute); the counts
+//   are cached in build/downloads. -Pmakeeb.ngrams=false builds packs without next-word data.
 // - `typingHarness` measures the suggestion engine on the en_US pack (src/test, since it drives
-//   the engine through the :testing fakes).
+//   the engine through the :testing fakes), including next-word predictions on sentences held
+//   out of the counts (build/heldout).
 // The pack codec itself lives in :engine:dictionary, so the builder and the keyboard share it.
 
 kotlin {
@@ -26,6 +29,7 @@ java {
 
 dependencies {
     implementation(project(":engine:dictionary"))
+    implementation(project(":core:common"))
 
     testImplementation(kotlin("test"))
     testImplementation(project(":engine:prediction"))
@@ -39,15 +43,25 @@ dependencies {
 
 val packsDirectory = layout.buildDirectory.dir("packs")
 val downloadsDirectory = layout.buildDirectory.dir("downloads")
+val heldOutDirectory = layout.buildDirectory.dir("heldout")
+val ngrams = providers.gradleProperty("makeeb.ngrams").orNull != "false"
 
 val dictionaryPacks = tasks.register<JavaExec>("dictionaryPacks") {
     group = "build"
     description = "Builds the bundled dictionary packs (en_US.mkd) from their pinned sources."
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.makeeb.tools.dictionaries.DictionaryBuilderKt")
-    maxHeapSize = "1g"
-    args("--out", packsDirectory.get().asFile.absolutePath, "--cache", downloadsDirectory.get().asFile.absolutePath)
+    // Counting the corpora holds their 42M word ids and one n-gram key per word.
+    maxHeapSize = "1536m"
+    args(
+        "--out", packsDirectory.get().asFile.absolutePath,
+        "--cache", downloadsDirectory.get().asFile.absolutePath,
+        "--heldout", heldOutDirectory.get().asFile.absolutePath,
+        "--ngrams", ngrams.toString(),
+    )
+    inputs.property("ngrams", ngrams)
     outputs.dir(packsDirectory)
+    outputs.dir(heldOutDirectory)
 }
 
 // What app/android resolves to package the packs as assets.
@@ -64,7 +78,7 @@ tasks.register<JavaExec>("typingHarness") {
     classpath = sourceSets.test.get().runtimeClasspath
     mainClass.set("com.makeeb.tools.dictionaries.harness.TypingHarnessKt")
     val pack = providers.gradleProperty("harness.pack").orNull ?: packsDirectory.get().file("en_US.mkd").asFile.absolutePath
-    args("--pack", pack)
+    args("--pack", pack, "--heldout", heldOutDirectory.get().file("en_US-heldout.txt").asFile.absolutePath)
 }
 
 // `./gradlew jvmTest` is the project's "all JVM unit tests" command; include this module's.
@@ -73,3 +87,4 @@ tasks.register("jvmTest") {
     description = "Runs this module's tests (alias of test)."
     dependsOn(tasks.test)
 }
+

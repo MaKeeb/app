@@ -14,14 +14,16 @@ import com.makeeb.engine.dictionary.KeyFold
  * ```
  * header        0  u32  magic "MKD" 0x1A
  *               4  u16  major version (1): readers reject any other
- *               6  u16  minor version (0): additive changes only, readers accept higher
+ *               6  u16  minor version (1): additive changes only, readers accept higher
  *               8  u32  CRC-32 (IEEE) of bytes 12..end
  *              12  u16  section count n
  *              14  u16  reserved, 0
  *              16  n × { u32 id (four ASCII chars), u32 offset, u32 length }
  *
- * META  UTF-8 "key=value" lines. Required: language (BCP 47), keyFold (how keys are folded; v1:
- *       "lowercase"). Also: name, source, sourceSha256, licence, attribution, words.
+ * META  UTF-8 "key=value" lines. Required: language (BCP 47), keyFold (how keys are folded:
+ *       "fold-v2", or "lowercase" in the first packs). Also: name, source, sourceSha256, licence,
+ *       attribution, words; with NGRM: ngramSource, ngramSha256, ngramLicence, ngramAttribution,
+ *       bigrams, trigrams.
  *
  * WORD  word table
  *       u32 count
@@ -45,17 +47,42 @@ import com.makeeb.engine.dictionary.KeyFold
  *         terminal    u8 frequency (highest of its words), then a u24 word id, or with
  *                     "several words" a u8 count and that many u24 ids, most frequent first
  *         children    1–3 byte offset from the node's first byte to its child array
+ *
+ * NGRM  next-word statistics (optional, minor version 1). Offsets are relative to the section.
+ *        0  u8   layout (1)
+ *        1  u8   score scale S: a score byte q means a probability of 2^(-q / S)
+ *        2  u8   backoff B: each order a prediction backs off costs B more (stupid backoff)
+ *        3  u8   reserved, 0
+ *        4  u32  C, bigram contexts: word ids 0..C-1 have a slot, later ids have no list
+ *        8  u32  T, trigram contexts
+ *       12  u32  unigram list offset       16  u32  its length in bytes
+ *       20  u32  sentence-start list       24  u32  its length
+ *       28  u32  bigram lengths: C × u8, the byte length of each context's list
+ *       32  u32  bigram anchors: ⌈C / 32⌉ × u32, where the lists of contexts 32k.. start
+ *                (relative to the bigram data)
+ *       36  u32  bigram data
+ *       40  u32  trigram keys: T × {u24 first, u24 second}, sorted; first 0xFFFFFF is the
+ *                sentence start
+ *       44  u32  trigram lengths: T × u8
+ *       48  u32  trigram anchors: ⌈T / 32⌉ × u32, relative to the trigram data
+ *       52  u32  trigram data
+ *       A list is its successors in ascending id order, each a LEB128 varint gap (id minus the
+ *       previous id minus 1; the first is the id itself) and a u8 score. Ids run by frequency,
+ *       so the gaps are small. Context c's list starts at anchor[c / 32] plus the lengths of
+ *       contexts 32 × (c / 32) until c, so nothing is decoded until a query needs it.
  * ```
  *
  * Sections not listed here are skipped, so later minor versions can add FOLD (a case and
- * diacritic folding table), NGRM (next-word data) or SHRT (shortcuts) without breaking readers.
- * Several words under one key are how a folded key keeps every surface form ("us" and "US"
- * today; "naive" and "naïve" once keys fold diacritics too).
+ * diacritic folding table) or SHRT (shortcuts) without breaking readers; NGRM came that way in
+ * minor version 1. Several words under one key are how a folded key keeps every surface form
+ * ("us" and "US"; "naive" and "naïve").
  */
 object MkdFormat {
     const val MAGIC = 0x1A444B4D
     const val MAJOR_VERSION = 1
-    const val MINOR_VERSION = 0
+
+    /** 1 since packs may carry NGRM (2026-09-29). Readers of 1.0 skip the section. */
+    const val MINOR_VERSION = 1
     const val HEADER_SIZE = 16
     const val SECTION_ENTRY_SIZE = 12
     const val CRC_START = 12
@@ -63,6 +90,25 @@ object MkdFormat {
     val META = sectionId("META")
     val WORD = sectionId("WORD")
     val LEXI = sectionId("LEXI")
+    val NGRM = sectionId("NGRM")
+
+    const val NGRAM_LAYOUT = 1
+    const val NGRAM_HEADER_SIZE = 56
+
+    /** Score bytes are tenths of a bit: q = round(-10 × log2 p), so 0..255 covers p down to 2^-25.5. */
+    const val NGRAM_SCORE_SCALE = 10
+
+    /** Stupid backoff's 0.4 (Brants et al. 2007) in score units: 10 × log2(1 / 0.4) ≈ 13. */
+    const val NGRAM_BACKOFF = 13
+
+    /** Contexts per anchor in the bigram and trigram offset tables. */
+    const val NGRAM_ANCHOR_STRIDE = 32
+
+    /** The context id of a sentence start in trigram keys. */
+    const val SENTENCE_START = 0xFFFFFF
+
+    /** A list's length is a u8, so a list holds at most this many bytes. */
+    const val MAX_NGRAM_LIST_BYTES = 255
 
     const val WORD_OFFENSIVE = 0x01
     const val WORD_CASED = 0x02

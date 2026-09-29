@@ -2,25 +2,45 @@ package com.makeeb.engine.prediction
 
 import com.makeeb.core.model.Suggestion
 import com.makeeb.engine.dictionary.Dictionary
+import com.makeeb.engine.dictionary.KeyFold
 import com.makeeb.engine.dictionary.MutableDictionary
+import com.makeeb.engine.dictionary.NextWord
+import com.makeeb.engine.dictionary.NextWordModel
 import com.makeeb.engine.dictionary.WordEntry
 
 /**
  * Completions and spelling corrections from word lists. Corrections are costed as typing errors
  * ([WeightedEdits], keyboard-aware) plus how unlikely the word is, the noisy-channel model of
  * docs/research/dictionaries-autocorrect.md §6.5; autocorrect needs the best one to beat the typed
- * word by a margin. Next-word prediction builds on it (board: APP-38).
+ * word by a margin.
+ *
+ * With nothing typed, the main dictionary's [NextWordModel] predicts the next word from the one or
+ * two before it. While a word is typed, the same predictions raise the completions they contain
+ * (§6.6): after "good", "l" puts "luck" ahead of commoner l-words. They are worked out once
+ * per context, so typing a word costs no more than before. Neither changes what autocorrect does.
  */
 class DictionarySuggestionEngine(
     private val main: Dictionary,
     private val user: MutableDictionary? = null,
+    /** How much the context raises a completion it predicts; 0 turns that off (the harness compares both). */
+    private val contextWeight: Double = CONTEXT_WEIGHT,
 ) : SuggestionEngine {
 
     private val dictionaries: List<Dictionary> get() = listOfNotNull(user, main)
 
+    /** The predictions for the last context asked about. */
+    private var following: Following? = null
+
+    private class Following(val model: NextWordModel?, val previous: List<String>, val fromSentenceStart: Boolean, val words: List<NextWord>) {
+        val keys: List<String> = words.map { KeyFold.fold(it.word) }
+    }
+
     override fun suggest(context: TypingContext, limit: Int): Prediction {
         val typed = context.composing
-        if (typed.isEmpty()) return Prediction.Empty
+        val following = following(context)
+        if (typed.isEmpty()) {
+            return Prediction(following.words.take(limit).map { Suggestion(it.word, Suggestion.Kind.NextWord, it.score.toDouble()) })
+        }
 
         val candidates = HashMap<String, Suggestion>()
         var best: String? = null
@@ -36,6 +56,20 @@ class DictionarySuggestionEngine(
 
         val exact = dictionaries.firstNotNullOfOrNull { it.lookup(typed) }
         exact?.let { offer(it.word, Suggestion.Kind.Typed, normalise(it.frequency) + EXACT_BONUS) }
+
+        // Completions the context predicts, raised by how likely it makes them.
+        val raised = HashSet<String>()
+        if (contextWeight > 0.0 && following.words.isNotEmpty()) {
+            val key = KeyFold.fold(typed)
+            following.words.forEachIndexed { i, next ->
+                val nextKey = following.keys[i]
+                if (nextKey.length > key.length && nextKey.startsWith(key)) {
+                    val boost = contextWeight * (1.0 + next.score / CONTEXT_RANGE).coerceAtLeast(0.0)
+                    offer(next.word, Suggestion.Kind.Completion, normalise(next.frequency) - COMPLETION_PENALTY + boost)
+                    raised += next.word.lowercase()
+                }
+            }
+        }
 
         dictionaries.forEach { dictionary ->
             dictionary.completions(typed, limit * 3).forEach { entry ->
@@ -75,11 +109,28 @@ class DictionarySuggestionEngine(
         val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
         autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
         val ranked = candidates.values.sortedByDescending { it.score }
+        var shown = ranked.take(limit)
+        // The context may raise completions past a known word as typed, which space keeps: it
+        // keeps a slot all the same.
+        val typedWord = exact?.let { candidates[it.word.lowercase()] }
+        if (typedWord != null && autoCorrection == null && limit > 1 && typedWord !in shown && shown.any { it.text.lowercase() in raised }) {
+            shown = shown.take(limit - 1) + typedWord
+        }
 
         // Offer the literal typed text when it is not a known word, so the user can keep it.
         val typedOption = if (exact == null) listOf(Suggestion(typed, Suggestion.Kind.Typed, Double.NEGATIVE_INFINITY)) else emptyList()
-        val suggestions = (ranked.take(limit) + typedOption).distinctBy { it.text }.take(limit.coerceAtLeast(1))
+        val suggestions = (shown + typedOption).distinctBy { it.text }.take(limit.coerceAtLeast(1))
         return Prediction(suggestions, autoCorrection)
+    }
+
+    /** What the context predicts, from the cache while the context stays the same. */
+    private fun following(context: TypingContext): Following {
+        val model = main.nextWords
+        val previous = context.previousWords.takeLast(CONTEXT_WORDS)
+        val fromSentenceStart = if (previous.isEmpty()) context.atSentenceStart else context.previousWordsStartSentence
+        following?.let { if (it.model === model && it.fromSentenceStart == fromSentenceStart && it.previous == previous) return it }
+        val words = model?.predict(previous, fromSentenceStart, CONTEXT_CANDIDATES).orEmpty()
+        return Following(model, previous, fromSentenceStart, words).also { following = it }
     }
 
     override fun learn(word: String) {
@@ -151,5 +202,19 @@ class DictionarySuggestionEngine(
         const val MARGIN = 0.8f
         const val SHORT_WORD_MARGIN = 0.3f
         const val MIN_LEARNED_LENGTH = 2
+        const val CONTEXT_WORDS = 2
+
+        /** Predictions kept per context: enough to cover most completions it would raise. */
+        const val CONTEXT_CANDIDATES = 48
+
+        /**
+         * A predicted completion gains up to [CONTEXT_WEIGHT], less the less likely the context
+         * makes it: nothing at [CONTEXT_RANGE] bits below certainty. Tuned on the typing harness
+         * (2026-09-29): completion keystroke savings rise from 34.7% without the boost to 39.8%
+         * at 0.3, 41.0% at 0.6 and 41.4% at 1.0 (40.4% at 0.6 on held-out news and web text);
+         * typo fixes and false corrections don't change, since autocorrect doesn't look at it.
+         */
+        const val CONTEXT_WEIGHT = 0.6
+        const val CONTEXT_RANGE = 12.0
     }
 }

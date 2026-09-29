@@ -30,6 +30,9 @@ interface Dictionary {
 
     /** Every entry, for decoders that scan the vocabulary (e.g. gesture typing). */
     fun entries(): Sequence<WordEntry>
+
+    /** Next-word statistics, when the dictionary has them (a pack with an NGRM section). */
+    val nextWords: NextWordModel? get() = null
 }
 
 /** A [Dictionary] the user adds to: learned words, shortcuts, the personal dictionary. */

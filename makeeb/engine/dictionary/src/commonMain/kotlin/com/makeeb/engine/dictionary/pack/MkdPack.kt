@@ -17,6 +17,9 @@ class MkdPack private constructor(
     internal val lexiconEnd: Int,
     private val words: Int,
     val wordCount: Int,
+    /** Absolute offset and length of the NGRM section; -1 and 0 when the pack has none. */
+    internal val ngrams: Int,
+    internal val ngramsLength: Int,
 ) {
     val languageTag: String get() = meta.getValue("language")
 
@@ -99,7 +102,9 @@ class MkdPack private constructor(
             val sizes = lengths.entries.associate { (id, length) ->
                 CharArray(4) { (id shr (8 * it) and 0xFF).toChar() }.concatToString() to length
             }
-            return MkdPack(region, meta, sizes, lexicon, lexicon + lexiconLength, words, wordCount)
+            val ngrams = offsets[MkdFormat.NGRM] ?: -1
+            val ngramsLength = lengths[MkdFormat.NGRM] ?: 0
+            return MkdPack(region, meta, sizes, lexicon, lexicon + lexiconLength, words, wordCount, ngrams, ngramsLength)
         }
     }
 }

@@ -23,7 +23,10 @@ data class Suggestion(
         /** A candidate from a swipe (glide) gesture. */
         Gesture,
 
-        /** Punctuation offered right after a word and a space; it takes the space's place. */
+        /**
+         * Punctuation offered right after a word and a space when no next word is predicted; it
+         * takes the space's place.
+         */
         Punctuation,
 
         /** An emoji the typed word names ("pizza" → 🍕); it replaces the word. */

@@ -40,7 +40,8 @@ Requires JDK 21, the Android SDK (platform 37), and for iOS, Xcode 27 plus [Xcod
 ```
 cd makeeb
 ./gradlew jvmTest                        # shared unit tests
-./gradlew :app:android:assembleDebug     # Android APK (first build downloads the pinned AOSP word list)
+./gradlew :app:android:assembleDebug     # Android APK (the first build downloads the pinned AOSP word list and
+                                         # ~520 MB of Leipzig corpora for next-word statistics; -Pmakeeb.ngrams=false skips them)
 cd app/ios && xcodegen generate          # then open MaKeeb.xcodeproj, or:
 xcodebuild -project MaKeeb.xcodeproj -scheme MaKeeb -sdk iphonesimulator \
   -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
@@ -52,7 +53,7 @@ To see the board as a kanban, open it with the [kanban](https://github.com/fonix
 
 ## License
 
-MaKeeb is MIT-licensed (see [LICENSE](LICENSE)). Bundled third-party data, such as the AOSP English word list, keeps its own licence and notice in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+MaKeeb is MIT-licensed (see [LICENSE](LICENSE)). Bundled third-party data, such as the AOSP English word list and the next-word statistics counted from the Leipzig Corpora Collection (CC BY 4.0), keeps its own licence and notice in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Research
 

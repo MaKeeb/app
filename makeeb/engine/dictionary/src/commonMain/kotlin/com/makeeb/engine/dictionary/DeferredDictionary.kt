@@ -31,4 +31,6 @@ class DeferredDictionary(private val fallback: Dictionary) : Dictionary {
     override fun corrections(word: String, maxEdits: Int, limit: Int): List<WordMatch> = current.corrections(word, maxEdits, limit)
 
     override fun entries(): Sequence<WordEntry> = current.entries()
+
+    override val nextWords: NextWordModel? get() = current.nextWords
 }

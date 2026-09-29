@@ -13,7 +13,7 @@ class TypingHarnessTest {
     fun theSameSeedGivesTheSameNumbers() {
         val first = TypingHarness(StarterDictionaries.english()).run(sentences)
         val second = TypingHarness(StarterDictionaries.english()).run(sentences)
-        assertEquals(first.copy(keyMicros = emptyList()), second.copy(keyMicros = emptyList()))
+        assertEquals(first.copy(keyMicros = emptyList(), spaceMicros = emptyList()), second.copy(keyMicros = emptyList(), spaceMicros = emptyList()))
         assertTrue(first.typos > 0, "the noise produced typos")
         assertTrue(first.typedKeys in 1..first.fullKeys)
         assertEquals(first.words, sentences.sumOf { TypingHarness.words(it).size })
