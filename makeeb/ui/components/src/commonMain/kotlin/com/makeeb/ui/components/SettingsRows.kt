@@ -19,6 +19,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,15 +78,36 @@ fun SliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     valueLabel: String,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     /** Discrete positions between the ends; 0 for a continuous slider. */
     steps: Int = 0,
 ) {
     Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RowText(title, null, Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            RowText(title, subtitle, Modifier.weight(1f))
             Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, steps = steps)
+    }
+}
+
+/** A one-off action such as a reset, as a text button; [enabled] is false while there is nothing to do. */
+@Composable
+fun ActionRow(
+    title: String,
+    action: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        RowText(title, subtitle, Modifier.weight(1f))
+        TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.testTag("action-$title")) { Text(action) }
     }
 }
 

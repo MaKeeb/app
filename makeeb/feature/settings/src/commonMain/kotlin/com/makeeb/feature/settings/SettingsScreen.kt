@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.settings.KeyboardPreferences
-import com.makeeb.core.settings.KeyboardSize
 import com.makeeb.core.settings.ThemeMode
 import com.makeeb.core.settings.matchesSettingsSearch
 import com.makeeb.engine.layout.LanguageInfo
@@ -175,7 +174,7 @@ private class SettingsGroup(val title: String, val rows: List<SettingRow>) {
 }
 
 /** One row; [keywords] are other words people search for it by. */
-private class SettingRow(
+internal class SettingRow(
     val title: String,
     val subtitle: String? = null,
     val keywords: String = "",
@@ -261,16 +260,7 @@ private fun settingsSections(
                     )
                 },
                 switch("Number row", preferences.numberRow, "digits numbers") { p, v -> p.copy(numberRow = v) },
-                SettingRow("Keyboard height", keywords = "size tall short bigger smaller") {
-                    SliderRow(
-                        title = "Keyboard height",
-                        value = preferences.portraitSize.heightScale,
-                        onValueChange = { v -> onUpdate { it.copy(portraitSize = it.portraitSize.copy(heightScale = v)) } },
-                        valueRange = KeyboardSize.MIN_HEIGHT_SCALE..KeyboardSize.MAX_HEIGHT_SCALE,
-                        valueLabel = percent(preferences.portraitSize.heightScale),
-                    )
-                },
-            ),
+            ) + keyboardSizeRows(preferences, onUpdate),
         ),
         SettingsGroup(
             "Feedback",
