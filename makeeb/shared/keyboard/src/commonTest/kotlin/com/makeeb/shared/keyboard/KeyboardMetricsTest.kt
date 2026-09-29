@@ -58,4 +58,13 @@ class KeyboardMetricsTest {
             "the gap raises the keys without shrinking them",
         )
     }
+
+    @Test
+    fun keysStopAtTheirWidestAndCentreOnWideScreens() {
+        assertEquals(KeyboardMetrics.SIDE_INSET, KeyboardMetrics.horizontalInset(412f), "a portrait phone keeps its side inset")
+        assertEquals(0f, KeyboardMetrics.horizontalInset(402f, sideInset = 0f), "iOS keys run to the edge")
+        assertEquals(KeyboardMetrics.SIDE_INSET, KeyboardMetrics.horizontalInset(KeyboardMetrics.MAX_KEYS_WIDTH + 20f))
+        assertEquals(263f, KeyboardMetrics.horizontalInset(1366f, sideInset = 0f), "an iPad in landscape")
+        assertEquals(25.5f, KeyboardMetrics.horizontalInset(891f), absoluteTolerance = 0.01f, message = "a landscape phone")
+    }
 }

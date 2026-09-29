@@ -1,6 +1,8 @@
 package com.makeeb.shared.keyboard
 
 import com.makeeb.core.model.EditorAttributes
+import com.makeeb.core.model.KeyAction
+import com.makeeb.core.model.KeyboardMode
 import com.makeeb.engine.clipboard.ClipboardHistory
 import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.emoji.BundledEmojiCatalog
@@ -66,6 +68,32 @@ class KeyboardSessionTest {
         session.touch.up(1, g.centerX, g.centerY)
         assertEquals(listOf(KeyFeedbackType.Standard to 0.8f), haptics)
         assertEquals(listOf(KeyFeedbackType.Standard to 0.3f), sounds)
+    }
+
+    @Test
+    fun onAWideScreenTheKeysStayCentredAtTheirWidestOnEveryPage() = runTest {
+        val session = session()
+        session.density = 2f
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        // A 1366pt-wide tablet at 2x: the keys stop at MAX_KEYS_WIDTH and sit in the middle.
+        session.setKeysAreaSize(2732f, 432f)
+        runCurrent()
+        val letters = session.geometry.value!!
+        val keysWidth = KeyboardMetrics.MAX_KEYS_WIDTH * 2
+        assertEquals((2732f - keysWidth) / 2, letters.horizontalInset, absoluteTolerance = 0.01f)
+        assertEquals(keysWidth, letters.keys.maxOf { it.bounds.right } - letters.keys.minOf { it.bounds.left }, absoluteTolerance = 0.01f)
+
+        session.onKey(KeyAction.SwitchMode(KeyboardMode.Symbols))
+        runCurrent()
+        val symbols = session.geometry.value!!
+        assertEquals(KeyboardMode.Symbols, symbols.layout.mode)
+        assertEquals(letters.horizontalInset, symbols.horizontalInset, "no key moves between modes")
+        assertEquals(letters.keys.filter { it.row == 3 }.map { it.bounds }, symbols.keys.filter { it.row == 3 }.map { it.bounds })
+
+        // A phone keeps its own side inset.
+        session.setKeysAreaSize(822f, 432f)
+        runCurrent()
+        assertEquals(KeyboardMetrics.SIDE_INSET * 2, session.geometry.value!!.horizontalInset, absoluteTolerance = 0.01f)
     }
 
     @Test

@@ -29,7 +29,7 @@ iOS: height is set with constraints on the input view, while width follows the s
 ## Tasks
 
 - [x] Height and bottom gap per orientation
-- [ ] Cap the key width on wide screens
+- [x] Cap the key width on wide screens
 - [ ] Size settings per orientation in the companion
 - [ ] Keyboard background under a landscape camera cutout
 

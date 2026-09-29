@@ -106,8 +106,9 @@ class KeyboardSession(
         }
 
     /**
-     * Space beside the outermost keys, in dp/pt ([density] scales it). Android keeps
+     * The least space beside the outermost keys, in dp/pt ([density] scales it). Android keeps
      * [KeyboardMetrics.SIDE_INSET] for curved display edges; iOS sets 0, like the system keyboard.
+     * Wide screens get more, so the keys stop at [KeyboardMetrics.MAX_KEYS_WIDTH].
      */
     var sideInset: Float = KeyboardMetrics.SIDE_INSET
         set(value) {
@@ -243,7 +244,8 @@ class KeyboardSession(
         val layout = engine.state.value.layout
         if (width <= 0f || height <= 0f || layout.rows.isEmpty()) return
         geometryLayout = layout
-        val geometry = LayoutGeometry(layout, width, height / layout.totalHeightWeight, sideInset * density)
+        val inset = KeyboardMetrics.horizontalInset(width / density, sideInset) * density
+        val geometry = LayoutGeometry(layout, width, height / layout.totalHeightWeight, inset)
         mutableGeometry.value = geometry
         touch.geometry = geometry
     }

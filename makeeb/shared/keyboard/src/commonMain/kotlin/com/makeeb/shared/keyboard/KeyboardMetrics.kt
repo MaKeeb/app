@@ -5,6 +5,7 @@ import com.makeeb.core.settings.KeyboardSize
 import com.makeeb.core.settings.ScreenOrientation
 import com.makeeb.core.settings.size
 import com.makeeb.engine.layout.NUMBER_ROW_HEIGHT_WEIGHT
+import kotlin.math.max
 import kotlin.math.min
 
 /** The whole screen in dp (Android) / points (iOS); its shape picks the user's portrait or landscape size. */
@@ -24,6 +25,12 @@ object KeyboardMetrics {
     /** Space beside the outermost keys on Android; clears curved display edges. iOS uses none. */
     const val SIDE_INSET = 10f
 
+    /**
+     * The widest the keys get. A phone layout stretched across a tablet or a landscape phone turns
+     * keys into slabs, so past this (where Material's expanded window class starts) the keys keep
+     * this width, centred. Touches beside them still reach the nearest key.
+     */
+    const val MAX_KEYS_WIDTH = 840f
     private const val BASE_ROW_HEIGHT = 54f
     private const val BASE_ROWS = 4f
 
@@ -55,6 +62,13 @@ object KeyboardMetrics {
     /** Everything the keyboard draws or leaves empty: strip, keys, padding and the user's gap. */
     fun totalHeight(preferences: KeyboardPreferences, screen: ScreenSize? = null): Float =
         STRIP_HEIGHT + keysAreaHeight(preferences, screen) + BOTTOM_PADDING + bottomOffset(preferences, screen)
+
+    /**
+     * Space left and right of the keys in a key area [width] wide: at least [sideInset], and more
+     * once the keys would pass [MAX_KEYS_WIDTH]. It depends on the width alone, never the layout,
+     * so every page gets the same inset and no key moves between modes.
+     */
+    fun horizontalInset(width: Float, sideInset: Float = SIDE_INSET): Float = max(sideInset, (width - MAX_KEYS_WIDTH) / 2)
 
     private fun size(preferences: KeyboardPreferences, screen: ScreenSize?): KeyboardSize =
         preferences.size(screen?.orientation ?: ScreenOrientation.Portrait)
