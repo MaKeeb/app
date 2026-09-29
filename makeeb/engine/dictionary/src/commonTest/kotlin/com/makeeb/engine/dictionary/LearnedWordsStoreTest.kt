@@ -2,6 +2,7 @@ package com.makeeb.engine.dictionary
 
 import com.makeeb.engine.dictionary.pack.Crc32
 import com.makeeb.testing.FakePrivateFiles
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -14,6 +15,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LearnedWordsStoreTest {
     private val files = FakePrivateFiles()
 

@@ -32,7 +32,7 @@ Learn new words and personal word pairs locally, and let users see, remove or re
 - [x] A word is known only on evidence
 - [x] Long-press a learned suggestion to forget it
 - [x] View, remove and clear learned words from the companion
-- [ ] Picking a just-forgotten word on purpose learns it back
+- [x] Picking a just-forgotten word on purpose learns it back
 - [ ] Check on the Pixel and in test22_learnedWords
 
 ## Progress

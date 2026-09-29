@@ -610,13 +610,13 @@ class InputEngine(
      * password fields always are), nor in fields that turn autocorrection off: user names, codes
      * and addresses aren't vocabulary, and iOS gives no other hint that a field shouldn't be
      * learned from. [kept]: the user chose the word on purpose, which counts for more than typing
-     * it ([SuggestionEngine.keep]).
+     * it ([SuggestionEngine.keep]), even right after forgetting it.
      */
     private fun learn(word: String, kept: Boolean = false) {
         val forgotten = forgottenWord
         forgottenWord = null
         val current = state.value
-        if (current.incognito || !current.editor.autoCorrect || word.equals(forgotten, ignoreCase = true)) return
+        if (current.incognito || !current.editor.autoCorrect || (!kept && word.equals(forgotten, ignoreCase = true))) return
         if (kept) suggestionEngine.keep(word) else suggestionEngine.learn(word)
     }
 

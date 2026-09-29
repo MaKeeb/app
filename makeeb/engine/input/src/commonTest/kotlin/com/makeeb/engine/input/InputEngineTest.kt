@@ -405,6 +405,16 @@ class InputEngineTest {
     }
 
     @Test
+    fun pickingAForgottenWordAsTypedLearnsItBack() {
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("zorblax zorblax")
+        engine.onSuggestionLongPressed(engine.state.value.suggestions.single { it.text == "zorblax" })
+        engine.forgetOfferedWord()
+        engine.onSuggestionSelected(engine.state.value.suggestions.single { it.kind == Suggestion.Kind.Typed })
+        assertEquals("zorblax", userDictionary.lookup("zorblax")?.word, "picked on purpose: kept")
+    }
+
+    @Test
     fun pickingTheWordAsTypedKeepsItAtOnce() {
         start(attributes = EditorAttributes(capitalization = Capitalization.None))
         type("zorblax")
