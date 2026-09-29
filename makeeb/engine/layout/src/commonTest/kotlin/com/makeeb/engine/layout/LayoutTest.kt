@@ -48,14 +48,28 @@ class LayoutTest {
     }
 
     @Test
-    fun alternatesFollowTheLayoutsLanguage() {
-        fun alternates(layout: String, char: Char) =
-            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout)).characterKeys.getValue(char).alternates
-        assertEquals("à", alternates("qwerty", 'a').first())
-        assertEquals("ä", alternates("qwertz", 'a').first())
-        assertEquals("ß", alternates("qwertz", 's').first())
-        assertEquals(listOf("3", "é"), alternates("azerty", 'e').take(2), "digit hint, then French")
-        assertEquals("ç", alternates("azerty", 'c').first())
+    fun alternatesFollowTheLanguageNotTheLayout() {
+        fun alternates(layout: String, language: String, char: Char) =
+            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout, languageTag = language))
+                .characterKeys.getValue(char).alternates
+        assertEquals("à", alternates("qwerty", "en", 'a').first())
+        assertEquals("ä", alternates("qwertz", "de", 'a').first())
+        assertEquals("ß", alternates("qwertz", "de", 's').first())
+        assertEquals(listOf("3", "é"), alternates("azerty", "fr", 'e').take(2), "digit hint, then French")
+        assertEquals("ç", alternates("azerty", "fr", 'c').first())
+        // A German speaker on QWERTY gets German alternates, an English one on QWERTZ English ones.
+        assertEquals("ä", alternates("qwerty", "de", 'a').first())
+        assertEquals("ß", alternates("dvorak", "de", 's').first())
+        assertEquals("à", alternates("qwertz", "en", 'a').first())
+        assertEquals(listOf("ç", "ć", "č"), alternates("qwertz", "fr", 'c'))
+        assertEquals(listOf("ą", "á", "à", "â", "ä", "æ", "ã", "å", "ā"), alternates("colemak", "pl", 'a'))
+        // Unknown tags fall back to the base language, then English; the default is English.
+        assertEquals(alternates("qwerty", "de", 'o'), alternates("qwerty", "de-AT", 'o'))
+        assertEquals(alternates("qwerty", "en", 'o'), alternates("qwerty", "xx", 'o'))
+        assertEquals(
+            provider.layout(KeyboardMode.Letters, LayoutOptions(languageTag = "en")),
+            provider.layout(KeyboardMode.Letters, LayoutOptions()),
+        )
     }
 
     @Test

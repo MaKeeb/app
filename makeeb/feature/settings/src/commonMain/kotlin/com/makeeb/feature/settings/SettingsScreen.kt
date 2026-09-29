@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.ThemeMode
 import com.makeeb.core.settings.matchesSettingsSearch
+import com.makeeb.engine.layout.LanguageInfo
 import com.makeeb.engine.layout.LayoutInfo
 import com.makeeb.ui.components.ChoiceRow
 import com.makeeb.ui.components.ScrollEndSpacer
@@ -49,19 +50,27 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
     }
     val preferences by viewModel.preferences.collectAsState()
     val snippets by viewModel.snippets.collectAsState()
-    SettingsContent(preferences, viewModel.letterLayouts, viewModel::update, modifier, Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet))
+    SettingsContent(
+        preferences,
+        viewModel.letterLayouts,
+        viewModel.languages,
+        viewModel::update,
+        modifier,
+        Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet),
+    )
 }
 
 @Composable
 fun SettingsContent(
     preferences: KeyboardPreferences,
     letterLayouts: List<LayoutInfo>,
+    languages: List<LanguageInfo>,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
     modifier: Modifier = Modifier,
     snippets: Snippets? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val sections = (settingsSections(preferences, letterLayouts, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
+    val sections = (settingsSections(preferences, letterLayouts, languages, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
         .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -155,6 +164,7 @@ private class SettingRow(
 private fun settingsSections(
     preferences: KeyboardPreferences,
     letterLayouts: List<LayoutInfo>,
+    languages: List<LanguageInfo>,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
 ): List<SettingsGroup> {
     fun switch(title: String, checked: Boolean, keywords: String, subtitle: String? = null, set: (KeyboardPreferences, Boolean) -> KeyboardPreferences) =
@@ -187,6 +197,23 @@ private fun settingsSections(
                         selected = letterLayouts.firstOrNull { it.id == preferences.letterLayoutId } ?: letterLayouts.first(),
                         label = { it.displayName },
                         onSelect = { layout -> onUpdate { it.copy(letterLayoutId = layout.id) } },
+                    )
+                },
+                // Alternates follow the language on any layout; picking one leaves the layout alone.
+                SettingRow(
+                    "Language",
+                    keywords = "accents diacritics long press alternates umlaut " + languages.joinToString(" ") { "${it.name} ${it.autonym}" },
+                ) {
+                    ChoiceRow(
+                        title = "Language",
+                        options = languages,
+                        // As the keyboard resolves it: the tag, its base language, then English.
+                        selected = languages.firstOrNull { it.tag == preferences.languageTag }
+                            ?: languages.firstOrNull { it.tag == preferences.languageTag.substringBefore('-') }
+                            ?: languages.firstOrNull { it.tag == "en" }
+                            ?: languages.first(),
+                        label = { it.autonym },
+                        onSelect = { language -> onUpdate { it.copy(languageTag = language.tag) } },
                     )
                 },
                 switch("Number row", preferences.numberRow, "digits numbers") { p, v -> p.copy(numberRow = v) },

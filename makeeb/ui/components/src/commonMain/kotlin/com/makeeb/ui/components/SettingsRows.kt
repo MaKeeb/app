@@ -112,13 +112,19 @@ fun <T> ChoiceRow(
                         selected = option == selected,
                         onClick = { onSelect(option) },
                         shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                        modifier = Modifier.testTag("choice-$title-${label(option)}"),
                     ) { Text(label(option)) }
                 }
             }
         } else {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 options.forEach { option ->
-                    FilterChip(selected = option == selected, onClick = { onSelect(option) }, label = { Text(label(option)) })
+                    FilterChip(
+                        selected = option == selected,
+                        onClick = { onSelect(option) },
+                        label = { Text(label(option)) },
+                        modifier = Modifier.testTag("choice-$title-${label(option)}"),
+                    )
                 }
             }
         }

@@ -2,48 +2,104 @@ package com.makeeb.engine.layout
 
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
-import com.makeeb.engine.layout.data.LanguageSpec
-import com.makeeb.engine.layout.data.LetterLayoutSpec
 
 /**
- * The frame of every page, in Kotlin: the letters page around a data layout's character rows,
- * the symbols, more-symbols, number and phone pages, the number row and the field's bottom row.
- * Letter rows and alternates are data (engine/layout/data, docs/layouts/schema.md), which has no
- * way to express a frame key, so the pages' shared keys stay put whatever the data says.
+ * The hand-written Kotlin layouts as they were before the letter rows moved into data (stage B of
+ * docs/research/layout-formats.md §9.7), kept as the reference [LayoutParityTest] holds the data
+ * against. Only the letters page takes its alternates as a parameter, so it can be compared under
+ * every bundled language. A deliberate change to the frame changes this copy too.
  */
-internal object BuiltInLayouts {
+internal object LegacyBuiltInLayouts {
+    private val latinAlternates: Map<Char, String> = mapOf(
+        'a' to "àáâäæãåā",
+        'c' to "çćč",
+        'e' to "éèêëēėę",
+        'i' to "íìîïīį",
+        'l' to "ł",
+        'n' to "ñń",
+        'o' to "óòôöõøœō",
+        's' to "ßśš",
+        'u' to "úùûüū",
+        'y' to "ÿý",
+        'z' to "žźż",
+    )
+
+    /** German letters first on QWERTZ, as a German keyboard offers them. */
+    private val germanAlternates: Map<Char, String> = latinAlternates + mapOf(
+        'a' to "äàáâæãåā",
+        'o' to "öóòôõøœō",
+        'u' to "üúùûū",
+        's' to "ßśš",
+    )
+
+    /** French letters first on AZERTY. */
+    private val frenchAlternates: Map<Char, String> = latinAlternates + mapOf(
+        'a' to "àâæáäãåā",
+        'c' to "çćč",
+        'e' to "éèêëēėę",
+        'i' to "îïíìīį",
+        'o' to "ôœöóòõøō",
+        'u' to "ùûüúū",
+        'y' to "ÿý",
+    )
+
+    /** The choice before languages: German on QWERTZ, French on AZERTY, the Latin set elsewhere. */
+    fun alternatesFor(layoutId: String): Map<Char, String> = when (layoutId) {
+        "qwertz" -> germanAlternates
+        "azerty" -> frenchAlternates
+        else -> latinAlternates
+    }
+
     private val topRowDigits = "1234567890"
 
-    /**
-     * The letters page from data: the [layout]'s three character rows, with the [language]'s
-     * long-press keys, inside the frame only the engine builds (the number row, shift, backspace,
-     * the digit hints and the field's bottom row), so no data file can move a key the pages share.
-     */
-    fun letters(layout: LetterLayoutSpec, language: LanguageSpec?, options: LayoutOptions): KeyboardLayout {
-        val (top, middle, bottom) = layout.rows
+    private fun digitHints(topRow: String): Map<Char, String> =
+        topRow.zip(topRowDigits).associate { (char, digit) -> char to digit.toString() }
+
+    val letterLayouts: List<LayoutInfo> = listOf(
+        LayoutInfo("qwerty", "QWERTY"),
+        LayoutInfo("qwertz", "QWERTZ"),
+        LayoutInfo("azerty", "AZERTY"),
+        LayoutInfo("dvorak", "Dvorak"),
+        LayoutInfo("colemak", "Colemak"),
+        LayoutInfo("workman", "Workman"),
+    )
+
+    fun layout(
+        mode: KeyboardMode,
+        options: LayoutOptions,
+        alternates: Map<Char, String> = alternatesFor(options.letterLayoutId),
+    ): KeyboardLayout = when (mode) {
+        KeyboardMode.Letters -> letters(options.letterLayoutId, options, alternates)
+        KeyboardMode.Symbols -> symbols(options)
+        KeyboardMode.SymbolsMore -> symbolsMore(options)
+        KeyboardMode.Numeric -> numeric()
+        KeyboardMode.Phone -> phone()
+    }
+
+    fun letters(id: String, options: LayoutOptions, alternates: Map<Char, String> = alternatesFor(id)): KeyboardLayout {
+        val (top, middle, bottom) = when (id) {
+            "qwertz" -> Triple("qwertzuiop", "asdfghjkl", "yxcvbnm")
+            "azerty" -> Triple("azertyuiop", "qsdfghjklm", "wxcvbn")
+            // Dvorak keeps its punctuation on the top row; ';' lives on the symbols page.
+            "dvorak" -> Triple("',.pyfgcrl", "aoeuidhtns", "qjkxbmwvz")
+            "colemak" -> Triple("qwfpgjluy", "arstdhneio", "zxcvbkm")
+            "workman" -> Triple("qdrwbjfup", "ashtgyneoi", "zxmcvkl")
+            else -> Triple("qwertyuiop", "asdfghjkl", "zxcvbnm")
+        }
         // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
-        return keyboardLayout(layout.id, KeyboardMode.Letters, widthUnits = 10f) {
+        return keyboardLayout(id, KeyboardMode.Letters, widthUnits = 10f) {
             if (options.numberRow) numberRow()
-            row { letterKeys(top, layout, language, hints = if (options.numberRow) emptyList() else topRowDigits.map(Char::toString)) }
-            row { letterKeys(middle, layout, language) }
+            row {
+                chars(top, alternates, hints = if (options.numberRow) emptyMap() else digitHints(top))
+            }
+            row { chars(middle, alternates) }
             row {
                 shift()
-                letterKeys(bottom, layout, language)
+                chars(bottom, alternates)
+                if (id == "azerty") text("'", alternates = listOf("’", "\""))
                 backspace()
             }
             bottomRow(KeyboardMode.Symbols, "?123", options)
-        }
-    }
-
-    /**
-     * Each key's long-press list: its digit hint (top row, no number row), the layout's own
-     * alternates, then the language's.
-     */
-    private fun RowBuilder.letterKeys(keys: List<String>, layout: LetterLayoutSpec, language: LanguageSpec?, hints: List<String> = emptyList()) {
-        keys.forEachIndexed { index, key ->
-            val hint = hints.getOrNull(index)
-            val alternates = listOfNotNull(hint) + layout.alternates[key].orEmpty() + language?.alternates?.get(key).orEmpty()
-            text(key, width = layout.widths[key] ?: 1f, alternates = alternates.distinct(), hint = hint)
         }
     }
 

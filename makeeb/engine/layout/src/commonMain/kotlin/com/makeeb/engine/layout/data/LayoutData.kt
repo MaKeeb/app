@@ -111,10 +111,25 @@ internal object LayoutDataParser {
     const val MAX_KEY_WIDTH = 2f
     const val MAX_NAME_LENGTH = 40
 
-    private val ID = Regex("[a-z0-9][a-z0-9_-]{0,31}")
+    /**
+     * `[a-z0-9][a-z0-9_-]{0,31}`. Checked by hand, as is the language tag: Regex would link
+     * Kotlin/Native's regex engine into the keyboard extension for two patterns.
+     */
+    private fun isLayoutId(id: String): Boolean =
+        id.length in 1..32 && id.first().let { it in 'a'..'z' || it in '0'..'9' } &&
+            id.all { it in 'a'..'z' || it in '0'..'9' || it == '_' || it == '-' }
 
     /** Language, optional script, optional region: `de`, `sr-Latn`, `pt-BR`, `es-419`. */
-    private val TAG = Regex("[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?")
+    private fun isLanguageTag(tag: String): Boolean {
+        val parts = tag.split('-')
+        if (parts.first().length !in 2..3 || !parts.first().all { it in 'a'..'z' }) return false
+        var next = 1
+        val script = parts.getOrNull(next)
+        if (script != null && script.length == 4 && script.first() in 'A'..'Z' && script.drop(1).all { it in 'a'..'z' }) next++
+        val region = parts.getOrNull(next)
+        if (region != null && (region.length == 2 && region.all { it in 'A'..'Z' } || region.length == 3 && region.all { it in '0'..'9' })) next++
+        return next == parts.size
+    }
 
     /** Strict JSON: an unknown field is an error, not something to skip. */
     private val json = Json { ignoreUnknownKeys = false }
@@ -125,7 +140,7 @@ internal object LayoutDataParser {
             ?: return problems.result(null)
         with(problems) {
             checkHeader(parsed.schema, parsed.sources)
-            if (!ID.matches(parsed.id)) add("$.id", "must match ${ID.pattern}")
+            if (!isLayoutId(parsed.id)) add("$.id", "must be 1–32 of a-z, 0-9, _ and -, starting with a letter or digit")
             if (parsed.id != file.name) add("$.id", "'${parsed.id}' is not the file's name '${file.name}'")
             checkName("$.name", parsed.name)
             if (parsed.rows.size != ROWS) add("$.rows", "needs exactly $ROWS rows, has ${parsed.rows.size}")
@@ -167,7 +182,7 @@ internal object LayoutDataParser {
             ?: return problems.result(null)
         with(problems) {
             checkHeader(parsed.schema, parsed.sources)
-            if (!TAG.matches(parsed.language)) add("$.language", "'${parsed.language}' is not a language tag like de, pt-BR or sr-Latn")
+            if (!isLanguageTag(parsed.language)) add("$.language", "'${parsed.language}' is not a language tag like de, pt-BR or sr-Latn")
             if (parsed.language != file.name) add("$.language", "'${parsed.language}' is not the file's name '${file.name}'")
             checkName("$.name", parsed.name)
             checkName("$.autonym", parsed.autonym)

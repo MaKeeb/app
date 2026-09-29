@@ -585,6 +585,43 @@ final class KeyboardVisualTests: XCTestCase {
         tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - newKeysArea + 20)), pause: 1.0)
     }
 
+    /// Long-press alternates follow the language, not the layout: hold "e" and "a" on QWERTY with a
+    /// language picked in Settings → Language. One test per language, because a revisited tab
+    /// doesn't always re-expose its elements. Captures `LANG-<tag>-hold-{e,a}` (host-side) and
+    /// `LANG-settings-<language>`; 19d restores English.
+    func test19a_languageEnglish() { holdAlternates(language: "English", tag: "en") }
+    func test19b_languageGerman() { holdAlternates(language: "Deutsch", tag: "de") }
+    func test19c_languageFrench() { holdAlternates(language: "Français", tag: "fr") }
+    func test19d_languageRestore() { selectLanguage("English") }
+
+    func holdAlternates(language autonym: String, tag: String) {
+        selectLanguage(autonym)
+        openTab("Try it")
+        focus("Search")
+        assertMaKeebVisible("LANG-\(tag)")
+        heldCapture("LANG-\(tag)-hold-e", at: key("e"), hold: 2.0)
+        heldCapture("LANG-\(tag)-hold-a", at: key("a"), hold: 2.0)
+    }
+
+    /// Picks a language chip in the companion's Settings → Language row, scrolling it into view.
+    func selectLanguage(_ autonym: String) {
+        openTab("Settings")
+        let chip = app.descendants(matching: .any).matching(identifier: "choice-Language-\(autonym)").firstMatch
+        XCTAssertTrue(chip.waitForExistence(timeout: 10), "language \(autonym)")
+        for _ in 0..<8 {
+            let f = chip.frame
+            if f.minY > 140 && f.maxY < 760 { break }
+            let dy: CGFloat = f.midY > 450 ? -250 : 250
+            coordinate(CGPoint(x: 380, y: 450)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 450 + dy)))
+            Thread.sleep(forTimeInterval: 0.6)
+        }
+        // A tap during the scroll's fling only stops it, and choosing a chip twice is harmless.
+        Thread.sleep(forTimeInterval: 1.5)
+        tap(CGPoint(x: chip.frame.midX, y: chip.frame.midY), pause: 1.0)
+        tap(CGPoint(x: chip.frame.midX, y: chip.frame.midY), pause: 1.0)
+        save("LANG-settings-\(autonym)")
+    }
+
     /// The app icon on the home screen (the page holding MaKeeb), in the current appearance.
     func test13_homeIcon() {
         XCUIDevice.shared.press(.home)

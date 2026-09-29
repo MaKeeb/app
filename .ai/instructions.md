@@ -35,7 +35,7 @@ makeeb/
   shared/companion    companion app root (setup, settings, try-it); iOS framework "MaKeebCompanion"
   app/android         Android wrapper: manifest, resources, Application, MaKeebInputMethodService, MainActivity
   app/ios             Xcode wrapper (XcodeGen): MaKeeb app + MaKeebKeyboardExtension
-docs/                 research, screenshots, dictionaries/ (pack format)
+docs/                 research, screenshots, dictionaries/ (pack format), layouts/ (layout data schema)
 .ai/                  instructions.md (this file), kanban/ (the board), skills/, agents/, commands/, plans/; local/ is gitignored
 ```
 

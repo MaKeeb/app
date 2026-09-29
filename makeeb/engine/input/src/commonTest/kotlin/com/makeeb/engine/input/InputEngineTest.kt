@@ -66,6 +66,21 @@ class InputEngineTest {
     }
 
     @Test
+    fun alternatesFollowTheLanguageSettingOnAnyLayout() {
+        start()
+        fun alternatesOf(char: Char) = engine.state.value.layout.characterKeys.getValue(char).alternates
+        assertEquals("à", alternatesOf('a').first())
+        preferences.value = preferences.value.copy(languageTag = "de")
+        engine.refreshLayout() // KeyboardSession does this on every preferences change
+        assertEquals("qwerty", engine.state.value.layout.id)
+        assertEquals("ä", alternatesOf('a').first(), "German alternates on QWERTY")
+        preferences.value = preferences.value.copy(letterLayoutId = "azerty", languageTag = "en")
+        engine.refreshLayout()
+        assertEquals("azerty", engine.state.value.layout.id)
+        assertEquals("à", alternatesOf('a').drop(1).first(), "after the digit hint, English alternates on AZERTY")
+    }
+
+    @Test
     fun capitalisesTheFirstLetterOfASentence() {
         val host = start()
         assertEquals(ShiftState.OneShot, engine.state.value.shift)

@@ -31,7 +31,7 @@ Pure shared logic and a good fit for commonMain.
 
 - [x] Research layout data formats
 - [x] Stage A: layout data from AOSP, with a parity test
-- [ ] Stage B: layouts from data, and alternates that follow the language
+- [x] Stage B: layouts from data, and alternates that follow the language
 - [ ] Stage C: a small hand-written JSON reader in place of kotlinx.serialization
 
 ## Progress

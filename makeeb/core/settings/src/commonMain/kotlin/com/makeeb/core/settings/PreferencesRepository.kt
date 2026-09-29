@@ -50,6 +50,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
             heightScale = settings.getFloat(Keys.HEIGHT_SCALE, defaults.heightScale)
                 .coerceIn(KeyboardPreferences.MIN_HEIGHT_SCALE, KeyboardPreferences.MAX_HEIGHT_SCALE),
             letterLayoutId = settings.getString(Keys.LETTER_LAYOUT, defaults.letterLayoutId),
+            languageTag = settings.getString(Keys.LANGUAGE, defaults.languageTag),
             theme = settings.getStringOrNull(Keys.THEME)
                 ?.let { stored -> ThemeMode.entries.firstOrNull { it.name == stored } }
                 ?: defaults.theme,
@@ -74,6 +75,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putBoolean(Keys.NUMBER_ROW, numberRow)
         settings.putFloat(Keys.HEIGHT_SCALE, heightScale)
         settings.putString(Keys.LETTER_LAYOUT, letterLayoutId)
+        settings.putString(Keys.LANGUAGE, languageTag)
         settings.putString(Keys.THEME, theme.name)
         settings.putInt(Keys.DARK_FROM, darkFromMinute)
         settings.putInt(Keys.DARK_UNTIL, darkUntilMinute)
@@ -100,6 +102,7 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         const val NUMBER_ROW = "layout.number_row"
         const val HEIGHT_SCALE = "layout.height_scale"
         const val LETTER_LAYOUT = "layout.letters"
+        const val LANGUAGE = "layout.language"
         const val THEME = "appearance.theme"
         const val DARK_FROM = "appearance.dark_from_minute"
         const val DARK_UNTIL = "appearance.dark_until_minute"

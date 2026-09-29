@@ -29,6 +29,11 @@ data class KeyboardPreferences(
     /** Multiplier on the default key height, clamped to [MIN_HEIGHT_SCALE]..[MAX_HEIGHT_SCALE]. */
     val heightScale: Float = 1f,
     val letterLayoutId: String = "qwerty",
+    /**
+     * The typing language (BCP 47): its long-press alternates apply on any layout. Until language
+     * switching exists (board card APP-17) there is one.
+     */
+    val languageTag: String = "en",
     // Appearance
     val theme: ThemeMode = ThemeMode.System,
     /** [ThemeMode.Scheduled]: dark from this minute of the day until [darkUntilMinute] (may wrap past midnight). */

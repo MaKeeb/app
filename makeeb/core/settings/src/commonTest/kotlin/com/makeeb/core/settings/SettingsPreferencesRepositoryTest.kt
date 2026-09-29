@@ -21,6 +21,15 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
+    fun theLanguageDefaultsToEnglishAndPersists() {
+        val store = MapSettings()
+        assertEquals("en", SettingsPreferencesRepository(store).preferences.value.languageTag)
+        SettingsPreferencesRepository(store).update { it.copy(languageTag = "de") }
+        assertEquals("de", SettingsPreferencesRepository(store).preferences.value.languageTag)
+        assertEquals("de", store.getString("layout.language", ""), "the storage key is persisted: never rename it")
+    }
+
+    @Test
     fun outOfRangeHeightIsClamped() {
         val store = MapSettings()
         store.putFloat("layout.height_scale", 9f)

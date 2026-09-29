@@ -1,20 +1,19 @@
 package com.makeeb.engine.layout
 
 import com.makeeb.core.model.KeyboardMode
-import com.makeeb.engine.layout.data.LanguageSpec
+import com.makeeb.engine.layout.data.BundledFile
 import com.makeeb.engine.layout.data.LayoutData
+import com.makeeb.engine.layout.data.bundledLayoutFiles
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Stage A of the declarative layouts (docs/research/layout-formats.md §9.7): the letters pages
- * built from the JSON data equal the hand-written Kotlin ones, key for key (actions, labels,
- * widths, styles, alternates, hints, long-press actions), for every layout, option and field
- * variant, given today's layout-to-alternates choice.
+ * The data-built layouts equal the hand-written Kotlin ones they replaced
+ * ([LegacyBuiltInLayouts], stages A and B of docs/research/layout-formats.md §9.7), key for key:
+ * actions, labels, widths, styles, alternates, hints, captions and long-press actions, on every
+ * page, for every layout, field variant, number row and globe option.
  */
 class LayoutParityTest {
-    private val data = LayoutData()
-    private val legacy = BuiltInLayoutProvider()
     private val layoutIds = listOf("qwerty", "qwertz", "azerty", "dvorak", "colemak", "workman")
 
     private val allOptions = layoutIds.flatMap { id ->
@@ -27,60 +26,63 @@ class LayoutParityTest {
         }
     }
 
+    /**
+     * Before languages, alternates came with the layout: German on QWERTZ, French on AZERTY, a
+     * Latin set elsewhere. As language files, through the real parser, they rebuild exactly that.
+     */
     @Test
-    fun dataBuiltLettersEqualTheKotlinOnes() {
-        assertEquals(layoutIds, data.layouts.map { it.id })
-        allOptions.forEach { options ->
-            val fromData = BuiltInLayouts.letters(data.layout(options.letterLayoutId), LegacyAlternates.languageFor(options.letterLayoutId), options)
-            assertEquals(legacy.layout(KeyboardMode.Letters, options), fromData, "$options")
+    fun theDataRebuildsTheKotlinLayoutsWithTheirOldAlternates() {
+        val legacyLanguages = mapOf("qwerty" to "en", "qwertz" to "de", "azerty" to "fr")
+        val provider = BuiltInLayoutProvider(
+            LayoutData(
+                layoutFiles = bundledLayoutFiles,
+                languageFiles = legacyLanguages.map { (layout, tag) -> languageFile(tag, LegacyBuiltInLayouts.alternatesFor(layout)) },
+            ),
+        )
+        assertEquals(LegacyBuiltInLayouts.letterLayouts, provider.letterLayouts)
+        KeyboardMode.entries.forEach { mode ->
+            allOptions.forEach { options ->
+                val tag = legacyLanguages[options.letterLayoutId] ?: "en"
+                assertEquals(
+                    LegacyBuiltInLayouts.layout(mode, options),
+                    provider.layout(mode, options.copy(languageTag = tag)),
+                    "$mode $options",
+                )
+            }
         }
     }
-}
 
-/** The alternates the Kotlin layouts had, as languages: English, German on QWERTZ, French on AZERTY. */
-internal object LegacyAlternates {
-    private val latin: Map<Char, String> = mapOf(
-        'a' to "àáâäæãåā",
-        'c' to "çćč",
-        'e' to "éèêëēėę",
-        'i' to "íìîïīį",
-        'l' to "ł",
-        'n' to "ñń",
-        'o' to "óòôöõøœō",
-        's' to "ßśš",
-        'u' to "úùûüū",
-        'y' to "ÿý",
-        'z' to "žźż",
-    )
-
-    private val german: Map<Char, String> = latin + mapOf(
-        'a' to "äàáâæãåā",
-        'o' to "öóòôõøœō",
-        'u' to "üúùûū",
-        's' to "ßśš",
-    )
-
-    private val french: Map<Char, String> = latin + mapOf(
-        'a' to "àâæáäãåā",
-        'c' to "çćč",
-        'e' to "éèêëēėę",
-        'i' to "îïíìīį",
-        'o' to "ôœöóòõøō",
-        'u' to "ùûüúū",
-        'y' to "ÿý",
-    )
-
-    fun mapFor(layoutId: String): Map<Char, String> = when (layoutId) {
-        "qwertz" -> german
-        "azerty" -> french
-        else -> latin
+    /**
+     * Under every bundled language, every page of every layout is the Kotlin one with that
+     * language's alternates: the language changes long-press keys and nothing else.
+     */
+    @Test
+    fun everyLanguageChangesOnlyTheAlternates() {
+        val provider = BuiltInLayoutProvider()
+        val data = LayoutData()
+        data.languages.forEach { language ->
+            val alternates = language.alternates.map { (base, keys) ->
+                require(base.length == 1 && keys.all { it.length == 1 }) { "${language.tag}: the Kotlin layouts took single characters" }
+                base.single() to keys.joinToString("")
+            }.toMap()
+            KeyboardMode.entries.forEach { mode ->
+                allOptions.forEach { options ->
+                    assertEquals(
+                        LegacyBuiltInLayouts.layout(mode, options, alternates),
+                        provider.layout(mode, options.copy(languageTag = language.tag)),
+                        "${language.tag} $mode $options",
+                    )
+                }
+            }
+        }
     }
 
-    fun languageFor(layoutId: String): LanguageSpec = LanguageSpec(
-        tag = "legacy-$layoutId",
-        name = "Legacy",
-        autonym = "Legacy",
-        layouts = listOf(layoutId),
-        alternates = mapFor(layoutId).map { (base, alternates) -> base.toString() to alternates.map(Char::toString) }.toMap(),
-    )
+    private fun languageFile(tag: String, alternates: Map<Char, String>): BundledFile {
+        val entries = alternates.entries.joinToString(",") { (base, keys) -> "\"$base\": \"${keys.toList().joinToString(" ")}\"" }
+        return BundledFile(
+            tag,
+            """{"schema": 1, "language": "$tag", "name": "Legacy", "autonym": "Legacy", "layouts": ["qwerty"],
+               "alternates": {$entries}, "sources": ["MaKeeb's Kotlin layouts before stage B"]}""",
+        )
+    }
 }

@@ -516,6 +516,8 @@ class InputEngine(
         val prefs = preferences.value
         val options = LayoutOptions(
             letterLayoutId = prefs.letterLayoutId,
+            // Until language switching exists, the one language from settings.
+            languageTag = prefs.languageTag,
             numberRow = prefs.numberRow,
             switchKey = keyboardHost?.needsInputMethodSwitchKey ?: false,
             variant = when (editor.fieldType) {

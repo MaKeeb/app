@@ -42,13 +42,12 @@ class LayoutDataTest {
     /** Every letter a language needs (its CLDR main exemplars) can be typed on every layout. */
     @Test
     fun everyLanguageCanTypeAllItsLettersOnEveryLayout() {
-        val data = LayoutData()
+        val provider = BuiltInLayoutProvider()
         assertEquals(bundledLanguageFiles.map { it.name }.toSet(), cldrMainExemplars.keys)
+        assertEquals(bundledLanguageFiles.map { it.name }, provider.languages.map { it.tag })
         cldrMainExemplars.forEach { (tag, letters) ->
-            val language = data.language(tag)
-            assertEquals(tag, language?.tag)
-            data.layouts.forEach { layout ->
-                val page = BuiltInLayouts.letters(layout, language, LayoutOptions(letterLayoutId = layout.id))
+            provider.letterLayouts.forEach { layout ->
+                val page = provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout.id, languageTag = tag))
                 val reachable = page.rows.flatMap { it.keys }
                     .flatMap { key -> listOfNotNull((key.action as? KeyAction.Text)?.text) + key.alternates }
                     .toSet()
@@ -148,6 +147,22 @@ class LayoutDataTest {
     }
 
     @Test
+    fun idsAndLanguageTagsAreChecked() {
+        listOf("qwerty", "bepo", "east_slavic", "hindi-compact", "3l").forEach { id ->
+            assertEquals(emptyList(), layoutProblems(layout(id = id), name = id), id)
+        }
+        listOf("Qwerty", "-dash", "has space", "x".repeat(33)).forEach { id ->
+            assertProblem(layoutProblems(layout(id = id), name = id), "$.id")
+        }
+        listOf("de", "pt-BR", "sr-Latn", "sr-Latn-RS", "es-419", "fil").forEach { tag ->
+            assertEquals(emptyList(), languageProblems(language(tag = tag), name = tag), tag)
+        }
+        listOf("DE", "de_DE", "de-", "de-de", "deutsch", "sr-latn", "es-41", "de-CH-x").forEach { tag ->
+            assertProblem(languageProblems(language(tag = tag), name = tag), "language tag")
+        }
+    }
+
+    @Test
     fun languageProblemsAreReported() {
         assertProblem(languageProblems(language(layouts = """["nope"]""")), "not a bundled layout")
         assertProblem(languageProblems(language(layouts = "[]")), "at least one layout")
@@ -158,17 +173,4 @@ class LayoutDataTest {
     }
 
     // endregion
-
-    @Test
-    fun dataBuiltLettersPagesKeepTheFrameForEveryLanguage() {
-        val data = LayoutData()
-        data.languages.forEach { language ->
-            data.layouts.forEach { layout ->
-                val page = BuiltInLayouts.letters(layout, language, LayoutOptions(letterLayoutId = layout.id))
-                assertEquals(KeyboardMode.Letters, page.mode)
-                assertEquals(KeyAction.Shift, page.rows[2].keys.first().action, "${layout.id}/${language.tag}")
-                assertEquals(KeyAction.Backspace, page.rows[2].keys.last().action, "${layout.id}/${language.tag}")
-            }
-        }
-    }
 }

@@ -56,7 +56,9 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 
 ## Layouts and touch
 
-- Layouts are a Kotlin DSL (`LayoutDsl.kt`, `BuiltInLayouts.kt`) behind `LayoutProvider`. `LayoutGeometry` places keys for a given size and answers `keyAt`. Moving layouts into data files is the APP-14 card.
+- Letter rows and long-press alternates are JSON data (`engine/layout/data/`, schema in docs/layouts/schema.md), converted from AOSP LatinIME by `scripts/import-aosp-layouts.py` and embedded by `scripts/generate-layout-data.py`. Alternates follow the language (`LayoutOptions.languageTag`, from `KeyboardPreferences.languageTag`), not the layout.
+- The frame stays Kotlin (`BuiltInLayouts`, `LayoutDsl.kt`): the number row, shift, backspace, digit hints, the field's bottom row and the symbols, number and phone pages. The data has no field for them, so `ModeSwitchGeometryTest` holds for any data. `BuiltInLayoutProvider` parses a file on first use; `LayoutParityTest` holds the data-built pages to the old Kotlin ones.
+- `LayoutGeometry` places keys for a given size and answers `keyAt`.
 - Setting new geometry cancels touches in flight (`TouchController.geometry`).
 - Timings live in `TouchConfig`. Density and `overflowAbove` come from the platform shell (`TouchConfig.forDensity`).
 
