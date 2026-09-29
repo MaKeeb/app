@@ -17,6 +17,8 @@ Full research with sources: `docs/research/platform-apis.md` (capability matrix 
 | Haptics / sound | `platform:feedback` | `ViewHapticFeedback`, `AudioManagerSoundFeedback` | `ImpactHapticFeedback` (Full Access), `InputClickSoundFeedback` |
 | Clipboard | `platform:clipboard` `SystemClipboard` | `AndroidSystemClipboard` | `PasteboardSystemClipboard` (Full Access, polls `changeCount`) |
 | Settings storage | `core:settings` `PreferencesRepository` | device-protected SharedPreferences | App Group `NSUserDefaults` (`group.com.makeeb`) |
+| Downloaded dictionary packs | `platform:storage` `PackFiles` | `DirectoryPackFiles` (device-protected `noBackupFilesDir/packs`, shared with the IME in-process) | `AppGroupPackFiles` (App Group `Library/Application Support/Packs`; the extension only reads, which needs no Full Access) |
+| HTTP downloads (companion app only) | `platform:network` `HttpTransport` | `UrlConnectionTransport` | `UrlSessionTransport` (ephemeral `NSURLSession`) |
 | Keyboard-private files (learned words) | `platform:storage` `PrivateFiles` | `CredentialProtectedFiles` (`noBackupFilesDir/keyboard`, locked before first unlock) | `ContainerFiles` (extension container, `Application Support/Keyboard`, excluded from backup) |
 | Keyboard surface | `shared:keyboard` `KeyboardSession` | `app/android` `MaKeebInputMethodService` + `shared:surface` `KeyboardSurface` (Compose) | `shared:keyboard` `KeyboardExtensionBridge` + `app/ios` `KeyboardView.swift` (Core Graphics) |
 | Key glyphs | `core:model` `KeyIcon` | `ui:theme` `KeyboardIcons` (Material Symbols) | SF Symbols in `KeyboardView.swift` |

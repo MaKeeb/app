@@ -66,7 +66,7 @@ The Android mapping is `EditorInfoMapping.kt` and the iOS one is `InputTraitsMap
 - Clipboard: as the default IME we can read the clipboard without the Android 12+ "pasted" toast. Skip and never persist clips flagged `ClipDescription.EXTRA_IS_SENSITIVE` (API 33). Keep nothing from incognito fields.
 - Haptics: `View.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)` follows the system haptics setting (`FLAG_IGNORE_GLOBAL_SETTING` is deprecated). Sound: `AudioManager.playSoundEffect(FX_KEYPRESS_*)`.
 - Android 17's background-audio hardening may silence IME key clicks. Test with `adb -s emulator-5554 shell cmd audio set-enable-hardening throw`.
-- Typing must work offline and typed text never leaves the device. Network is allowed for opt-in extras (GIF search, pack downloads) shown only when online. Adding `INTERNET` is a deliberate, visible change (it shows on the Play listing): record it on the board, and consider a build flavor without it.
+- Typing must work offline and typed text never leaves the device. Network is allowed for opt-in extras (GIF search, pack downloads) shown only when online. The app has `INTERNET` since APP-37, for the companion's pack downloads (`HttpTransport`); the IME shares the process but never uses it, and nothing in `:shared:keyboard` depends on `:platform:network`. Debug builds allow plain HTTP to `localhost`, `127.0.0.1` and `10.0.2.2` only, for a local pack server (`src/debug`).
 
 ## Debugging
 

@@ -113,7 +113,7 @@ Built 2026-09-29:
 
 ## Loading at runtime
 
-`BundledDictionaryLoader` (`:shared:keyboard`) maps the pack on a background dispatcher when the engine first asks for its dictionary, as the keyboard is created. Until the pack is mapped, `DeferredDictionary` serves the starter list, so the keyboard never waits for the pack. Debug Android builds log the timings with `adb logcat -s MaKeebDictionary`.
+`DictionaryLoader` (`:shared:keyboard`) maps the selected languages' packs on a background dispatcher when the engine first asks for its dictionary, as the keyboard is created: the bundled English pack, and the downloaded packs in `PackFiles` (docs/dictionaries/pack-catalogue.md has which one is the main dictionary and what the others do). Until a pack is mapped, `DeferredDictionary` serves the starter list, so the keyboard never waits for it. Debug builds log the main pack's timings with `adb logcat -s MaKeebDictionary` (Console on iOS).
 
 On a Pixel 6 Pro (Android 17, debug build, 2026-09-28):
 

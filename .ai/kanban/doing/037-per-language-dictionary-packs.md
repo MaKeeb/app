@@ -38,7 +38,7 @@ Offline-first Android keyboards have users download files in a browser and impor
 - [x] The keyboard maps the selected languages' packs
 - [x] Settings → Dictionaries
 - [x] Setup's language step
-- [ ] Memory probe, device docs and a local-server test recipe
+- [x] Memory probe, device docs and a local-server test recipe
 - [ ] Check on the Pixel and the simulator against a local server
 - [ ] Hosting in the MaKeeb org
 

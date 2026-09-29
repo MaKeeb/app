@@ -61,6 +61,7 @@ func physFootprint() -> UInt64 {
 ## JVM
 
 - You can time engine hot paths (`suggest`, `keyAt`) locally in a `commonTest`, but don't commit timing assertions: they're flaky on CI. If benchmarking becomes routine, add kotlinx-benchmark in its own module.
+- `./gradlew :tools:dictionaries:packMemory` maps three packs and reports the heap each keeps and the per-key cost with the others vouching for words. 2026-09-29: about 150 KB for the first pack (one-off state), 4.5 KB for each further one, and no measurable per-key cost from vouching (docs/dictionaries/pack-catalogue.md → Memory).
 
 ## Reporting
 

@@ -22,14 +22,15 @@ makeeb/
   build-logic/        convention plugins: makeeb.kmp.library, makeeb.kmp.compose, makeeb.android.application
   gradle/             version catalog (libs.versions.toml) and wrapper
   core/               model, common, settings                      foundations, no DI, no UI
-  platform/           host, feedback, clipboard, storage           OS ports: commonMain interface + androidMain/iosMain adapters
+  platform/           host, feedback, clipboard, storage, network  OS ports: commonMain interface + androidMain/iosMain adapters
   engine/             layout, input, touch, dictionary,            pure input logic, commonMain only, unit-tested on the JVM
-                      prediction, gesture, emoji, clipboard
+                      prediction, gesture, emoji, clipboard,       (packs: the companion's dictionary pack installer)
+                      packs
   ui/                 theme, components                            Compose design system (incl. KeyboardIcons)
   feature/            keyboard, suggestions, emoji, clipboard,     Compose UI slices; settings/onboarding own ViewModels + Koin modules
                       settings, onboarding
   testing/            fakes for the platform ports (commonTest only)
-  tools/dictionaries  build-time JVM tool: dictionary packs (en_US.mkd) and the typing harness; not shipped
+  tools/dictionaries  build-time JVM tool: dictionary packs (bundled en_US.mkd, downloadable ones, the release folder) and the typing harness; not shipped
   shared/keyboard     keyboard composition root, no Compose; iOS framework "MaKeebKeyboard" (+ Swift bridge)
   shared/surface      Compose keyboard surface: strip + keys + panels
   shared/companion    companion app root (setup, settings, try-it); iOS framework "MaKeebCompanion"

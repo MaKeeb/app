@@ -136,6 +136,20 @@ tasks.register<JavaExec>("typingHarness") {
     args("--pack", pack, "--heldout", heldOutDirectory.get().file("en_US-heldout.txt").asFile.absolutePath)
 }
 
+tasks.register<JavaExec>("packMemory") {
+    group = "verification"
+    description = "Heap kept by mapped packs (primary first: hu, then en_US and de) and the per-key cost with all three."
+    dependsOn(dictionaryPacks, languagePacks)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.makeeb.tools.dictionaries.harness.PackMemoryKt")
+    maxHeapSize = "256m"
+    args(
+        languagePacksDirectory.get().file("hu.mkd").asFile.absolutePath,
+        packsDirectory.get().file("en_US.mkd").asFile.absolutePath,
+        languagePacksDirectory.get().file("de.mkd").asFile.absolutePath,
+    )
+}
+
 // `./gradlew jvmTest` is the project's "all JVM unit tests" command; include this module's.
 tasks.register("jvmTest") {
     group = "verification"
