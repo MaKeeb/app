@@ -7,13 +7,12 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 8 |
-| [In progress](doing/_doing.md) | 3 |
-| [In review](review/_review.md) | 52 |
+| [In progress](doing/_doing.md) | 2 |
+| [In review](review/_review.md) | 53 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
 
-- [APP-14](doing/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-35](doing/035-autocorrect.md): Autocorrect
 - [APP-64](doing/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 
@@ -29,6 +28,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-8](review/008-backspace-repeat-and-word-delete.md): Backspace repeat and word delete
 - [APP-9](review/009-symbol-number-and-numpad-layers.md): Symbol, number and numpad layers
 - [APP-13](review/013-next-keyboard-globe-key.md): Next-keyboard (globe) key
+- [APP-14](review/014-data-driven-layout-engine.md): Data-driven layout engine
 - [APP-15](review/015-latin-layout-variants.md): Latin layout variants
 - [APP-33](review/033-suggestion-strip.md): Suggestion strip
 - [APP-34](review/034-word-completion.md): Word completion

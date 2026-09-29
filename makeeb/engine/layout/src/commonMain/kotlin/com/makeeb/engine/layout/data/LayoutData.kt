@@ -1,8 +1,5 @@
 package com.makeeb.engine.layout.data
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
 /** One bundled data file: its layout id or language tag, and its JSON text. */
 internal class BundledFile(val name: String, val json: String)
 
@@ -131,13 +128,9 @@ internal object LayoutDataParser {
         return next == parts.size
     }
 
-    /** Strict JSON: an unknown field is an error, not something to skip. */
-    private val json = Json { ignoreUnknownKeys = false }
-
     fun layout(file: BundledFile): Parsed<LetterLayoutSpec> {
         val problems = Problems("layouts/${file.name}.json")
-        val parsed = problems.decode(file.json) { json.decodeFromString(LayoutFile.serializer(), it) }
-            ?: return problems.result(null)
+        val parsed = problems.decode(file.json, ::layoutFile) ?: return problems.result(null)
         with(problems) {
             checkHeader(parsed.schema, parsed.sources)
             if (!isLayoutId(parsed.id)) add("$.id", "must be 1–32 of a-z, 0-9, _ and -, starting with a letter or digit")
@@ -178,8 +171,7 @@ internal object LayoutDataParser {
     /** [layoutIds]: the layouts a language may name. */
     fun language(file: BundledFile, layoutIds: Set<String>): Parsed<LanguageSpec> {
         val problems = Problems("languages/${file.name}.json")
-        val parsed = problems.decode(file.json) { json.decodeFromString(LanguageFile.serializer(), it) }
-            ?: return problems.result(null)
+        val parsed = problems.decode(file.json, ::languageFile) ?: return problems.result(null)
         with(problems) {
             checkHeader(parsed.schema, parsed.sources)
             if (!isLanguageTag(parsed.language)) add("$.language", "'${parsed.language}' is not a language tag like de, pt-BR or sr-Latn")
@@ -223,15 +215,16 @@ internal object LayoutDataParser {
 
         fun <T : Any> result(value: T?): Parsed<T> = Parsed(if (found.isEmpty()) value else null, found.toList())
 
-        fun <T : Any> decode(text: String, reader: (String) -> T): T? {
+        /** [text] as strict JSON, read by [reader] against the schema; null after a problem. */
+        fun <T : Any> decode(text: String, reader: (JsonValue) -> T): T? {
             if (text.length > MAX_FILE_CHARS) {
                 add("$", "is ${text.length} characters, at most $MAX_FILE_CHARS")
                 return null
             }
             return try {
-                reader(text)
-            } catch (e: IllegalArgumentException) { // SerializationException included
-                add("$", e.message ?: "is not valid JSON")
+                reader(JsonReader.parse(text))
+            } catch (e: JsonDataException) {
+                add(e.path, e.message ?: "is not valid JSON")
                 null
             }
         }
@@ -290,30 +283,56 @@ internal object LayoutDataParser {
     }
 }
 
-@Serializable
+/** A layout file as written, before the checks. */
 internal class LayoutFile(
     val schema: Int,
     val id: String,
     val name: String,
     val rows: List<String>,
-    val keys: Map<String, KeyOptions> = emptyMap(),
+    val keys: Map<String, KeyOptions>,
     val sources: List<String>,
 )
 
-@Serializable
-internal class KeyOptions(
-    val width: Float? = null,
-    val alternates: String? = null,
-)
+internal class KeyOptions(val width: Float?, val alternates: String?)
 
-@Serializable
+/** A language file as written, before the checks. */
 internal class LanguageFile(
     val schema: Int,
     val language: String,
     val name: String,
     val autonym: String,
     val layouts: List<String>,
-    val alternates: Map<String, String> = emptyMap(),
-    val shifted: Map<String, String> = emptyMap(),
+    val alternates: Map<String, String>,
+    val shifted: Map<String, String>,
     val sources: List<String>,
 )
+
+private val LAYOUT_FIELDS = setOf("schema", "id", "name", "rows", "keys", "sources")
+private val KEY_FIELDS = setOf("width", "alternates")
+private val LANGUAGE_FIELDS = setOf("schema", "language", "name", "autonym", "layouts", "alternates", "shifted", "sources")
+
+private fun layoutFile(root: JsonValue): LayoutFile {
+    val fields = JsonFields.of(root, "$", LAYOUT_FIELDS)
+    return LayoutFile(
+        schema = fields.int("schema"),
+        id = fields.string("id"),
+        name = fields.string("name"),
+        rows = fields.strings("rows"),
+        keys = fields.objectMap("keys", KEY_FIELDS).mapValues { (_, key) -> KeyOptions(key.floatOrNull("width"), key.stringOrNull("alternates")) },
+        sources = fields.strings("sources"),
+    )
+}
+
+private fun languageFile(root: JsonValue): LanguageFile {
+    val fields = JsonFields.of(root, "$", LANGUAGE_FIELDS)
+    return LanguageFile(
+        schema = fields.int("schema"),
+        language = fields.string("language"),
+        name = fields.string("name"),
+        autonym = fields.string("autonym"),
+        layouts = fields.strings("layouts"),
+        alternates = fields.stringMap("alternates"),
+        shifted = fields.stringMap("shifted"),
+        sources = fields.strings("sources"),
+    )
+}

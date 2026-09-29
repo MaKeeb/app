@@ -108,7 +108,8 @@ Upper case comes from `String.uppercase()` for now (see `shifted`).
 
 `LayoutDataParser` runs at load and in the tests (`LayoutDataTest`). It collects every problem with its file and JSON path. The keyboard never throws on bad data: a layout that fails falls back to QWERTY, and a language that fails falls back to English, then to no alternates.
 
-- **Structure:** strict JSON; unknown fields are errors; `schema` must be 1; the file is at most 64 KB; `id` and `language` match their file names.
+- **Structure:** `schema` must be 1; the file is at most 64 KB; `id` and `language` match their file names.
+- **JSON:** read by `JsonReader`, a small strict RFC 8259 reader in `commonMain` (kotlinx.serialization cost the iOS keyboard framework about 1 MB). No comments, trailing commas, single quotes or unquoted keys; only the standard escapes; no raw control characters in strings; no duplicate keys; nothing after the value; at most 8 levels of nesting. Unknown fields, missing fields and values of the wrong type are errors at their path (`$.keys.q.width: expected a number`). Syntax errors also give the line and column (`JsonReaderTest`).
 - **Rows:** exactly three; 1–12 keys each; at most 12 units wide, and at most 10 on the third row (so letters stay 0.7 units or wider beside shift and backspace).
 - **Keys:** 1–8 code points; no whitespace, control characters or lone surrogates; no `$` prefix (reserved for template keys); no key twice in a layout. `keys` entries must name a key in the rows.
 - **Alternates:** at most 16 per key; each a valid key; no repeats; not the key itself.
