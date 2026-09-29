@@ -29,8 +29,9 @@ data class KeyboardPreferences(
     val keyPopupPreview: Boolean = true,
     // Layout
     val numberRow: Boolean = false,
-    /** Multiplier on the default key height, clamped to [MIN_HEIGHT_SCALE]..[MAX_HEIGHT_SCALE]. */
-    val heightScale: Float = 1f,
+    /** Height and gap under the keys, each orientation on its own ([size]). */
+    val portraitSize: KeyboardSize = KeyboardSize(),
+    val landscapeSize: KeyboardSize = KeyboardSize(),
     val letterLayoutId: String = "qwerty",
     /**
      * The languages the user types (BCP 47), primary first. Together they decide the character
@@ -51,11 +52,6 @@ data class KeyboardPreferences(
         ThemeMode.Scheduled ->
             if (darkFromMinute <= darkUntilMinute) minuteOfDay in darkFromMinute until darkUntilMinute
             else minuteOfDay >= darkFromMinute || minuteOfDay < darkUntilMinute
-    }
-
-    companion object {
-        const val MIN_HEIGHT_SCALE = 0.8f
-        const val MAX_HEIGHT_SCALE = 1.3f
     }
 }
 

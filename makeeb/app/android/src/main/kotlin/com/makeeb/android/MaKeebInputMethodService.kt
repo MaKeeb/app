@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -115,7 +116,10 @@ class MaKeebInputMethodService :
         return ComposeView(this).apply {
             setContent {
                 val bottomInset = with(LocalDensity.current) { navigationBarInset.intValue.toDp() }
-                KeyboardSurface(session, bottomInset = bottomInset, screenHeight = LocalConfiguration.current.screenHeightDp.dp)
+                // Rotation and folding change the configuration, which recomposes with the new
+                // orientation's size.
+                val screen = LocalConfiguration.current.let { DpSize(it.screenWidthDp.dp, it.screenHeightDp.dp) }
+                KeyboardSurface(session, bottomInset = bottomInset, screenSize = screen)
             }
         }.also { inputView = it }
     }

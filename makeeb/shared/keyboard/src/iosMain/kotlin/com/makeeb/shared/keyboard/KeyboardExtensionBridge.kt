@@ -73,9 +73,19 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         }
     }
 
-    /** Total keyboard height in points for the current preferences on a screen [screenHeight] tall. */
-    fun preferredHeight(screenHeight: Double): Double =
-        KeyboardMetrics.totalHeight(preferences.preferences.value, screenHeight.toFloat()).toDouble()
+    /**
+     * The extension's whole height in points on a screen this size, for the current preferences.
+     * Its shape picks the portrait or landscape size. It includes [bottomOffset]: an extension
+     * can't draw outside its own view, so the gap is part of it.
+     */
+    fun preferredHeight(screenWidth: Double, screenHeight: Double): Double =
+        KeyboardMetrics.totalHeight(preferences.preferences.value, screen(screenWidth, screenHeight)).toDouble()
+
+    /** The user's gap under the keys in points: keys and panels end this far above the view's bottom. */
+    fun bottomOffset(screenWidth: Double, screenHeight: Double): Double =
+        KeyboardMetrics.bottomOffset(preferences.preferences.value, screen(screenWidth, screenHeight)).toDouble()
+
+    private fun screen(width: Double, height: Double) = ScreenSize(width.toFloat(), height.toFloat())
 
     val stripHeight: Double = KeyboardMetrics.STRIP_HEIGHT.toDouble()
 

@@ -57,8 +57,15 @@ class SettingsPreferencesRepository(
             soundVolume = settings.getFloat(Keys.SOUND_VOLUME, defaults.soundVolume).coerceIn(0f, 1f),
             keyPopupPreview = settings.getBoolean(Keys.POPUP_PREVIEW, defaults.keyPopupPreview),
             numberRow = settings.getBoolean(Keys.NUMBER_ROW, defaults.numberRow),
-            heightScale = settings.getFloat(Keys.HEIGHT_SCALE, defaults.heightScale)
-                .coerceIn(KeyboardPreferences.MIN_HEIGHT_SCALE, KeyboardPreferences.MAX_HEIGHT_SCALE),
+            // Before each orientation had its own size there was one height, which portrait keeps.
+            // Landscape used the rows that fit the screen whatever the height, which is its default.
+            portraitSize = readSize(
+                Keys.PORTRAIT_HEIGHT_SCALE,
+                Keys.PORTRAIT_BOTTOM_OFFSET,
+                defaults.portraitSize,
+                settings.getFloatOrNull(Keys.LEGACY_HEIGHT_SCALE),
+            ),
+            landscapeSize = readSize(Keys.LANDSCAPE_HEIGHT_SCALE, Keys.LANDSCAPE_BOTTOM_OFFSET, defaults.landscapeSize),
             letterLayoutId = settings.getString(Keys.LETTER_LAYOUT, defaults.letterLayoutId),
             // Before several languages there was one, under its own key.
             languageTags = (settings.getStringOrNull(Keys.LANGUAGES) ?: settings.getStringOrNull(Keys.LEGACY_LANGUAGE))
@@ -71,6 +78,11 @@ class SettingsPreferencesRepository(
             darkUntilMinute = settings.getInt(Keys.DARK_UNTIL, defaults.darkUntilMinute).coerceIn(0, MINUTES_PER_DAY - 1),
         )
     }
+
+    private fun readSize(heightKey: String, offsetKey: String, default: KeyboardSize, legacyHeightScale: Float? = null) = KeyboardSize(
+        heightScale = settings.getFloatOrNull(heightKey) ?: legacyHeightScale ?: default.heightScale,
+        bottomOffset = settings.getFloat(offsetKey, default.bottomOffset),
+    ).coerced()
 
     private fun write(preferences: KeyboardPreferences) = with(preferences) {
         settings.putBoolean(Keys.AUTO_CAPITALIZE, autoCapitalize)
@@ -87,7 +99,11 @@ class SettingsPreferencesRepository(
         settings.putFloat(Keys.SOUND_VOLUME, soundVolume)
         settings.putBoolean(Keys.POPUP_PREVIEW, keyPopupPreview)
         settings.putBoolean(Keys.NUMBER_ROW, numberRow)
-        settings.putFloat(Keys.HEIGHT_SCALE, heightScale)
+        settings.putFloat(Keys.PORTRAIT_HEIGHT_SCALE, portraitSize.heightScale)
+        settings.putFloat(Keys.PORTRAIT_BOTTOM_OFFSET, portraitSize.bottomOffset)
+        settings.putFloat(Keys.LANDSCAPE_HEIGHT_SCALE, landscapeSize.heightScale)
+        settings.putFloat(Keys.LANDSCAPE_BOTTOM_OFFSET, landscapeSize.bottomOffset)
+        settings.remove(Keys.LEGACY_HEIGHT_SCALE)
         settings.putString(Keys.LETTER_LAYOUT, letterLayoutId)
         settings.putString(Keys.LANGUAGES, languageTags.joinToString(","))
         settings.remove(Keys.LEGACY_LANGUAGE)
@@ -116,7 +132,13 @@ class SettingsPreferencesRepository(
         const val SOUND_VOLUME = "feedback.sound_volume"
         const val POPUP_PREVIEW = "feedback.popup_preview"
         const val NUMBER_ROW = "layout.number_row"
-        const val HEIGHT_SCALE = "layout.height_scale"
+        const val PORTRAIT_HEIGHT_SCALE = "layout.portrait.height_scale"
+        const val PORTRAIT_BOTTOM_OFFSET = "layout.portrait.bottom_offset"
+        const val LANDSCAPE_HEIGHT_SCALE = "layout.landscape.height_scale"
+        const val LANDSCAPE_BOTTOM_OFFSET = "layout.landscape.bottom_offset"
+
+        /** One height for both orientations, read once into [PORTRAIT_HEIGHT_SCALE]. */
+        const val LEGACY_HEIGHT_SCALE = "layout.height_scale"
         const val LETTER_LAYOUT = "layout.letters"
         const val LANGUAGES = "layout.languages"
 

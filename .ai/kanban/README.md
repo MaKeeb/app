@@ -6,10 +6,14 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 6 |
-| [In progress](doing/_doing.md) | 0 |
+| [Ready to start](todo/_todo.md) | 5 |
+| [In progress](doing/_doing.md) | 1 |
 | [In review](review/_review.md) | 60 |
 | [Done](done/_done.md) | 5 |
+
+## In progress
+
+- [APP-77](doing/077-keyboard-height-and-size.md): Keyboard height and size
 
 ## In review
 
@@ -81,7 +85,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
-- [APP-77](todo/077-keyboard-height-and-size.md): Keyboard height and size
 
 ## Next
 

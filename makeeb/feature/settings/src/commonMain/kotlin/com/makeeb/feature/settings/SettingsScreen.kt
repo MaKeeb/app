@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.settings.KeyboardPreferences
+import com.makeeb.core.settings.KeyboardSize
 import com.makeeb.core.settings.ThemeMode
 import com.makeeb.core.settings.matchesSettingsSearch
 import com.makeeb.engine.layout.LanguageInfo
@@ -263,10 +264,10 @@ private fun settingsSections(
                 SettingRow("Keyboard height", keywords = "size tall short bigger smaller") {
                     SliderRow(
                         title = "Keyboard height",
-                        value = preferences.heightScale,
-                        onValueChange = { v -> onUpdate { it.copy(heightScale = v) } },
-                        valueRange = KeyboardPreferences.MIN_HEIGHT_SCALE..KeyboardPreferences.MAX_HEIGHT_SCALE,
-                        valueLabel = percent(preferences.heightScale),
+                        value = preferences.portraitSize.heightScale,
+                        onValueChange = { v -> onUpdate { it.copy(portraitSize = it.portraitSize.copy(heightScale = v)) } },
+                        valueRange = KeyboardSize.MIN_HEIGHT_SCALE..KeyboardSize.MAX_HEIGHT_SCALE,
+                        valueLabel = percent(preferences.portraitSize.heightScale),
                     )
                 },
             ),

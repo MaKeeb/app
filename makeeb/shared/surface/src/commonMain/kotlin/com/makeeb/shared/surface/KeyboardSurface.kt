@@ -13,10 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.makeeb.shared.keyboard.KeyboardMetrics
 import com.makeeb.shared.keyboard.KeyboardRenderer
 import com.makeeb.shared.keyboard.KeyboardSession
+import com.makeeb.shared.keyboard.ScreenSize
 import com.makeeb.shared.keyboard.StripAction
 import com.makeeb.core.common.currentMinuteOfDay
 import com.makeeb.core.model.ImeAction
@@ -36,22 +38,24 @@ import com.makeeb.ui.theme.MaKeebKeyboardTheme
 /**
  * The whole keyboard: suggestion strip, then keys or a panel. Fixed height across modes.
  * [bottomInset] is the system navigation area under the keyboard (Android's back and switcher
- * buttons), which the host measures: inside an IME window Compose's own insets report zero.
- * [screenHeight] keeps rows short on short screens (landscape phones); null keeps them full size.
+ * buttons), which the host measures: inside an IME window Compose's own insets report zero; the
+ * user's own gap goes on top of it. [screenSize] picks the portrait or landscape size and keeps
+ * rows short on short screens (landscape phones); null means portrait at full size.
  */
 @Composable
-fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bottomInset: Dp = 0.dp, screenHeight: Dp? = null) {
+fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bottomInset: Dp = 0.dp, screenSize: DpSize? = null) {
     val state by session.engine.state.collectAsState()
     val preferences by session.preferences.collectAsState()
     val geometry by session.geometry.collectAsState()
     val dark = preferences.useDarkTheme(isSystemInDarkTheme(), currentMinuteOfDay())
+    val screen = screenSize?.let { ScreenSize(it.width.value, it.height.value) }
 
     MaKeebKeyboardTheme(darkTheme = dark) {
         Column(
             modifier
                 .fillMaxWidth()
                 .background(KeyboardTheme.colors.background)
-                .padding(bottom = bottomInset + KeyboardMetrics.BOTTOM_PADDING.dp),
+                .padding(bottom = bottomInset + (KeyboardMetrics.BOTTOM_PADDING + KeyboardMetrics.bottomOffset(preferences, screen)).dp),
         ) {
             val searching = state.emojiSearch
             if (searching != null) {
@@ -89,7 +93,7 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
                 }
             }
 
-            val area = Modifier.fillMaxWidth().height(KeyboardMetrics.keysAreaHeight(preferences, screenHeight?.value).dp)
+            val area = Modifier.fillMaxWidth().height(KeyboardMetrics.keysAreaHeight(preferences, screen).dp)
             when (state.panel) {
                 KeyboardPanel.Keys -> KeyboardKeys(
                     geometry = geometry,

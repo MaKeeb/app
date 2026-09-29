@@ -13,6 +13,8 @@ final class KeyboardViewController: UIInputViewController {
     private lazy var emojiSearchStrip = EmojiSearchStripView(bridge: bridge)
     private var shownPanel: KeyboardPanel = .keys
     private var heightConstraint: NSLayoutConstraint?
+    /// Keeps the user's gap free under the keys and panels (`bottomOffset`).
+    private var bottomGapConstraint: NSLayoutConstraint?
 
     override init(nibName: String?, bundle: Bundle?) {
         super.init(nibName: nibName, bundle: bundle)
@@ -41,16 +43,19 @@ final class KeyboardViewController: UIInputViewController {
         keyboardView.stripHeight = CGFloat(bridge.stripHeight)
         keyboardView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(keyboardView)
+        let bottomGap = keyboardView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         NSLayoutConstraint.activate([
             keyboardView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             keyboardView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             keyboardView.topAnchor.constraint(equalTo: view.topAnchor),
-            keyboardView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomGap,
         ])
-        let height = view.heightAnchor.constraint(equalToConstant: preferredHeight())
+        bottomGapConstraint = bottomGap
+        let height = view.heightAnchor.constraint(equalToConstant: 0)
         height.priority = UILayoutPriority(999)
         height.isActive = true
         heightConstraint = height
+        applySize()
 
         subscription = bridge.observe { [weak self] render in
             guard let self else { return }
@@ -63,8 +68,7 @@ final class KeyboardViewController: UIInputViewController {
             showPanel(for: render)
             showEmojiSearch(for: render)
             // Quick settings can change the height (number row) while the keyboard is up.
-            let height = preferredHeight()
-            if let constraint = heightConstraint, constraint.constant != height { constraint.constant = height }
+            applySize()
         }
     }
 
@@ -90,7 +94,7 @@ final class KeyboardViewController: UIInputViewController {
                     panel.topAnchor.constraint(equalTo: view.topAnchor, constant: keyboardView.stripHeight),
                     panel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                     panel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                    panel.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                    panel.bottomAnchor.constraint(equalTo: keyboardView.bottomAnchor),
                 ])
                 if panel === emojiPanel { emojiPanel.open() }
             }
@@ -131,19 +135,25 @@ final class KeyboardViewController: UIInputViewController {
         LaunchTrace.mark("viewWillAppear")
         keyboardView.drawnSinceAppearing = false
         bridge.viewWillAppear()
-        heightConstraint?.constant = preferredHeight()
+        applySize()
     }
 
-    /// Rotation changes the screen height, and with it the row height (short rows in landscape).
+    /// Rotation changes the screen's shape, and with it the user's size (portrait or landscape)
+    /// and the row height (short rows on a landscape phone).
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        let height = preferredHeight()
-        if let constraint = heightConstraint, constraint.constant != height { constraint.constant = height }
+        applySize()
     }
 
-    private func preferredHeight() -> CGFloat {
-        let screen = view.window?.windowScene?.screen ?? UIScreen.main
-        return CGFloat(bridge.preferredHeight(screenHeight: Double(screen.bounds.height)))
+    /// The height and bottom gap for the screen as it is now. Both come from the shared metrics;
+    /// the gap is empty space inside the view, since an extension can't draw outside it.
+    private func applySize() {
+        let screen = (view.window?.windowScene?.screen ?? UIScreen.main).bounds.size
+        let width = Double(screen.width), height = Double(screen.height)
+        let total = CGFloat(bridge.preferredHeight(screenWidth: width, screenHeight: height))
+        let gap = CGFloat(bridge.bottomOffset(screenWidth: width, screenHeight: height))
+        if let constraint = heightConstraint, constraint.constant != total { constraint.constant = total }
+        if let constraint = bottomGapConstraint, constraint.constant != -gap { constraint.constant = -gap }
     }
 
     override func viewDidAppear(_ animated: Bool) {

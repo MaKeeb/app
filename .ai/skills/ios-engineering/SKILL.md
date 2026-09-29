@@ -62,7 +62,7 @@ The budget is 30 MB steady and 40 MB peak on the oldest supported device. Jetsam
 - Use UIKit for the key grid, not SwiftUI: iOS 27 has reports of SwiftUI gesture lag and a NaN-geometry layer crash in keyboards (research §3.9). SwiftUI is acceptable for secondary panels.
 - Nothing can draw above the view's top edge. Previews and popups extend into the strip area (`TouchConfig.overflowAbove`).
 - Globe key: draw it only when `needsInputModeSwitchKey` is true. The system keyboard list comes from `handleInputModeList(from:with:)`, which needs a real `UIView` and `UIEvent`. Either overlay a native control on the key's frame (the research recommends this), or call it from `KeyboardView`'s touch handlers with the real event. In both cases the Kotlin side must not also act on that touch.
-- Height comes from a priority-999 constraint on the controller's view; the system controls the width. iOS 26 Liquid Glass adds host chrome and margins you can't draw over. Test in Messages, Notes and Safari.
+- Height comes from a priority-999 constraint on the controller's view (`preferredHeight`); the system controls the width. The user's bottom gap (`bottomOffset`) is part of that height: `KeyboardView` and the panels end that far above the view's bottom. `applySize()` recomputes both from the screen's shape on appearance, rotation and every render. iOS 26 Liquid Glass adds host chrome and margins you can't draw over. Test in Messages, Notes and Safari.
 - Appearance: `KeyboardView` redraws on `UITraitUserInterfaceStyle` changes, and colours come from `KeyboardRender.palette(systemDark:)`. Hosts can also ask for a dark keyboard through `textDocumentProxy.keyboardAppearance`, so respect it.
 
 ## Shared data and privacy manifests

@@ -12,12 +12,50 @@ class SettingsPreferencesRepositoryTest {
         val store = MapSettings()
         val repository = SettingsPreferencesRepository(store)
 
-        repository.update { it.copy(autoCorrect = false, theme = ThemeMode.Dark, heightScale = 1.2f) }
+        repository.update { it.copy(autoCorrect = false, theme = ThemeMode.Dark, portraitSize = KeyboardSize(heightScale = 1.2f)) }
 
         val reopened = SettingsPreferencesRepository(store)
         assertFalse(reopened.preferences.value.autoCorrect)
         assertEquals(ThemeMode.Dark, reopened.preferences.value.theme)
-        assertEquals(1.2f, reopened.preferences.value.heightScale)
+        assertEquals(1.2f, reopened.preferences.value.portraitSize.heightScale)
+    }
+
+    @Test
+    fun eachOrientationKeepsItsOwnSize() {
+        val store = MapSettings()
+        SettingsPreferencesRepository(store).update {
+            it.copy(portraitSize = KeyboardSize(heightScale = 1.1f, bottomOffset = 8f), landscapeSize = KeyboardSize(heightScale = 0.9f, bottomOffset = 16f))
+        }
+        val reopened = SettingsPreferencesRepository(store).preferences.value
+        assertEquals(KeyboardSize(heightScale = 1.1f, bottomOffset = 8f), reopened.portraitSize)
+        assertEquals(KeyboardSize(heightScale = 0.9f, bottomOffset = 16f), reopened.landscapeSize)
+        // The storage keys are persisted: never rename one.
+        assertEquals(1.1f, store.getFloat("layout.portrait.height_scale", 0f))
+        assertEquals(8f, store.getFloat("layout.portrait.bottom_offset", 0f))
+        assertEquals(0.9f, store.getFloat("layout.landscape.height_scale", 0f))
+        assertEquals(16f, store.getFloat("layout.landscape.bottom_offset", 0f))
+    }
+
+    @Test
+    fun theSingleHeightOfEarlierVersionsBecomesThePortraitHeight() {
+        val store = MapSettings()
+        store.putFloat("layout.height_scale", 1.2f)
+        val repository = SettingsPreferencesRepository(store)
+        assertEquals(KeyboardSize(heightScale = 1.2f), repository.preferences.value.portraitSize)
+        assertEquals(KeyboardSize(), repository.preferences.value.landscapeSize, "landscape starts from its own default")
+
+        repository.update { it.copy(numberRow = true) }
+        assertFalse(store.hasKey("layout.height_scale"), "the old key goes once the sizes are written")
+        assertEquals(1.2f, store.getFloat("layout.portrait.height_scale", 0f))
+        assertEquals(1.2f, SettingsPreferencesRepository(store).preferences.value.portraitSize.heightScale)
+    }
+
+    @Test
+    fun aStoredPortraitHeightWinsOverTheOldOne() {
+        val store = MapSettings()
+        store.putFloat("layout.height_scale", 1.2f)
+        store.putFloat("layout.portrait.height_scale", 0.9f)
+        assertEquals(0.9f, SettingsPreferencesRepository(store).preferences.value.portraitSize.heightScale)
     }
 
     @Test
@@ -43,11 +81,15 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
-    fun outOfRangeHeightIsClamped() {
+    fun outOfRangeSizesAreClamped() {
         val store = MapSettings()
         store.putFloat("layout.height_scale", 9f)
-        val repository = SettingsPreferencesRepository(store)
-        assertEquals(KeyboardPreferences.MAX_HEIGHT_SCALE, repository.preferences.value.heightScale)
+        store.putFloat("layout.portrait.bottom_offset", -5f)
+        store.putFloat("layout.landscape.height_scale", 0.1f)
+        store.putFloat("layout.landscape.bottom_offset", 500f)
+        val preferences = SettingsPreferencesRepository(store).preferences.value
+        assertEquals(KeyboardSize(KeyboardSize.MAX_HEIGHT_SCALE, 0f), preferences.portraitSize)
+        assertEquals(KeyboardSize(KeyboardSize.MIN_HEIGHT_SCALE, KeyboardSize.MAX_BOTTOM_OFFSET), preferences.landscapeSize)
     }
 
     @Test
