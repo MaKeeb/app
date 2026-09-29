@@ -211,11 +211,8 @@ class DictionarySuggestionEngine(
         MARGIN + (if (typed.length <= 3) SHORT_WORD_MARGIN else 0f) + (if (targetFrequency < RARE_FREQUENCY) RARE_TARGET_MARGIN else 0f) +
             (if (strength == AutocorrectStrength.Modest) MODEST_MARGIN else 0f)
 
-    /** Whether the main dictionary is the lexicon for every one of [languages]. */
-    private fun covers(languages: List<String>): Boolean {
-        val own = main.languageTag.substringBefore('-')
-        return languages.all { it.substringBefore('-') == own }
-    }
+    /** Whether the main dictionary covers every one of [languages]: the primary's, and any pack that vouches for words ([Dictionary.covers]). */
+    private fun covers(languages: List<String>): Boolean = languages.all(main::covers)
 
     /** The cost of a word from its frequency: 0 for the commonest, [LM_RANGE] for the rarest. */
     private fun lmCost(frequency: Int): Float = (MAX_FREQUENCY - frequency.coerceIn(0, MAX_FREQUENCY)) * LM_RANGE / MAX_FREQUENCY

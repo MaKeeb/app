@@ -16,23 +16,33 @@ import com.makeeb.engine.layout.LayoutProvider
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
 import com.makeeb.engine.prediction.SuggestionEngine
 import com.makeeb.platform.storage.BundledFiles
+import com.makeeb.platform.storage.PackFiles
 import com.makeeb.platform.storage.PrivateFiles
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.map
 import org.koin.dsl.module
 
 /**
  * Engine bindings for the keyboard process. Requires a `PreferencesRepository` from the
- * platform root, takes the dictionary pack from its `BundledFiles` and keeps learned words in its
- * `PrivateFiles` when it binds them. Koin singles are lazy, so nothing heavy loads until the
- * keyboard shows.
+ * platform root, takes the dictionary packs from its `BundledFiles` (English) and `PackFiles`
+ * (downloaded languages) and keeps learned words in its `PrivateFiles` when it binds them. Koin
+ * singles are lazy, so nothing heavy loads until the keyboard shows.
  */
 val keyboardRuntimeModule = module {
     single<LayoutProvider> { BuiltInLayoutProvider() }
-    // Mapping starts when the engine first asks for the dictionary, as the keyboard is created.
-    single { BundledDictionaryLoader(files = getOrNull<BundledFiles>(), scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
-    single<Dictionary> { get<BundledDictionaryLoader>().also { it.start() }.dictionary }
+    // Mapping starts when the engine first asks for the dictionary, as the keyboard is created:
+    // the selected languages' packs, bundled (English) or downloaded by the companion app.
+    single {
+        DictionaryLoader(
+            bundled = getOrNull<BundledFiles>(),
+            packs = getOrNull<PackFiles>(),
+            languageTags = get<PreferencesRepository>().preferences.map { it.languageTags },
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        )
+    }
+    single<Dictionary> { get<DictionaryLoader>().also { it.start() }.dictionary }
     // Learned words load from the keyboard's private files (memory only when the platform binds
     // none) while the keyboard shows, and save back in batches, both off the main thread.
     single {
@@ -70,6 +80,7 @@ val keyboardRuntimeModule = module {
             scope = scope,
             snippetsRepository = getOrNull(),
             learnedWords = get(),
+            dictionaries = getOrNull(),
         )
     }
 }

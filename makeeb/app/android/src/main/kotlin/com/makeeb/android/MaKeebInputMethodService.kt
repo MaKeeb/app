@@ -34,7 +34,7 @@ import com.makeeb.platform.host.ImeServiceKeyboardHost
 import com.makeeb.platform.host.InputConnectionTextHost
 import com.makeeb.platform.host.TextSelection
 import com.makeeb.platform.host.toEditorAttributes
-import com.makeeb.shared.keyboard.BundledDictionaryLoader
+import com.makeeb.shared.keyboard.DictionaryLoader
 import com.makeeb.shared.keyboard.KeyLatency
 import com.makeeb.shared.keyboard.KeyboardPorts
 import com.makeeb.shared.keyboard.KeyboardSession
@@ -93,8 +93,8 @@ class MaKeebInputMethodService :
         if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 || packageName.endsWith(".benchmark")) {
             session.latency = KeyLatency({ Log.d("MaKeebLatency", it) })
             scope.launch {
-                val status = get<BundledDictionaryLoader>().status.first {
-                    it !is BundledDictionaryLoader.Status.Idle && it !is BundledDictionaryLoader.Status.Loading
+                val status = get<DictionaryLoader>().status.first {
+                    it !is DictionaryLoader.Status.Idle && it !is DictionaryLoader.Status.Loading
                 }
                 Log.d("MaKeebDictionary", "$status, ready ${created.elapsedNow().inWholeMilliseconds} ms after the service was created")
             }

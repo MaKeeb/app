@@ -20,6 +20,14 @@ interface Dictionary {
      */
     val isComprehensive: Boolean get() = false
 
+    /**
+     * Whether this dictionary is for [languageTag]'s language, so words typed in it can be judged
+     * against it. Autocorrect replaces words only while it covers every selected language: a
+     * Hungarian word looks like a typo to an English dictionary.
+     */
+    fun covers(languageTag: String): Boolean =
+        languageTag.substringBefore('-').equals(this.languageTag.substringBefore('-'), ignoreCase = true)
+
     fun lookup(word: String): WordEntry?
 
     /** Words starting with [prefix], most frequent first. */

@@ -1,6 +1,7 @@
 package com.makeeb.engine.prediction
 
 import com.makeeb.core.model.AutocorrectStrength
+import com.makeeb.engine.dictionary.SelectedDictionaries
 import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
 import com.makeeb.engine.dictionary.WordEntry
@@ -188,5 +189,20 @@ class DictionarySuggestionEngineTest {
         assertNull(engine.suggest(TypingContext("dont", languages = listOf("hu", "en"))).autoCorrection, "known typos too: Hungarian has dont")
         assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty, languages = listOf("en-GB"))).autoCorrection, "another English is covered")
         assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "no languages: the dictionary's own")
+    }
+
+    @Test
+    fun onceEverySelectedLanguageHasALexiconAutocorrectRunsAndLeavesTheirWordsAlone() {
+        val hungarian = object : TrieDictionary("hu", listOf(WordEntry("szia", 200), WordEntry("helló", 190), WordEntry("kérdés", 180))) {
+            override val isComprehensive = true
+        }
+        val engine = DictionarySuggestionEngine(SelectedDictionaries(hungarian, listOf(lexicon("hello" to 200, "the" to 220))), UserDictionary("hu"))
+        val both = listOf("hu", "en")
+        assertEquals("szia", engine.suggest(TypingContext("szis", keys = qwerty, languages = both)).autoCorrection, "the pause lifts")
+        assertEquals("kérdés", engine.suggest(TypingContext("kerdes", languages = both)).autoCorrection, "the primary's accents")
+        assertNull(engine.suggest(TypingContext("hello", languages = both)).autoCorrection, "an English word, not helló without its accent")
+        assertNull(engine.suggest(TypingContext("the", keys = qwerty, languages = both)).autoCorrection, "valid in English")
+        assertNull(engine.suggest(TypingContext("szis", keys = qwerty, languages = listOf("hu", "en", "sv"))).autoCorrection, "Swedish has no lexicon yet")
+        assertTrue(engine.suggest(TypingContext("hel", languages = both)).suggestions.none { it.text == "hello" }, "suggestions stay the primary's")
     }
 }

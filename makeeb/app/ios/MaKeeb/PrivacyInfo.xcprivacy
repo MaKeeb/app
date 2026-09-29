@@ -21,6 +21,15 @@
 			</array>
 		</dict>
 		<dict>
+			<!-- Sizes of the dictionary packs in the App Group container, and mapping them (stat, fstat). -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<dict>
 			<!-- Monotonic time for double-tap / long-press timing (Kotlin TimeSource). -->
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>

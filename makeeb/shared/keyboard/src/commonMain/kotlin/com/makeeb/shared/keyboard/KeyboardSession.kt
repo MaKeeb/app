@@ -69,6 +69,8 @@ class KeyboardSession(
     private val snippetsRepository: SnippetsRepository? = null,
     /** Learned words to load when a field starts and save when the keyboard hides; none in tests that don't care. */
     private val learnedWords: LearnedWordsStore? = null,
+    /** Looks for packs the companion app installed or removed when a field starts; none in tests that don't care. */
+    private val dictionaries: DictionaryLoader? = null,
 ) {
     val preferences: StateFlow<KeyboardPreferences> = preferencesRepository.preferences
     val emojiRecentsState: StateFlow<List<Emoji>> = emojiRecents.recents
@@ -153,6 +155,7 @@ class KeyboardSession(
         this.keyboardHost = keyboardHost
         // A no-op once loaded; after a boot, the first field after the unlock reads the saved words.
         learnedWords?.load()
+        dictionaries?.refresh()
         if (preferences.value.keyPressHaptics) ports.haptics.prepare()
         engine.startInput(textHost, keyboardHost, attributes, selection)
         clipboardHistory.expire()

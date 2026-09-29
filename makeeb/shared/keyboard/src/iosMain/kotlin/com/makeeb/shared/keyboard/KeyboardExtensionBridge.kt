@@ -67,8 +67,8 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     /** Debug builds log when the dictionary pack is ready (Console, "MaKeebDictionary"); durations and counts only. */
     private fun logDictionaryLoad() {
         scope.launch {
-            val status = get<BundledDictionaryLoader>().status.first {
-                it !is BundledDictionaryLoader.Status.Idle && it !is BundledDictionaryLoader.Status.Loading
+            val status = get<DictionaryLoader>().status.first {
+                it !is DictionaryLoader.Status.Idle && it !is DictionaryLoader.Status.Loading
             }
             val line = "MaKeebDictionary: $status, ready ${created.elapsedNow().inWholeMilliseconds} ms after the bridge was created"
             NSLog(line.replace("%", "%%"))
