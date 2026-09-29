@@ -11,6 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 import com.makeeb.core.model.KeyboardPalette
+import com.makeeb.core.settings.AppGroupLearnedWordsReset
+import com.makeeb.core.settings.LearnedWordsResetRequest
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.SnippetsRepository
 import com.makeeb.core.settings.appGroupPreferencesRepository
@@ -35,6 +37,8 @@ private val iosCompanionPlatformModule = module {
     single<PreferencesRepository> { appGroupPreferencesRepository() }
     single<SnippetsRepository> { appGroupSnippetsRepository() }
     single<LayoutProvider> { BuiltInLayoutProvider() }
+    // Learned words live in the keyboard extension's container: the app can only ask for a clear.
+    single<LearnedWordsResetRequest> { AppGroupLearnedWordsReset }
 }
 
 /**

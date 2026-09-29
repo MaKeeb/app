@@ -34,7 +34,7 @@ Read `keyboard-platforms` first. The evidence is in `docs/research/platform-apis
 - Reports say context reads made right after `adjustTextPosition` can be stale. Don't build logic that moves the caret and immediately re-reads.
 - Enter: `performEditorAction` returns false and the engine inserts `\n`, which is how iOS apps receive Return. Label the key from `returnKeyType`.
 - Secure and phone-pad fields never reach us, because the system keyboard takes over.
-- There's no iOS equivalent of Android's no-learning flag. The research (§1) treats `autocorrectionType == .no` as the closest hint. Map it in `InputTraitsMapping.kt` alongside the Android flags.
+- There's no iOS equivalent of Android's no-learning flag. The research (§1) treats `autocorrectionType == .no` as the closest hint: it maps to `EditorAttributes.autoCorrect = false`, and `InputEngine` never learns in such fields (on either platform).
 
 ## Full Access
 
@@ -67,7 +67,7 @@ The budget is 30 MB steady and 40 MB peak on the oldest supported device. Jetsam
 
 ## Shared data and privacy manifests
 
-- The App Group is `group.com.makeeb`. The companion writes preferences (`IosPreferences.kt`, suite `NSUserDefaults`), and the extension reads them and calls `reload()` in `viewWillAppear`. Without Full Access the extension's group writes reportedly fail silently, so data the keyboard owns (learned words, recents) lives in the extension's own container.
+- The App Group is `group.com.makeeb`. The companion writes preferences (`IosPreferences.kt`, suite `NSUserDefaults`), and the extension reads them and calls `reload()` in `viewWillAppear`. Without Full Access the extension's group writes reportedly fail silently, so data the keyboard owns (learned words, recents) lives in the extension's own container (`ContainerFiles`). The companion can't read that container, so it can't list learned words; it can ask the keyboard to clear them through the App Group (`AppGroupLearnedWordsReset`, applied in `viewWillAppear`).
 - Both targets have a `PrivacyInfo.xcprivacy`. The Kotlin/Native runtime needs `mach_absolute_time` (35F9.1) and `stat`/`fstat` (0A2A.1), and App Group `UserDefaults` needs 1C8F.1. Add a reason whenever you use another required-reason API.
 
 ## Debugging

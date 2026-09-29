@@ -31,7 +31,7 @@ Learn new words and personal word pairs locally, and let users see, remove or re
 - [x] Persist learned words, capped and off the typing path
 - [x] A word is known only on evidence
 - [x] Long-press a learned suggestion to forget it
-- [ ] View, remove and clear learned words from the companion
+- [x] View, remove and clear learned words from the companion
 - [ ] Picking a just-forgotten word on purpose learns it back
 - [ ] Check on the Pixel and in test22_learnedWords
 

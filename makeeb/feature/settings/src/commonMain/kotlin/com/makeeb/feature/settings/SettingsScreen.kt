@@ -45,7 +45,11 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.roundToInt
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel = koinViewModel()) {
+fun SettingsScreen(
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = koinViewModel(),
+    learnedWords: LearnedWordsViewModel = koinViewModel(),
+) {
     // Picks up what the keyboard's quick settings changed while the app was in the background.
     LifecycleResumeEffect(viewModel) {
         viewModel.reload()
@@ -62,6 +66,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
         Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet),
         viewModel::accents,
         viewModel.dictionaryLanguages,
+        learnedWords = if (learnedWords.access == LearnedWordsViewModel.Access.None) null else { { LearnedWordsEditor(learnedWords) } },
     )
 }
 
@@ -77,9 +82,12 @@ fun SettingsContent(
     accents: (List<String>) -> Map<String, List<String>> = { emptyMap() },
     /** Language subtags with a full lexicon; null when unknown (no autocorrect note). */
     dictionaryLanguages: Set<String>? = null,
+    /** The learned-words editor ([LearnedWordsEditor]); none where the app can't reach them. */
+    learnedWords: (@Composable () -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val sections = (settingsSections(preferences, letterLayouts, languages, accents, dictionaryLanguages, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
+    val extras = listOfNotNull(snippets?.let(::snippetsSection), learnedWords?.let { learnedWordsSection(it) })
+    val sections = (settingsSections(preferences, letterLayouts, languages, accents, dictionaryLanguages, onUpdate) + extras)
         .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().dismissKeyboardOnDrag().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -123,6 +131,11 @@ class Snippets(val texts: List<String>, val onAdd: (String) -> Unit, val onRemov
 private fun snippetsSection(snippets: Snippets) = SettingsGroup(
     "Snippets",
     listOf(SettingRow("Snippets", "Texts you use often, one tap away in the keyboard's clipboard panel", "quick text canned address signature clipboard") { SnippetsEditor(snippets) }),
+)
+
+private fun learnedWordsSection(editor: @Composable () -> Unit) = SettingsGroup(
+    "Learned words",
+    listOf(SettingRow("Learned words", "Words MaKeeb learned from your typing", "personal dictionary vocabulary forget remove delete clear reset history privacy names slang", editor)),
 )
 
 @Composable

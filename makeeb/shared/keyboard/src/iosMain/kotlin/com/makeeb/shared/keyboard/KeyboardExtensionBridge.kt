@@ -3,9 +3,11 @@ package com.makeeb.shared.keyboard
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardPanel
 import com.makeeb.core.model.stripSlots
+import com.makeeb.core.settings.AppGroupLearnedWordsReset
 import com.makeeb.core.settings.KeyboardSignals
 import com.makeeb.core.settings.PreferencesRepository
 import com.makeeb.core.settings.QuickSetting
+import com.makeeb.engine.dictionary.LearnedWordsStore
 import com.makeeb.engine.emoji.Emoji
 import com.makeeb.platform.clipboard.PasteboardSystemClipboard
 import com.makeeb.platform.feedback.HapticFeedback
@@ -90,9 +92,11 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
     val stripHeight: Double = KeyboardMetrics.STRIP_HEIGHT.toDouble()
 
     fun viewWillAppear() {
-        // The companion app writes preferences and snippets from another process.
+        // The companion app writes preferences and snippets from another process, and asks for
+        // learned words to be cleared the same way: it can't reach the extension's container.
         preferences.reload()
         session.reloadSnippets()
+        get<LearnedWordsStore>().applyClearRequest(AppGroupLearnedWordsReset.requested)
         KeyboardSignals.recordShown(controller.hasFullAccess)
         session.start(textHost, keyboardHost, controller.textDocumentProxy.toEditorAttributes())
     }
