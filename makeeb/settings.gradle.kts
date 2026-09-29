@@ -36,6 +36,7 @@ include(":platform:host")
 include(":platform:feedback")
 include(":platform:clipboard")
 include(":platform:storage")
+include(":platform:network")
 
 // engine — pure input logic (commonMain only, no Compose)
 include(":engine:layout")

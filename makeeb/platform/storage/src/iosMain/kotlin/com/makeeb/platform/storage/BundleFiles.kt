@@ -10,6 +10,8 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toLong
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.ref.createCleaner
 import platform.Foundation.NSBundle
 import platform.posix.MAP_PRIVATE
 import platform.posix.O_RDONLY
@@ -39,9 +41,20 @@ class BundleFiles(private val bundle: NSBundle = NSBundle.mainBundle) : BundledF
 
 /** A read-only `mmap` of a whole file. Reads are bounds-checked: a bad offset throws instead of faulting. */
 @OptIn(ExperimentalForeignApi::class)
-class MmapByteRegion private constructor(private val base: CPointer<ByteVar>, override val size: Int) : ByteRegion {
+class MmapByteRegion private constructor(private val mapping: Mapping) : ByteRegion {
+    private val base: CPointer<ByteVar> = mapping.base
+    override val size: Int = mapping.size
+
     /** Readable bytes: [size] until [close], then 0. */
     private var limit = size
+
+    /**
+     * Unmaps a region nobody closed once it is unreachable: a downloaded pack the keyboard stopped
+     * using. Only the GC decides that, so no reader can still be inside it.
+     */
+    @OptIn(ExperimentalNativeApi::class)
+    @Suppress("unused")
+    private val cleaner = createCleaner(mapping) { it.release() }
 
     override fun u8(offset: Int): Int {
         if (offset < 0 || offset >= limit) throw IndexOutOfBoundsException("offset $offset, size $limit")
@@ -51,7 +64,18 @@ class MmapByteRegion private constructor(private val base: CPointer<ByteVar>, ov
     override fun close() {
         if (limit == 0) return
         limit = 0
-        munmap(base, size.convert())
+        mapping.release()
+    }
+
+    /** The mapping itself, apart from the region so the cleaner can hold it without the region. */
+    private class Mapping(val base: CPointer<ByteVar>, val size: Int) {
+        private var mapped = true
+
+        fun release() {
+            if (!mapped) return
+            mapped = false
+            munmap(base, size.convert())
+        }
     }
 
     companion object {
@@ -69,7 +93,7 @@ class MmapByteRegion private constructor(private val base: CPointer<ByteVar>, ov
                 val address = mmap(null, length.convert(), PROT_READ, MAP_PRIVATE, fd, 0)
                 // MAP_FAILED is ((void *)-1).
                 if (address == null || address.toLong() == -1L) return null
-                return MmapByteRegion(address.reinterpret(), length.toInt())
+                return MmapByteRegion(Mapping(address.reinterpret(), length.toInt()))
             } finally {
                 // The mapping holds its own reference to the file.
                 close(fd)

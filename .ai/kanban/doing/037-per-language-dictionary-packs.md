@@ -33,7 +33,7 @@ Offline-first Android keyboards have users download files in a browser and impor
 
 - [x] Build the packs from the AOSP word lists and the Leipzig corpora
 - [x] A catalogue, a release folder, and English from the release
-- [ ] Ports to download packs and store them where the keyboard maps them
+- [x] Ports to download packs and store them where the keyboard maps them
 - [ ] An installer that checks every pack before the keyboard can see it
 - [ ] The keyboard maps the selected languages' packs
 - [ ] Settings → Dictionaries

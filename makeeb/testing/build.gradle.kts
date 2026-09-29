@@ -9,6 +9,7 @@ kotlin {
             api(project(":platform:host"))
             api(project(":platform:clipboard"))
             api(project(":platform:storage"))
+            api(project(":platform:network"))
             api(project(":core:settings"))
             implementation(project(":core:common"))
         }
