@@ -133,6 +133,18 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
         session.onSuggestion(suggestion)
     }
 
+    /** A finger rested on the [stripIndex]th cell. True when it holds a learned word and the strip now offers to forget it. */
+    fun longPressSuggestion(stripIndex: Int): Boolean {
+        val suggestion = session.engine.state.value.suggestions.stripSlots().getOrNull(stripIndex) ?: return false
+        return session.onSuggestionLongPress(suggestion)
+    }
+
+    fun forgetOfferedWord() = session.forgetOfferedWord()
+
+    fun dismissForgetOffer() = session.dismissForgetOffer()
+
+    val suggestionLongPressMillis: Long = KeyboardMetrics.SUGGESTION_LONG_PRESS_MILLIS
+
     /**
      * Every change the renderer or an open panel shows. Recents and clipboard changes re-send the
      * same render so an open panel reloads its data.

@@ -29,6 +29,7 @@ import com.makeeb.feature.emoji.EmojiPanel
 import com.makeeb.feature.emoji.EmojiSearchStrip
 import com.makeeb.feature.keyboard.KeyboardKeys
 import com.makeeb.feature.settings.QuickSettingsPanel
+import com.makeeb.feature.suggestions.ForgetWordPrompt
 import com.makeeb.feature.suggestions.StripButton
 import com.makeeb.feature.suggestions.SuggestionStrip
 import com.makeeb.ui.theme.KeyboardIcons
@@ -70,6 +71,7 @@ fun KeyboardSurface(
                 ),
         ) {
             val searching = state.emojiSearch
+            val forgetting = state.forgetOffer?.takeIf { state.panel == KeyboardPanel.Keys }
             if (searching != null) {
                 val recents by session.emojiRecentsState.collectAsState()
                 val results = remember(searching, recents) { if (searching.isBlank()) recents else session.emojiCatalog.search(searching) }
@@ -80,10 +82,18 @@ fun KeyboardSurface(
                     onClose = session::endEmojiSearch,
                     modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
                 )
+            } else if (forgetting != null) {
+                ForgetWordPrompt(
+                    word = forgetting,
+                    onForget = session::forgetOfferedWord,
+                    onKeep = session::dismissForgetOffer,
+                    modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
+                )
             } else SuggestionStrip(
                 suggestions = if (state.panel == KeyboardPanel.Keys) state.suggestions else emptyList(),
                 onSuggestion = session::onSuggestion,
                 modifier = Modifier.fillMaxWidth().height(KeyboardMetrics.STRIP_HEIGHT.dp),
+                onLongPress = { session.onSuggestionLongPress(it) },
             ) {
                 // Hiding and switching keyboards live in the system navigation bar on Android 10+.
                 val actions = KeyboardRenderer.stripActions(state)

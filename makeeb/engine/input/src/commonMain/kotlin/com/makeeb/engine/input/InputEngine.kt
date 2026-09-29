@@ -66,6 +66,9 @@ class InputEngine(
     /** A word the user just un-corrected; it is not corrected again on the next separator. */
     private var rejectedCorrection: String? = null
 
+    /** A word just forgotten from the strip, often the one being typed: committing it next doesn't learn it back. */
+    private var forgottenWord: String? = null
+
     private data class AutoCorrection(val original: String, val corrected: String, val separator: String) {
         val committed: String get() = corrected + separator
     }
@@ -79,6 +82,7 @@ class InputEngine(
         this.keyboardHost = keyboardHost
         pendingRevert = null
         rejectedCorrection = null
+        forgottenWord = null
         lastSpace = null
         suggestionSpace = false
         val mode = attributes.initialMode
@@ -96,7 +100,7 @@ class InputEngine(
         host = DetachedTextHost
         mirror = null
         keyboardHost = null
-        mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys, emojiSearch = null) }
+        mutableState.update { it.copy(active = false, composing = "", suggestions = emptyList(), panel = KeyboardPanel.Keys, emojiSearch = null, forgetOffer = null) }
     }
 
     /** The user's incognito toggle; the field's own request applies regardless. */
@@ -143,6 +147,8 @@ class InputEngine(
     /** [tap] is where a typed letter was tapped, in layout units, when the touch layer knows. */
     fun onKey(action: KeyAction, tap: TapPoint? = null) {
         pendingTap = tap?.takeIf { action is KeyAction.Text }
+        // Typing on means "keep it".
+        dismissForgetOffer()
         if (state.value.emojiSearch != null && searchKey(action)) return
         when (action) {
             is KeyAction.Text -> typeText(action.text)
@@ -187,6 +193,7 @@ class InputEngine(
                 layout = layoutFor(KeyboardMode.Letters, it.editor),
                 shift = ShiftState.Off,
                 suggestions = emptyList(),
+                forgetOffer = null,
             )
         }
     }
@@ -260,6 +267,35 @@ class InputEngine(
         afterEdit(composing = "", consumeOneShot = true)
         suggestionSpace = true
     }
+
+    // region Forgetting
+
+    /**
+     * A long press on a strip word. For a word the keyboard learned (not a dictionary word, which
+     * can't be forgotten) the strip then asks whether to forget it ([KeyboardState.forgetOffer]).
+     * Returns whether it asks.
+     */
+    fun onSuggestionLongPressed(suggestion: Suggestion): Boolean {
+        if (suggestion.kind == Suggestion.Kind.Punctuation || suggestion.kind == Suggestion.Kind.Emoji) return false
+        if (!suggestionEngine.isLearned(suggestion.text)) return false
+        mutableState.update { it.copy(forgetOffer = suggestion.text) }
+        return true
+    }
+
+    /** The user confirmed: the word is forgotten, and the strip shows suggestions without it. */
+    fun forgetOfferedWord() {
+        val word = state.value.forgetOffer ?: return
+        suggestionEngine.forget(word)
+        forgottenWord = word
+        resyncWithHost()
+    }
+
+    /** The user kept the word (or typed on): the suggestions come back. */
+    fun dismissForgetOffer() {
+        if (state.value.forgetOffer != null) mutableState.update { it.copy(forgetOffer = null) }
+    }
+
+    // endregion
 
     private fun typeText(text: String) {
         pendingRevert = null
@@ -428,6 +464,7 @@ class InputEngine(
                 composing = composing,
                 shift = shift,
                 suggestions = casedForShift(suggestions, shift, current.editor),
+                forgetOffer = null,
             )
         }
     }
@@ -460,7 +497,9 @@ class InputEngine(
     private fun suggestionsFor(editor: EditorAttributes, prefs: KeyboardPreferences, composing: String, textBefore: String): List<Suggestion> {
         if (!prefs.showSuggestions || !editor.suggestions || editor.isPassword) return emptyList()
         if (composing.isEmpty()) return predictions(editor, textBefore).ifEmpty { punctuationShortcuts(editor, textBefore) }
+        // Learned words are flagged so a long press can offer to forget them.
         val words = suggestionEngine.suggest(typingContext(composing, textBefore)).suggestions
+            .map { if (suggestionEngine.isLearned(it.text)) it.copy(learned = true) else it }
         val emoji = composing.takeIf { prefs.emojiSuggestions && it.length >= MIN_EMOJI_WORD }?.let(emojiForWord)
             ?: return words
         // The third slot: the best word keeps the middle, the next best stays one tap away.
@@ -574,8 +613,10 @@ class InputEngine(
      * it ([SuggestionEngine.keep]).
      */
     private fun learn(word: String, kept: Boolean = false) {
+        val forgotten = forgottenWord
+        forgottenWord = null
         val current = state.value
-        if (current.incognito || !current.editor.autoCorrect) return
+        if (current.incognito || !current.editor.autoCorrect || word.equals(forgotten, ignoreCase = true)) return
         if (kept) suggestionEngine.keep(word) else suggestionEngine.learn(word)
     }
 

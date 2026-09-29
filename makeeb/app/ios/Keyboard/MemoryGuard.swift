@@ -7,7 +7,8 @@ import os
 /// memory warning releases them, so a long emoji session only grows. When the keyboard hides with
 /// its footprint past [threshold] of the limit, the process exits and the next field starts a
 /// fresh one: a cold start, instead of the keyboard vanishing mid-use later. Settings live in the
-/// App Group; emoji recents and clipboard history are still in memory and go with it.
+/// App Group, and learned words in the extension's container, saved as the keyboard starts to hide
+/// (`viewWillDisappear`); emoji recents and clipboard history are still in memory and go with it.
 enum MemoryGuard {
     static let threshold = 0.6
     /// Where the limit is unknown (the simulator reports no available memory).

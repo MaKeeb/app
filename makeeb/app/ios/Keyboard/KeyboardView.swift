@@ -26,6 +26,10 @@ final class KeyboardView: UIView {
     private var lastKeysAreaSize: CGSize = .zero
     private var stripTouches = Set<UITouch>()
     private var globeTouches = Set<UITouch>()
+    /// A strip touch on a learned word that becomes a long press if it rests long enough.
+    private var pendingLongPress: (touch: UITouch, origin: CGPoint, work: DispatchWorkItem)?
+    /// Strip touches whose long press offered to forget a word: lifting them picks nothing.
+    private var longPressedTouches = Set<UITouch>()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -62,8 +66,12 @@ final class KeyboardView: UIView {
             LaunchTrace.mark("first draw")
         }
         let palette = render.palette(systemDark: traitCollection.userInterfaceStyle == .dark)
-        drawSuggestions(render.suggestions, palette: palette)
-        drawStripActions(render, palette: palette)
+        if let word = render.forgetOffer {
+            drawForgetPrompt(word, palette: palette)
+        } else {
+            drawSuggestions(render.suggestions, palette: palette)
+            drawStripActions(render, palette: palette)
+        }
         for key in render.keys {
             drawKey(key, palette: palette)
         }
@@ -95,6 +103,37 @@ final class KeyboardView: UIView {
         }
     }
 
+    /// After a long press on a learned word, the strip asks whether to forget it: the question, then
+    /// Cancel and Forget at the trailing edge (Compose draws the same prompt on Android).
+    private func forgetPromptFrames() -> (message: CGRect, cancel: CGRect, forget: CGRect) {
+        let buttonWidth: CGFloat = 84
+        let forget = CGRect(x: bounds.width - buttonWidth - 4, y: 0, width: buttonWidth, height: stripHeight)
+        let cancel = forget.offsetBy(dx: -buttonWidth, dy: 0)
+        let message = CGRect(x: 16, y: 0, width: max(0, cancel.minX - 16), height: stripHeight)
+        return (message, cancel, forget)
+    }
+
+    private func forgetQuestion(_ word: String) -> String {
+        "Forget “\(word)”?"
+    }
+
+    private func drawForgetPrompt(_ word: String, palette: KeyboardPalette) {
+        let frames = forgetPromptFrames()
+        let style = NSMutableParagraphStyle()
+        style.lineBreakMode = .byTruncatingTail
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 15),
+            .foregroundColor: UIColor(argb: palette.onKey),
+            .paragraphStyle: style,
+        ]
+        let question = forgetQuestion(word) as NSString
+        let height = question.size(withAttributes: attributes).height
+        question.draw(in: CGRect(x: frames.message.minX, y: frames.message.midY - height / 2, width: frames.message.width, height: height),
+                      withAttributes: attributes)
+        drawText("Cancel", in: frames.cancel, size: 15, color: UIColor(argb: palette.onKey))
+        drawText("Forget", in: frames.forget, size: 15, color: UIColor(argb: palette.accentKey), weight: .semibold)
+    }
+
     /// The toolbar in an empty strip; the button of an open panel is lit.
     private func drawStripActions(_ render: KeyboardRender, palette: KeyboardPalette) {
         for (action, frame) in stripActionFrames() {
@@ -120,7 +159,7 @@ final class KeyboardView: UIView {
 
     /// Panel buttons from the leading edge, settings at the trailing edge (as on Android).
     private func stripActionFrames() -> [(StripAction, CGRect)] {
-        guard let render, render.suggestions.isEmpty else { return [] }
+        guard let render, render.suggestions.isEmpty, render.forgetOffer == nil else { return [] }
         var frames: [(StripAction, CGRect)] = []
         var x: CGFloat = 4
         for action in render.stripActions where action != .settings {
@@ -269,19 +308,46 @@ final class KeyboardView: UIView {
         // Touch-state renders (pressed keys, previews) don't change what VoiceOver should read.
         let signature = render.keys.map { "\($0.spokenLabel)|\($0.icon?.name ?? "")|\($0.frame.x),\($0.frame.y)" }.joined(separator: ";")
             + "#" + render.suggestions.joined(separator: ";")
+            + "#" + render.learnedSuggestions.map { $0.boolValue ? "1" : "0" }.joined()
+            + "#" + (render.forgetOffer ?? "")
             + "#" + render.stripActions.map(\.name).joined(separator: ";") + "#\(render.panel.name)#\(render.incognito)"
         guard signature != accessibilitySignature else { return }
         accessibilitySignature = signature
 
         var elements: [UIAccessibilityElement] = []
+        // Where VoiceOver goes when the prompt to forget a word appears.
+        var focus: UIAccessibilityElement?
+        if let word = render.forgetOffer {
+            let frames = forgetPromptFrames()
+            let question = UIAccessibilityElement(accessibilityContainer: self)
+            question.accessibilityLabel = forgetQuestion(word)
+            question.accessibilityTraits = .staticText
+            question.accessibilityFrameInContainerSpace = frames.message
+            elements.append(question)
+            focus = question
+            for (label, frame) in [("Cancel", frames.cancel), ("Forget", frames.forget)] {
+                let button = UIAccessibilityElement(accessibilityContainer: self)
+                button.accessibilityLabel = label
+                button.accessibilityIdentifier = "forget-" + label.lowercased()
+                button.accessibilityTraits = .button
+                button.accessibilityFrameInContainerSpace = frame
+                elements.append(button)
+            }
+        }
         let count = render.suggestions.count
-        for (index, suggestion) in render.suggestions.enumerated() where !suggestion.isEmpty {
+        for (index, suggestion) in render.suggestions.enumerated() where !suggestion.isEmpty && render.forgetOffer == nil {
             let element = UIAccessibilityElement(accessibilityContainer: self)
             element.accessibilityLabel = suggestion
             element.accessibilityHint = "Suggestion"
             element.accessibilityTraits = .keyboardKey
             let width = bounds.width / CGFloat(count)
             element.accessibilityFrameInContainerSpace = CGRect(x: CGFloat(index) * width, y: 0, width: width, height: stripHeight)
+            // The long press, for VoiceOver: learned words can be forgotten.
+            if index < render.learnedSuggestions.count, render.learnedSuggestions[index].boolValue {
+                element.accessibilityCustomActions = [UIAccessibilityCustomAction(name: "Forget") { [weak self] _ in
+                    self?.bridge?.longPressSuggestion(stripIndex: Int32(index)) ?? false
+                }]
+            }
             elements.append(element)
         }
         for (action, frame) in stripActionFrames() {
@@ -307,7 +373,7 @@ final class KeyboardView: UIView {
             elements.append(element)
         }
         keyElements = elements
-        UIAccessibility.post(notification: .layoutChanged, argument: nil)
+        UIAccessibility.post(notification: .layoutChanged, argument: focus)
     }
 
     // MARK: Touches
@@ -317,6 +383,7 @@ final class KeyboardView: UIView {
             let point = touch.location(in: self)
             if point.y < stripHeight {
                 stripTouches.insert(touch)
+                scheduleLongPress(for: touch, at: point)
             } else if isOnGlobeKey(point), let inputController, let event {
                 globeTouches.insert(touch)
                 inputController.handleInputModeList(from: self, with: event)
@@ -328,6 +395,10 @@ final class KeyboardView: UIView {
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let event, touches.contains(where: globeTouches.contains) { inputController?.handleInputModeList(from: self, with: event) }
+        if let pending = pendingLongPress, touches.contains(pending.touch) {
+            let point = pending.touch.location(in: self)
+            if hypot(point.x - pending.origin.x, point.y - pending.origin.y) > Self.longPressSlop { cancelLongPress() }
+        }
         for touch in touches where !stripTouches.contains(touch) && !globeTouches.contains(touch) {
             let point = touch.location(in: self)
             bridge?.touchMove(id: touchId(touch), x: Double(point.x), y: Double(point.y - stripHeight))
@@ -339,7 +410,8 @@ final class KeyboardView: UIView {
         for touch in touches {
             let point = touch.location(in: self)
             if stripTouches.remove(touch) != nil {
-                selectSuggestion(at: point)
+                if pendingLongPress?.touch === touch { cancelLongPress() }
+                if longPressedTouches.remove(touch) == nil { selectSuggestion(at: point) }
             } else if globeTouches.remove(touch) == nil {
                 bridge?.touchUp(id: touchId(touch), x: Double(point.x), y: Double(point.y - stripHeight))
             }
@@ -349,11 +421,38 @@ final class KeyboardView: UIView {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let event, touches.contains(where: globeTouches.contains) { inputController?.handleInputModeList(from: self, with: event) }
         for touch in touches {
+            if pendingLongPress?.touch === touch { cancelLongPress() }
+            longPressedTouches.remove(touch)
             if stripTouches.remove(touch) == nil && globeTouches.remove(touch) == nil {
                 bridge?.touchCancel(id: touchId(touch))
             }
         }
     }
+
+    /// A finger resting on a learned word asks the runtime to offer forgetting it. Dictionary words
+    /// have no long press, so a slow tap on one still picks it.
+    private func scheduleLongPress(for touch: UITouch, at point: CGPoint) {
+        cancelLongPress()
+        guard let render, render.forgetOffer == nil, let bridge, let index = suggestionIndex(at: point),
+              index < render.learnedSuggestions.count, render.learnedSuggestions[index].boolValue else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.stripTouches.contains(touch) else { return }
+            self.pendingLongPress = nil
+            if self.bridge?.longPressSuggestion(stripIndex: Int32(index)) == true {
+                self.longPressedTouches.insert(touch)
+            }
+        }
+        pendingLongPress = (touch, point, work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(bridge.suggestionLongPressMillis)), execute: work)
+    }
+
+    private func cancelLongPress() {
+        pendingLongPress?.work.cancel()
+        pendingLongPress = nil
+    }
+
+    /// How far a resting finger may drift before it is no longer a long press, in points.
+    private static let longPressSlop: CGFloat = 10
 
     /// Our own globe key, drawn when iOS asks for one (home-button iPhones).
     private func isOnGlobeKey(_ point: CGPoint) -> Bool {
@@ -361,13 +460,23 @@ final class KeyboardView: UIView {
     }
 
     private func selectSuggestion(at point: CGPoint) {
+        if render?.forgetOffer != nil {
+            // Forget, or anything else in the strip keeps the word.
+            if forgetPromptFrames().forget.contains(point) { bridge?.forgetOfferedWord() } else { bridge?.dismissForgetOffer() }
+            return
+        }
         if let (action, _) = stripActionFrames().first(where: { $0.1.contains(point) }) {
             bridge?.performStripAction(action: action)
             return
         }
-        guard let count = render?.suggestions.count, count > 0, point.y < stripHeight else { return }
-        let index = min(count - 1, max(0, Int(point.x / (bounds.width / CGFloat(count)))))
+        guard let index = suggestionIndex(at: point) else { return }
         bridge?.selectSuggestion(stripIndex: Int32(index))
+    }
+
+    /// The strip cell under [point], when the strip shows suggestions.
+    private func suggestionIndex(at point: CGPoint) -> Int? {
+        guard let count = render?.suggestions.count, count > 0, point.y < stripHeight else { return nil }
+        return min(count - 1, max(0, Int(point.x / (bounds.width / CGFloat(count)))))
     }
 
     private func touchId(_ touch: UITouch) -> Int64 {

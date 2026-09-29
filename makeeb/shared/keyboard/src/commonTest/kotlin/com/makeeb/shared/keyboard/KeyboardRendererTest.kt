@@ -34,6 +34,23 @@ class KeyboardRendererTest {
     }
 
     @Test
+    fun learnedWordsAndTheOfferToForgetOneReachTheRenderer() {
+        val state = KeyboardState(
+            layout = layout,
+            suggestions = listOf(Suggestion("best", Suggestion.Kind.Completion), Suggestion("zorblax", Suggestion.Kind.Completion, learned = true)),
+            forgetOffer = "zorblax",
+        )
+        val render = KeyboardRenderer.render(state, TouchState(), LayoutGeometry(layout, 375f, 54f), KeyboardPreferences())
+        assertEquals(listOf("zorblax", "best", ""), render.suggestions)
+        assertEquals(listOf(true, false, false), render.learnedSuggestions)
+        assertEquals("zorblax", render.forgetOffer)
+
+        val panel = KeyboardRenderer.render(state.copy(panel = KeyboardPanel.Emoji), TouchState(), null, KeyboardPreferences())
+        assertEquals(null, panel.forgetOffer)
+        assertTrue(panel.learnedSuggestions.isEmpty())
+    }
+
+    @Test
     fun aPanelHidesTheKeysAndSuggestions() {
         val state = KeyboardState(
             layout = layout,

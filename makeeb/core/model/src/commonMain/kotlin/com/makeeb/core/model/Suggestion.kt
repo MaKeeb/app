@@ -6,6 +6,11 @@ data class Suggestion(
     val kind: Kind,
     /** Higher is better. Only comparable between suggestions from the same engine call. */
     val score: Double = 0.0,
+    /**
+     * A word the keyboard learned from the user, not a dictionary word: a long press offers to
+     * forget it.
+     */
+    val learned: Boolean = false,
 ) {
     enum class Kind {
         /** The literal word being typed, offered so the user can keep it. */

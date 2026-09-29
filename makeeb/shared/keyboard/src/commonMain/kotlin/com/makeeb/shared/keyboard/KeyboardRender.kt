@@ -46,6 +46,10 @@ data class KeyboardRender(
     val emojiSearch: String? = null,
     /** Emoji matching [emojiSearch], best first; recents while the query is empty. */
     val emojiResults: List<String> = emptyList(),
+    /** Per [suggestions] cell: a learned word, which a long press offers to forget. */
+    val learnedSuggestions: List<Boolean> = emptyList(),
+    /** A learned word the strip asks about forgetting, drawn in place of [suggestions]; null otherwise. */
+    val forgetOffer: String? = null,
 ) {
     /** Resolved when drawn, so a scheduled theme switches at its time. */
     fun palette(systemDark: Boolean): KeyboardPalette {
@@ -111,9 +115,12 @@ object KeyboardRenderer {
                 alternates = if (key.longPressAction == null) key.displayAlternates(state.shift) else emptyList(),
             )
         }
+        val slots = if (showingKeys && !searching) state.suggestions.stripSlots() else emptyList()
         return KeyboardRender(
             keys = keys,
-            suggestions = if (showingKeys && !searching) state.suggestions.stripSlots().map { it?.text.orEmpty() } else emptyList(),
+            suggestions = slots.map { it?.text.orEmpty() },
+            learnedSuggestions = slots.map { it?.learned == true },
+            forgetOffer = state.forgetOffer?.takeIf { showingKeys && !searching },
             preview = touch.preview?.takeIf { showingKeys }?.let { RenderPreview(it.label, it.bounds.toRect()) },
             popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected, popup.bounds.toRect()) },
             theme = preferences.theme,

@@ -352,6 +352,59 @@ class InputEngineTest {
     }
 
     @Test
+    fun longPressingALearnedWordOffersToForgetIt() {
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("zorblax zorblax zorb")
+        val learned = engine.state.value.suggestions.single { it.text == "zorblax" }
+        assertTrue(learned.learned, "flagged for the renderers")
+        assertTrue(engine.onSuggestionLongPressed(learned))
+        assertEquals("zorblax", engine.state.value.forgetOffer)
+
+        engine.forgetOfferedWord()
+        assertNull(engine.state.value.forgetOffer)
+        assertFalse(userDictionary.isLearned("zorblax"))
+        assertTrue(engine.state.value.suggestions.none { it.text == "zorblax" }, "the strip no longer offers it")
+        assertEquals("zorblax zorblax zorb", host.text, "the text is left alone")
+    }
+
+    @Test
+    fun dictionaryWordsCannotBeForgotten() {
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("hel")
+        val hello = engine.state.value.suggestions.first { it.text == "hello" }
+        assertFalse(hello.learned)
+        assertFalse(engine.onSuggestionLongPressed(hello))
+        assertNull(engine.state.value.forgetOffer)
+    }
+
+    @Test
+    fun typingOnKeepsTheWord() {
+        start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("zorblax zorb")
+        assertTrue(engine.onSuggestionLongPressed(engine.state.value.suggestions.single { it.text == "zorblax" }))
+        type("l")
+        assertNull(engine.state.value.forgetOffer)
+        assertTrue(userDictionary.isLearned("zorblax"))
+        engine.onSuggestionLongPressed(engine.state.value.suggestions.single { it.text == "zorblax" })
+        engine.dismissForgetOffer()
+        assertNull(engine.state.value.forgetOffer)
+        assertTrue(userDictionary.isLearned("zorblax"))
+    }
+
+    @Test
+    fun aWordForgottenWhileTypingItIsNotLearnedBackOnSpace() {
+        val host = start(attributes = EditorAttributes(capitalization = Capitalization.None))
+        type("zorblax zorblax")
+        engine.onSuggestionLongPressed(engine.state.value.suggestions.single { it.text == "zorblax" })
+        engine.forgetOfferedWord()
+        type(" ")
+        assertEquals("zorblax zorblax ", host.text)
+        assertFalse(userDictionary.isLearned("zorblax"))
+        type("zorblax ")
+        assertTrue(userDictionary.isLearned("zorblax"), "typed again later, it is learned again")
+    }
+
+    @Test
     fun pickingTheWordAsTypedKeepsItAtOnce() {
         start(attributes = EditorAttributes(capitalization = Capitalization.None))
         type("zorblax")

@@ -180,6 +180,13 @@ class KeyboardSession(
         }
     }
 
+    /** A long press on a strip word; true when it is a learned word and the strip now offers to forget it. */
+    fun onSuggestionLongPress(suggestion: Suggestion): Boolean = engine.onSuggestionLongPressed(suggestion)
+
+    fun forgetOfferedWord() = engine.forgetOfferedWord()
+
+    fun dismissForgetOffer() = engine.dismissForgetOffer()
+
     fun onKey(action: KeyAction) = engine.onKey(action)
 
     /**

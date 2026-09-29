@@ -22,6 +22,13 @@ object KeyboardMetrics {
     const val STRIP_HEIGHT = 44f
     const val BOTTOM_PADDING = 4f
 
+    /**
+     * How long a finger rests on a strip word before it counts as a long press, where the renderer
+     * times it itself (iOS, UIKit's default). Compose uses the system's long-press timeout, which
+     * follows Android's touch-and-hold delay setting.
+     */
+    const val SUGGESTION_LONG_PRESS_MILLIS = 500L
+
     /** Space beside the outermost keys on Android; clears curved display edges. iOS uses none. */
     const val SIDE_INSET = 10f
 

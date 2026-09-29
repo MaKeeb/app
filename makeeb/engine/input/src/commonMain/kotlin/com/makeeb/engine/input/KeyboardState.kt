@@ -26,6 +26,11 @@ data class KeyboardState(
      * the field, and the strip shows it with the results. Null when not searching.
      */
     val emojiSearch: String? = null,
+    /**
+     * A learned word the user long-pressed in the strip: the strip asks whether to forget it, in
+     * place of the suggestions. Null otherwise.
+     */
+    val forgetOffer: String? = null,
 ) {
     /** No learning, clipboard history or emoji recents: the field asked for it, or the user did. */
     val incognito: Boolean get() = editor.incognito || manualIncognito

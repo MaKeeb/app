@@ -2,6 +2,7 @@ package com.makeeb.feature.suggestions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -28,13 +29,16 @@ import com.makeeb.ui.theme.KeyboardTheme
 
 /**
  * The strip above the keys: suggestions while typing (next-word predictions mid-sentence), otherwise
- * the [toolbar]. The best suggestion always sits in the middle slot, where the thumb rests.
+ * the [toolbar]. The best suggestion always sits in the middle slot, where the thumb rests. A long
+ * press on a learned word ([Suggestion.learned]) calls [onLongPress], which offers to forget it;
+ * dictionary words have no long press.
  */
 @Composable
 fun SuggestionStrip(
     suggestions: List<Suggestion>,
     onSuggestion: (Suggestion) -> Unit,
     modifier: Modifier = Modifier,
+    onLongPress: (Suggestion) -> Unit = {},
     toolbar: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = KeyboardTheme.colors
@@ -54,7 +58,11 @@ fun SuggestionStrip(
                 return@forEachIndexed
             }
             Box(
-                Modifier.weight(1f).fillMaxHeight().clickable { onSuggestion(suggestion) },
+                Modifier.weight(1f).fillMaxHeight().combinedClickable(
+                    onLongClickLabel = if (suggestion.learned) "Forget" else null,
+                    onLongClick = if (suggestion.learned) ({ onLongPress(suggestion) }) else null,
+                    onClick = { onSuggestion(suggestion) },
+                ),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
