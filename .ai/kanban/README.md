@@ -4,8 +4,8 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 | Column | Cards |
 | --- | --- |
-| [Backlog](backlog/_backlog.md) | 60 |
-| [Next](next/_next.md) | 7 |
+| [Backlog](backlog/_backlog.md) | 56 |
+| [Next](next/_next.md) | 11 |
 | [Ready to start](todo/_todo.md) | 3 |
 | [In progress](doing/_doing.md) | 0 |
 | [In review](review/_review.md) | 64 |
@@ -86,10 +86,14 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 ## Next
 
+- [APP-18](next/018-multilingual-typing.md): Multilingual typing
 - [APP-48](next/048-glide-swipe-typing.md): Glide / swipe typing
 - [APP-56](next/056-select-cut-copy-and-paste-actions.md): Select, cut, copy and paste actions
 - [APP-65](next/065-recent-copy-paste-suggestion.md): Recent-copy paste suggestion
+- [APP-70](next/070-material-you-dynamic-color.md): Material You dynamic color
+- [APP-71](next/071-custom-colors-and-theme-editor.md): Custom colors and theme editor
 - [APP-72](next/072-key-borders-gaps-labels-and-hints.md): Key borders, gaps, labels and hints
 - [APP-78](next/078-one-handed-mode.md): One-handed mode
 - [APP-82](next/082-font-scale-contrast-and-reduced-motion.md): Font scale, contrast and reduced motion
 - [APP-87](next/087-lock-screen-protection.md): Lock-screen protection
+- [APP-113](next/113-ci-pipeline.md): CI pipeline
