@@ -32,6 +32,9 @@ interface TouchListener {
      * the key is what lets autocorrect tell a slip from a word it doesn't know.
      */
     fun onTap(action: KeyAction, x: Float, y: Float) = onAction(action)
+
+    /** A slide moved a selection one step: the next alternate, a cursor step, a held delete's repeat. */
+    fun onSelectionTick() {}
 }
 
 /**
@@ -101,6 +104,7 @@ class TouchController(
                     while (isActive) {
                         val words = deleteWordsWhenHeld && repeats >= config.wordDeleteAfterRepeats
                         listener.onAction(if (words) KeyAction.DeleteWord else KeyAction.Backspace)
+                        listener.onSelectionTick()
                         repeats++
                         delay(
                             when {
@@ -147,14 +151,18 @@ class TouchController(
                 val step = if (cursorByWord) config.cursorWordStep else config.cursorStep
                 while (pointer.slide >= step) {
                     listener.onAction(if (cursorByWord) KeyAction.MoveCursorByWord(1) else KeyAction.MoveCursor(1))
+                    listener.onSelectionTick()
                     pointer.slide -= step
                 }
                 while (pointer.slide <= -step) {
                     listener.onAction(if (cursorByWord) KeyAction.MoveCursorByWord(-1) else KeyAction.MoveCursor(-1))
+                    listener.onSelectionTick()
                     pointer.slide += step
                 }
             }
-            Mode.Alternates -> popup = popup?.let { it.copy(selected = it.indexAt(x, y)) }
+            Mode.Alternates -> popup = popup?.let { current ->
+                current.copy(selected = current.indexAt(x, y)).also { if (it.selected != current.selected) listener.onSelectionTick() }
+            }
             Mode.Repeating, Mode.Consumed -> Unit
         }
         publish()

@@ -3,19 +3,43 @@ package com.makeeb.platform.feedback
 import platform.UIKit.UIDevice
 import platform.UIKit.UIImpactFeedbackGenerator
 import platform.UIKit.UIImpactFeedbackStyle
+import platform.UIKit.UISelectionFeedbackGenerator
 
 /**
  * Taptic feedback. Keyboard extensions only get haptics with Full Access, so the composition
  * root installs this only when `hasFullAccess` is true.
  */
 class ImpactHapticFeedback : HapticFeedback {
-    private val generator = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleMedium)
+    /** A short, crisp tap for letters and space, like the system keyboard's. */
+    private val tap = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleLight)
 
-    /** One generator at the user's strength; delete, return and function keys a little firmer. */
+    /** A harder-edged tap for delete, return and function keys. */
+    private val firm = UIImpactFeedbackGenerator(style = UIImpactFeedbackStyle.UIImpactFeedbackStyleRigid)
+    private val selection = UISelectionFeedbackGenerator()
+
+    /**
+     * Wakes the Taptic Engine, which otherwise sleeps and makes the first tap late. It stays ready
+     * for a few seconds, so every tap prepares the next.
+     */
+    override fun prepare() {
+        tap.prepare()
+        firm.prepare()
+        selection.prepare()
+    }
+
     override fun keyPress(type: KeyFeedbackType, intensity: Float) {
         if (intensity <= 0f) return
         val firmer = type == KeyFeedbackType.Delete || type == KeyFeedbackType.Return || type == KeyFeedbackType.Modifier
-        generator.impactOccurredWithIntensity((if (firmer) intensity * 1.25f else intensity).coerceIn(0f, 1f).toDouble())
+        val generator = if (firmer) firm else tap
+        generator.impactOccurredWithIntensity(intensity.coerceIn(0f, 1f).toDouble())
+        generator.prepare()
+    }
+
+    /** The system's selection click (picker wheels, sliders); it has no strength, only on or off. */
+    override fun selectionTick(intensity: Float) {
+        if (intensity <= 0f) return
+        selection.selectionChanged()
+        selection.prepare()
     }
 }
 

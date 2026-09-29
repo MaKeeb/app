@@ -40,6 +40,22 @@ class VibratorHapticFeedback(private val context: Context) : HapticFeedback {
             )
             else -> VibrationEffect.createOneShot(DURATION_MS, VibrationEffect.DEFAULT_AMPLITUDE)
         }
+        vibrate(vibrator, effect)
+    }
+
+    /** The lightest click the motor has: a quarter of the key press, a third as long. */
+    override fun selectionTick(intensity: Float) {
+        val vibrator = vibrator?.takeIf { it.hasVibrator() } ?: return
+        if (intensity <= 0f) return
+        val effect = when {
+            vibrator.hasAmplitudeControl() -> VibrationEffect.createOneShot(TICK_MS, (intensity * 64).toInt().coerceIn(1, 255))
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+            else -> return
+        }
+        vibrate(vibrator, effect)
+    }
+
+    private fun vibrate(vibrator: Vibrator, effect: VibrationEffect) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vibrator.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH))
         } else if (systemTouchFeedbackOn()) {
@@ -52,6 +68,7 @@ class VibratorHapticFeedback(private val context: Context) : HapticFeedback {
 
     private companion object {
         const val DURATION_MS = 18L
+        const val TICK_MS = 6L
     }
 }
 

@@ -21,6 +21,7 @@ import kotlin.test.assertTrue
 class TouchControllerTest {
     private val actions = mutableListOf<KeyAction>()
     private val taps = mutableListOf<Pair<Float, Float>>()
+    private var ticks = 0
     private val geometry = LayoutGeometry(
         BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions()),
         width = 1000f,
@@ -38,6 +39,10 @@ class TouchControllerTest {
             override fun onTap(action: KeyAction, x: Float, y: Float) {
                 taps += x to y
                 onAction(action)
+            }
+
+            override fun onSelectionTick() {
+                ticks++
             }
         },
         config = TouchConfig(overflowAbove = 50f),
@@ -413,5 +418,31 @@ class TouchControllerTest {
         touch.move(2, space.centerX + 30f + 14f * 2, space.centerY)
         touch.up(2, space.centerX + 30f + 14f * 2, space.centerY)
         assertEquals(List<KeyAction>(2) { KeyAction.MoveCursor(1) }, actions, "a slide before the long press moves the cursor")
+    }
+
+    @Test
+    fun slidesTickOncePerStep() = runTest {
+        val touch = controller()
+        // Moving along the alternates ticks when the selection changes, not on every move.
+        val e = geometry.keyFor('e')!!.bounds
+        touch.down(1, e.centerX, e.centerY)
+        advanceTimeBy(1_000)
+        runCurrent()
+        val cells = touch.state.value.popup!!.cells
+        touch.move(1, cells[0].centerX, cells[0].centerY)
+        touch.move(1, cells[0].centerX + 1f, cells[0].centerY)
+        assertEquals(0, ticks, "still on the first option")
+        touch.move(1, cells[1].centerX, cells[1].centerY)
+        assertEquals(1, ticks)
+        touch.up(1, cells[1].centerX, cells[1].centerY)
+
+        // One tick per cursor step on the space bar.
+        ticks = 0
+        val space = geometry.keys.first { it.key.action == KeyAction.Space }.bounds
+        touch.down(2, space.centerX, space.centerY)
+        touch.move(2, space.centerX + 30f, space.centerY)
+        touch.move(2, space.centerX + 30f + 14f * 3, space.centerY)
+        touch.up(2, space.centerX + 30f + 14f * 3, space.centerY)
+        assertEquals(3, ticks)
     }
 }

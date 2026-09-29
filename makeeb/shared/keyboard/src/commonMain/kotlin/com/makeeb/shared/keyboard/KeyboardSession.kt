@@ -80,6 +80,11 @@ class KeyboardSession(
         scope = scope,
         listener = object : TouchListener {
             override fun onKeyDown(key: Key) = playFeedback(key)
+
+            override fun onSelectionTick() {
+                val prefs = preferences.value
+                if (prefs.keyPressHaptics) ports.haptics.selectionTick(prefs.hapticIntensity)
+            }
             override fun onAction(action: KeyAction) = handle(action, tap = null)
 
             override fun onTap(action: KeyAction, x: Float, y: Float) = handle(action, geometry.value?.let { tapPoint(it, x, y) })
@@ -148,6 +153,7 @@ class KeyboardSession(
         this.keyboardHost = keyboardHost
         // A no-op once loaded; after a boot, the first field after the unlock reads the saved words.
         learnedWords?.load()
+        if (preferences.value.keyPressHaptics) ports.haptics.prepare()
         engine.startInput(textHost, keyboardHost, attributes, selection)
         clipboardHistory.expire()
         clipboardJob?.cancel()

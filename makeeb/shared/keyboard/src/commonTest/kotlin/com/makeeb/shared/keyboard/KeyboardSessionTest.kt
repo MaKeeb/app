@@ -40,6 +40,8 @@ class KeyboardSessionTest {
     private val catalog = BundledEmojiCatalog()
 
     private val haptics = mutableListOf<Pair<KeyFeedbackType, Float>>()
+    private val ticks = mutableListOf<Float>()
+    private var prepared = 0
     private val sounds = mutableListOf<Pair<KeyFeedbackType, Float>>()
 
     private lateinit var prefs: FakePreferencesRepository
@@ -55,7 +57,19 @@ class KeyboardSessionTest {
             engine, prefs, catalog, EmojiRecents(), ClipboardHistory(),
             KeyboardPorts(
                 clipboard,
-                haptics = HapticFeedback { type, intensity -> haptics += type to intensity },
+                haptics = object : HapticFeedback {
+                    override fun keyPress(type: KeyFeedbackType, intensity: Float) {
+                        haptics += type to intensity
+                    }
+
+                    override fun prepare() {
+                        prepared++
+                    }
+
+                    override fun selectionTick(intensity: Float) {
+                        ticks += intensity
+                    }
+                },
                 sound = SoundFeedback { type, volume -> sounds += type to volume },
                 settingsWritable = { settingsWritable },
             ),
@@ -223,5 +237,34 @@ class KeyboardSessionTest {
         session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
         runCurrent()
         assertTrue(store.isLearned("zorblax"))
+    }
+
+    @Test
+    fun hapticsWakeWhenTheKeyboardAppearsAndSlidesTick() = runTest {
+        val session = session(KeyboardPreferences(keyPressHaptics = true, hapticIntensity = 0.6f))
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        session.setKeysAreaSize(1000f, 216f)
+        runCurrent()
+        assertEquals(1, prepared, "ready before the first tap")
+        val space = session.geometry.value!!.keys.first { it.key.action == KeyAction.Space }.bounds
+        session.touch.down(1, space.centerX, space.centerY)
+        session.touch.move(1, space.centerX + 40f, space.centerY) // past the slide threshold
+        session.touch.move(1, space.centerX + 200f, space.centerY)
+        session.touch.up(1, space.centerX + 200f, space.centerY)
+        assertTrue(ticks.isNotEmpty() && ticks.all { it == 0.6f }, "a tick per cursor step, at the user's strength")
+
+        ticks.clear()
+        prepared = 0
+        val quiet = session(KeyboardPreferences(keyPressHaptics = false))
+        quiet.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        quiet.setKeysAreaSize(1000f, 216f)
+        runCurrent()
+        val bar = quiet.geometry.value!!.keys.first { it.key.action == KeyAction.Space }.bounds
+        quiet.touch.down(1, bar.centerX, bar.centerY)
+        quiet.touch.move(1, bar.centerX + 40f, bar.centerY)
+        quiet.touch.move(1, bar.centerX + 200f, bar.centerY)
+        quiet.touch.up(1, bar.centerX + 200f, bar.centerY)
+        assertEquals(0, prepared)
+        assertTrue(ticks.isEmpty(), "haptics off: no ticks either")
     }
 }
