@@ -261,6 +261,20 @@ class PackInstallerTest {
     }
 
     @Test
+    fun setupIsDoneWhenEverySelectedLanguageHasItsDictionary() = runTest {
+        publish(entry("hu", hungarian) to hungarian, entry("de", german) to german)
+        val installer = installer()
+        installer.refresh()
+        runCurrent()
+        assertTrue(installer.state.value.hasDictionaries(listOf("en", "en-GB")), "English is built in")
+        assertTrue(!installer.state.value.hasDictionaries(listOf("hu", "en")))
+        installer.install("hu")
+        runCurrent()
+        assertTrue(installer.state.value.hasDictionaries(listOf("hu", "en")))
+        assertTrue(!installer.state.value.hasDictionaries(listOf("hu", "de")))
+    }
+
+    @Test
     fun anUnreadableCatalogueOffersNothing() = runTest {
         transport.serve(catalogueUrl, "<html>Not Found</html>".encodeToByteArray())
         val installer = installer()

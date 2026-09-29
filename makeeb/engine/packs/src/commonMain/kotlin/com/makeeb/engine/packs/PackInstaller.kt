@@ -250,6 +250,10 @@ data class PacksState(
      */
     val lexiconLanguages: Set<String> get() = setOf(BundledPacks.LANGUAGE) + installed.map { it.baseLanguage }
 
+    /** Every one of [languageTags] has its dictionary, built in or installed: setup's languages step is done. */
+    fun hasDictionaries(languageTags: List<String>): Boolean =
+        languageTags.all { statusOf(it).let { status -> status is PackStatus.BuiltIn || status is PackStatus.Installed } }
+
     /** Where the pack for the keyboard language [languageTag] stands. */
     fun statusOf(languageTag: String): PackStatus {
         if (languageTag.substringBefore('-').equals(BundledPacks.LANGUAGE, ignoreCase = true)) return PackStatus.BuiltIn

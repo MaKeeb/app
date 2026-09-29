@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.makeeb.feature.onboarding.OnboardingScreen
+import com.makeeb.feature.settings.LanguageSetup
 import com.makeeb.feature.settings.SettingsScreen
 import com.makeeb.ui.components.ScrollEndSpacer
 import com.makeeb.ui.components.dismissKeyboardOnDrag
@@ -88,7 +89,8 @@ fun CompanionApp(settingsRequest: Int = 0) {
 @Composable
 internal fun CompanionScreen(tab: CompanionTab, modifier: Modifier = Modifier) {
     when (tab) {
-        CompanionTab.Setup -> OnboardingScreen(modifier)
+        // Setup ends with the languages and their dictionaries, the same controls as Settings.
+        CompanionTab.Setup -> OnboardingScreen(modifier, languages = { LanguageSetup() })
         CompanionTab.Settings -> SettingsScreen(modifier)
         CompanionTab.Try -> TryItScreen(modifier)
     }
