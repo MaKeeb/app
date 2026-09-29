@@ -57,20 +57,19 @@ This builds every pack from its pinned sources (English with `dictionaryPacks`, 
 
 The first run downloads about 2.1 GB of Leipzig corpora (plus English's 517 MB if it isn't cached) into `tools/dictionaries/build/downloads`; the counts are cached there too, so later runs take a minute or two. The writer is reproducible: the same sources always give the same bytes and hashes.
 
-Nothing in the build publishes. To publish, upload every file in the folder as assets of one release, for example with `gh release create dictionaries-v1 build/pack-release/* --repo <owner>/<repo>`.
+Nothing in the build publishes. Releases are published from the `MaKeeb/dicts` repository, checked out next to this one: `scripts/publish.sh --check` verifies the folder, and `scripts/publish.sh packs-YYYY-MM-DD` creates the release (see its `publish-packs` skill). Every build gets a new tag; published assets are never replaced.
 
 ## Pointing the apps at it
 
 One Gradle property, in `makeeb/gradle.properties`, says where the catalogue is:
 
 ```
-makeeb.packs.catalogueUrl=https://github.com/<owner>/<repo>/releases/download/<tag>/catalogue.json
+makeeb.packs.catalogueUrl=https://github.com/MaKeeb/dicts/releases/latest/download/catalogue.json
 ```
 
-- It is empty until the repository exists. An empty URL builds apps that offer no downloads (Settings says so) and makes `en_US.mkd` from its sources.
+- It stays empty until `MaKeeb/dicts` is public: GitHub serves release assets without a login only for public repositories, and the app downloads without one. An empty URL builds apps that offer no downloads (Settings says so) and makes `en_US.mkd` from its sources.
 - `:shared:companion` turns it into the constant `PackHosting.CATALOGUE_URL`, which the companion app's installer uses. The keyboard never reads it: it only maps packs that are already installed.
-- A fixed tag keeps the URL stable. To update packs later, upload new assets to the same tag: the app sees a different `sha256` and offers the update. A new tag works too, but needs a new app build.
-- `https://github.com/<owner>/<repo>/releases/latest/download/catalogue.json` also works, and follows whichever release is newest; use it only in a repository whose releases are all pack releases.
+- `latest` follows the newest release, and every release of `MaKeeb/dicts` is a pack release, so a new release reaches installed apps without an app build: they see a different `sha256` and offer the update. Releases are immutable, so apps never find a pack changed under a hash they already have.
 
 ### English from the release
 

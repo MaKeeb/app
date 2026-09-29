@@ -8,7 +8,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Next](next/_next.md) | 11 |
 | [Ready to start](todo/_todo.md) | 2 |
 | [In progress](doing/_doing.md) | 0 |
-| [In review](review/_review.md) | 65 |
+| [In review](review/_review.md) | 67 |
 | [Done](done/_done.md) | 5 |
 
 ## In review
@@ -76,6 +76,8 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-126](review/126-try-it-no-dead-band-above-the-keyboard.md): Try it: no dead band above the keyboard
 - [APP-132](review/132-app-icon-android-and-ios.md): App icon (Android and iOS)
 - [APP-139](review/139-better-ios-haptics.md): Better iOS haptics
+- [APP-140](review/140-three-repositories-app-site-dicts.md): Three repositories: app, site, dicts
+- [APP-141](review/141-project-website.md): Project website
 - [APP-137](review/137-scrolling-hides-the-keyboard-in-the-companion-app.md): Scrolling hides the keyboard in the companion app
 - [APP-136](review/136-pixel-on-wireless-adb.md): Pixel on wireless ADB
 

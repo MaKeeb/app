@@ -2,13 +2,15 @@
 
 MaKeeb is a third-party on-screen keyboard for Android and iOS, built with Kotlin Multiplatform and Compose Multiplatform. The goal is to share as much logic as possible across both platforms. This file is the single source of instructions for every AI tool: `AGENTS.md` (Codex), `CLAUDE.md`, `CODEX.md`, `GEMINI.md` and `.github/copilot-instructions.md` are symlinks to it. Edit only `.ai/instructions.md`. Skills live in `.ai/skills` and are linked from `.claude/skills`, `.agents/skills` (Codex, Gemini CLI), `.codex/skills` and `.github/skills`; agents live in `.ai/agents`, linked from `.claude/agents` and `.github/agents`.
 
+This is the `MaKeeb/app` repository (GitHub org MaKeeb). Its siblings sit next to it in the workspace: `../site` (the website, `MaKeeb/site`) and `../dicts` (dictionary pack releases, `MaKeeb/dicts`). Each has its own `.ai/instructions.md`.
+
 ## Scope
 
 - Core keyboard features only. No AI/LLM features: no generative rewriting, AI replies, tone changers or chat assistants. Statistical prediction, autocorrect, user learning and swipe decoding are core typing and are in scope.
 - The feature list and its status live on the board: `.ai/kanban`, one Markdown card per feature (the `kanban` skill).
 - Decisions (2026-09-29, the user):
   - **Licence: MIT** (`LICENSE`). Third-party data and code carry their notices in `THIRD_PARTY_NOTICES.md`. GPL code or data never ships (App Store). Share-alike (CC BY-SA) data is acceptable; a pack built from it is CC BY-SA.
-  - **Dictionaries:** English ships in the app. Other languages are packs hosted on GitHub, downloaded during setup (like Gboard) and later from settings.
+  - **Dictionaries:** English ships in the app. Other languages are packs published as release assets of `MaKeeb/dicts`, downloaded during setup (like Gboard) and later from settings. This repository builds them (`./gradlew :tools:dictionaries:packRelease`); `../dicts` publishes them.
   - **Layouts:** JSON data based on AOSP (`docs/research/layout-formats.md`). The languages the user selects decide the character set: any number of them, their long-press accents merged on one keyboard. The layout only places letters.
   - **iOS emoji memory:** pinned as is (18 pt panel emoji, recycle on hide); emoji are secondary.
 - Research that drives decisions: `docs/research/open-source-keyboards.md`, `docs/research/platform-apis.md`, `docs/research/feature-candidates.json`. They are dated snapshots (2026-09-27); recheck before relying on a version number or limit.
