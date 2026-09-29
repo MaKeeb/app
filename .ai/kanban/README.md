@@ -8,7 +8,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 7 |
 | [In progress](doing/_doing.md) | 2 |
-| [In review](review/_review.md) | 55 |
+| [In review](review/_review.md) | 56 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
@@ -72,6 +72,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-125](review/125-native-liquid-glass-tab-bar-ios-companion.md): Native Liquid Glass tab bar (iOS companion)
 - [APP-126](review/126-try-it-no-dead-band-above-the-keyboard.md): Try it: no dead band above the keyboard
 - [APP-132](review/132-app-icon-android-and-ios.md): App icon (Android and iOS)
+- [APP-137](review/137-scrolling-hides-the-keyboard-in-the-companion-app.md): Scrolling hides the keyboard in the companion app
 - [APP-136](review/136-pixel-on-wireless-adb.md): Pixel on wireless ADB
 
 ## Ready to start

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.makeeb.feature.onboarding.OnboardingScreen
 import com.makeeb.feature.settings.SettingsScreen
 import com.makeeb.ui.components.ScrollEndSpacer
+import com.makeeb.ui.components.dismissKeyboardOnDrag
 import com.makeeb.ui.theme.MaKeebAppTheme
 
 /**
@@ -122,6 +123,7 @@ private fun TryItScreen(modifier: Modifier = Modifier) {
         modifier
             .fillMaxSize()
             .imePadding()
+            .dismissKeyboardOnDrag()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

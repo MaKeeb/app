@@ -37,6 +37,7 @@ import com.makeeb.ui.components.ScrollEndSpacer
 import com.makeeb.ui.components.SettingsSection
 import com.makeeb.ui.components.SliderRow
 import com.makeeb.ui.components.SwitchRow
+import com.makeeb.ui.components.dismissKeyboardOnDrag
 import com.makeeb.ui.theme.KeyboardIcons
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.roundToInt
@@ -73,7 +74,7 @@ fun SettingsContent(
     val sections = (settingsSections(preferences, letterLayouts, languages, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
         .mapNotNull { it.search(query) }
     Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier.fillMaxSize().dismissKeyboardOnDrag().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

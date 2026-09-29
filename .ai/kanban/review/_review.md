@@ -54,4 +54,5 @@
 52. [APP-125: Native Liquid Glass tab bar (iOS companion)](125-native-liquid-glass-tab-bar-ios-companion.md)
 53. [APP-126: Try it: no dead band above the keyboard](126-try-it-no-dead-band-above-the-keyboard.md)
 54. [APP-132: App icon (Android and iOS)](132-app-icon-android-and-ios.md)
-55. [APP-136: Pixel on wireless ADB](136-pixel-on-wireless-adb.md)
+55. [APP-137: Scrolling hides the keyboard in the companion app](137-scrolling-hides-the-keyboard-in-the-companion-app.md)
+56. [APP-136: Pixel on wireless ADB](136-pixel-on-wireless-adb.md)
