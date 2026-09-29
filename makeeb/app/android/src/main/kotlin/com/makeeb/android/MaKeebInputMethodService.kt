@@ -2,10 +2,13 @@ package com.makeeb.android
 
 import android.content.pm.ApplicationInfo
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -24,11 +27,6 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.makeeb.shared.keyboard.BundledDictionaryLoader
-import com.makeeb.shared.keyboard.KeyLatency
-import com.makeeb.shared.keyboard.KeyboardPorts
-import com.makeeb.shared.keyboard.KeyboardSession
-import com.makeeb.shared.surface.KeyboardSurface
 import com.makeeb.platform.clipboard.AndroidSystemClipboard
 import com.makeeb.platform.feedback.AudioManagerSoundFeedback
 import com.makeeb.platform.feedback.VibratorHapticFeedback
@@ -36,6 +34,12 @@ import com.makeeb.platform.host.ImeServiceKeyboardHost
 import com.makeeb.platform.host.InputConnectionTextHost
 import com.makeeb.platform.host.TextSelection
 import com.makeeb.platform.host.toEditorAttributes
+import com.makeeb.shared.keyboard.BundledDictionaryLoader
+import com.makeeb.shared.keyboard.KeyLatency
+import com.makeeb.shared.keyboard.KeyboardPorts
+import com.makeeb.shared.keyboard.KeyboardSession
+import com.makeeb.shared.surface.KeyboardSurface
+import kotlin.time.TimeSource
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -43,7 +47,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
-import kotlin.time.TimeSource
 
 /**
  * The Android keyboard. An IME is a Service, not an Activity, so it provides the lifecycle,
@@ -65,6 +68,9 @@ class MaKeebInputMethodService :
     private val scope = MainScope()
     private var inputView: View? = null
     private val navigationBarInset = mutableIntStateOf(0)
+
+    /** Left and right: a landscape camera cutout, or a side navigation bar (3-button, landscape). */
+    private val sideInsets = mutableStateOf(0 to 0)
     private val textHost = InputConnectionTextHost { currentInputConnection }
     private lateinit var keyboardHost: ImeServiceKeyboardHost
     private lateinit var session: KeyboardSession
@@ -96,6 +102,16 @@ class MaKeebInputMethodService :
     }
 
     override fun onCreateInputView(): View {
+        // The background runs under a landscape camera cutout, as the platform keyboard's does;
+        // the keys stay clear of it (sideInsets). By default the window stops short of it.
+        window.window?.let { imeWindow ->
+            when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ->
+                    imeWindow.attributes = imeWindow.attributes.apply { layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS }
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ->
+                    imeWindow.attributes = imeWindow.attributes.apply { layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES }
+            }
+        }
         window.window?.decorView?.let { decor ->
             decor.setViewTreeLifecycleOwner(this)
             decor.setViewTreeViewModelStoreOwner(this)
@@ -105,13 +121,10 @@ class MaKeebInputMethodService :
             // tappableElement insets (48dp on a Pixel with gesture navigation), while
             // navigationBars only covers the 24dp gesture handle: pad for the larger of the two.
             ViewCompat.setOnApplyWindowInsetsListener(decor) { view, insets ->
-                navigationBarInset.intValue = insets.getInsets(SYSTEM_BUTTON_INSETS).bottom
+                applyInsets(insets)
                 ViewCompat.onApplyWindowInsets(view, insets)
             }
-            decor.rootWindowInsets?.let { raw ->
-                navigationBarInset.intValue = WindowInsetsCompat.toWindowInsetsCompat(raw, decor)
-                    .getInsets(SYSTEM_BUTTON_INSETS).bottom
-            }
+            decor.rootWindowInsets?.let { raw -> applyInsets(WindowInsetsCompat.toWindowInsetsCompat(raw, decor)) }
         }
         return ComposeView(this).apply {
             setContent {
@@ -119,9 +132,17 @@ class MaKeebInputMethodService :
                 // Rotation and folding change the configuration, which recomposes with the new
                 // orientation's size.
                 val screen = LocalConfiguration.current.let { DpSize(it.screenWidthDp.dp, it.screenHeightDp.dp) }
-                KeyboardSurface(session, bottomInset = bottomInset, screenSize = screen)
+                val (left, right) = sideInsets.value
+                val sides = with(LocalDensity.current) { left.toDp() to right.toDp() }
+                KeyboardSurface(session, bottomInset = bottomInset, screenSize = screen, startInset = sides.first, endInset = sides.second)
             }
         }.also { inputView = it }
+    }
+
+    private fun applyInsets(insets: WindowInsetsCompat) {
+        navigationBarInset.intValue = insets.getInsets(SYSTEM_BUTTON_INSETS).bottom
+        val sides = insets.getInsets(SYSTEM_BUTTON_INSETS or WindowInsetsCompat.Type.displayCutout())
+        sideInsets.value = sides.left to sides.right
     }
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {

@@ -43,7 +43,15 @@ import com.makeeb.ui.theme.MaKeebKeyboardTheme
  * rows short on short screens (landscape phones); null means portrait at full size.
  */
 @Composable
-fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bottomInset: Dp = 0.dp, screenSize: DpSize? = null) {
+fun KeyboardSurface(
+    session: KeyboardSession,
+    modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
+    screenSize: DpSize? = null,
+    /** Side insets the keys must avoid (a landscape camera cutout, a side navigation bar); the background still fills them. */
+    startInset: Dp = 0.dp,
+    endInset: Dp = 0.dp,
+) {
     val state by session.engine.state.collectAsState()
     val preferences by session.preferences.collectAsState()
     val geometry by session.geometry.collectAsState()
@@ -55,7 +63,11 @@ fun KeyboardSurface(session: KeyboardSession, modifier: Modifier = Modifier, bot
             modifier
                 .fillMaxWidth()
                 .background(KeyboardTheme.colors.background)
-                .padding(bottom = bottomInset + (KeyboardMetrics.BOTTOM_PADDING + KeyboardMetrics.bottomOffset(preferences, screen)).dp),
+                .padding(
+                    start = startInset,
+                    end = endInset,
+                    bottom = bottomInset + (KeyboardMetrics.BOTTOM_PADDING + KeyboardMetrics.bottomOffset(preferences, screen)).dp,
+                ),
         ) {
             val searching = state.emojiSearch
             if (searching != null) {

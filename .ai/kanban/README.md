@@ -7,13 +7,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 5 |
-| [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 60 |
+| [In progress](doing/_doing.md) | 0 |
+| [In review](review/_review.md) | 61 |
 | [Done](done/_done.md) | 5 |
-
-## In progress
-
-- [APP-77](doing/077-keyboard-height-and-size.md): Keyboard height and size
 
 ## In review
 
@@ -69,6 +65,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-63](review/063-clipboard-history.md): Clipboard history
 - [APP-64](review/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 - [APP-66](review/066-sensitive-clip-protection.md): Sensitive clip protection
+- [APP-77](review/077-keyboard-height-and-size.md): Keyboard height and size
 - [APP-81](review/081-screen-reader-support.md): Screen reader support
 - [APP-122](review/122-run-the-shared-test-suite-on-the-ios-simulator.md): Run the shared test suite on the iOS simulator
 - [APP-124](review/124-visual-test-plan-run-on-android-and-ios.md): Visual test plan, run on Android and iOS
