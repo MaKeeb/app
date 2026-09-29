@@ -46,6 +46,7 @@ include(":engine:prediction")
 include(":engine:gesture")
 include(":engine:emoji")
 include(":engine:clipboard")
+include(":engine:packs")
 
 // ui — design system
 include(":ui:theme")

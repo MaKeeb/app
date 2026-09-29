@@ -1,5 +1,7 @@
 package com.makeeb.tools.dictionaries
 
+import com.makeeb.engine.packs.resolveUrl
+
 /**
  * Every pack the builder makes: English ships inside the apps ([bundled]); the other languages
  * are downloaded by the companion app ([downloadable], published with `packRelease`). Each source
@@ -151,6 +153,21 @@ object PackSpecs {
             maxBytes = 16_000_000,
         )
     }
+
+    /**
+     * The published en_US.mkd (`packRelease` puts it beside the other packs): what
+     * `dictionaryPacks` downloads instead of counting 517 MB of corpora, once the catalogue URL is
+     * set. It is the bytes this builder makes (the writer is reproducible), pinned like any
+     * source: after changing how English is built, publish the new folder and pin its hash here.
+     */
+    const val ENGLISH_US_RELEASE_SHA256 = "9f80ed21568253055533e625dcae82e4c077b72baadf521d21653b4b3545c884"
+
+    /** [ENGLISH_US_RELEASE_SHA256], next to the catalogue at [catalogueUrl]. */
+    fun englishUsRelease(catalogueUrl: String) = PinnedSource(
+        fileName = "release-en_US-${ENGLISH_US_RELEASE_SHA256.take(16)}.mkd",
+        sha256 = ENGLISH_US_RELEASE_SHA256,
+        mirrors = listOf(PinnedSource.Mirror(resolveUrl(catalogueUrl, englishUs.fileName))),
+    )
 
     val bundled = listOf(englishUs)
     val downloadable = listOf(german, spanish, french, italian, dutch, polish, portuguese, swedish, hungarian)

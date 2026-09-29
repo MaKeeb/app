@@ -7,6 +7,7 @@ import com.makeeb.engine.dictionary.pack.MkdWord
 import com.makeeb.engine.dictionary.pack.MkdWriter
 import com.makeeb.platform.storage.ByteArrayRegion
 import java.io.File
+import java.io.IOException
 import java.util.zip.GZIPInputStream
 import kotlin.system.exitProcess
 import kotlin.time.TimeSource
@@ -17,9 +18,16 @@ import kotlin.time.TimeSource
  *
  *     DictionaryBuilder --out <pack directory> --cache <download directory>
  *                       [--packs bundled|downloadable|<stem,…>] [--heldout <directory>] [--ngrams false]
+ *                       [--english auto|download|build] [--catalogue-url <url>]
  *
  * Each source is fetched once, checked against its pinned SHA-256 and cached. Every pack is
  * read back with the keyboard's own reader and checked before it is written.
+ *
+ * English is bundled in the apps, so every app build needs it. Once the packs are published
+ * (`--catalogue-url`, the Gradle property `makeeb.packs.catalogueUrl`), `--english auto` takes
+ * the published en_US.mkd pinned by [PackSpecs.ENGLISH_US_RELEASE_SHA256], a 6.6 MB download,
+ * and builds it from its sources only if that fails; `download` insists on the download, `build`
+ * always builds.
  *
  * Next-word statistics come from the pack's corpora: the lexicon is written first, the corpora
  * are tokenised with it (so its ids and spellings are the ones counted), and the counts are
@@ -40,14 +48,45 @@ fun main(args: Array<String>) {
         // A comma-separated list of stems ("hu,sv"), to rebuild a few while tuning.
         else -> which.split(',').map { stem -> PackSpecs.all.firstOrNull { it.stem == stem } ?: usage() }
     }
+    val english = options["--english"] ?: "auto"
+    if (english !in setOf("auto", "download", "build")) usage()
+    val catalogueUrl = options["--catalogue-url"].orEmpty()
     out.mkdirs()
-    packs.forEach { buildPack(it, out, cache, heldOut, ngrams) }
+    for (spec in packs) {
+        if (spec === PackSpecs.englishUs && english != "build" && downloadEnglish(catalogueUrl, out, cache, required = english == "download")) continue
+        buildPack(spec, out, cache, heldOut, ngrams)
+    }
+}
+
+/**
+ * Copies the published en_US.mkd into [out], downloading it first unless the cache has it.
+ * False when there is nothing published to take ([catalogueUrl] unset) or the download fails,
+ * unless [required].
+ */
+private fun downloadEnglish(catalogueUrl: String, out: File, cache: File, required: Boolean): Boolean {
+    if (catalogueUrl.isEmpty()) {
+        if (required) error("--english download needs --catalogue-url (the makeeb.packs.catalogueUrl property)")
+        return false
+    }
+    val file = try {
+        PackSpecs.englishUsRelease(catalogueUrl).fetch(cache) { println(it) }
+    } catch (e: IOException) {
+        if (required) throw e
+        println("the published en_US.mkd isn't available (${e.message?.lineSequence()?.first()}); building it instead")
+        return false
+    }
+    val target = File(out, PackSpecs.englishUs.fileName)
+    file.copyTo(File(out, target.name + ".part"), overwrite = true)
+    check(File(out, target.name + ".part").renameTo(target)) { "could not write $target" }
+    println("${target.name}: the published pack, ${file.length()} bytes, SHA-256 ${PackSpecs.ENGLISH_US_RELEASE_SHA256}")
+    return true
 }
 
 private fun usage(): Nothing {
     System.err.println(
         "usage: DictionaryBuilder --out <pack directory> --cache <download directory> " +
-            "[--packs bundled|downloadable|<stem,…>] [--heldout <directory>] [--ngrams false]",
+            "[--packs bundled|downloadable|<stem,…>] [--heldout <directory>] [--ngrams false] " +
+            "[--english auto|download|build] [--catalogue-url <url>]",
     )
     exitProcess(2)
 }

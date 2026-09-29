@@ -31,6 +31,7 @@ java {
 
 dependencies {
     implementation(project(":engine:dictionary"))
+    implementation(project(":engine:packs"))
     implementation(project(":core:common"))
 
     testImplementation(kotlin("test"))
@@ -48,9 +49,15 @@ val downloadsDirectory = layout.buildDirectory.dir("downloads")
 val heldOutDirectory = layout.buildDirectory.dir("heldout")
 val ngrams = providers.gradleProperty("makeeb.ngrams").orNull != "false"
 
+// Where the packs are published (gradle.properties): the app downloads from there, and so does
+// dictionaryPacks for English. -Pmakeeb.dictionaries.english=build builds English from its
+// sources even so; =download fails rather than build.
+val catalogueUrl = providers.gradleProperty("makeeb.packs.catalogueUrl").orNull.orEmpty()
+val englishSource = providers.gradleProperty("makeeb.dictionaries.english").orNull ?: "auto"
+
 val dictionaryPacks = tasks.register<JavaExec>("dictionaryPacks") {
     group = "build"
-    description = "Builds the bundled dictionary packs (en_US.mkd) from their pinned sources."
+    description = "Makes the bundled dictionary pack (en_US.mkd): the published one when makeeb.packs.catalogueUrl is set, else from its pinned sources."
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.makeeb.tools.dictionaries.DictionaryBuilderKt")
     // Counting the corpora holds their 42M word ids and one n-gram key per word.
@@ -60,8 +67,12 @@ val dictionaryPacks = tasks.register<JavaExec>("dictionaryPacks") {
         "--cache", downloadsDirectory.get().asFile.absolutePath,
         "--heldout", heldOutDirectory.get().asFile.absolutePath,
         "--ngrams", ngrams.toString(),
+        "--english", englishSource,
+        "--catalogue-url", catalogueUrl,
     )
     inputs.property("ngrams", ngrams)
+    inputs.property("english", englishSource)
+    inputs.property("catalogueUrl", catalogueUrl)
     outputs.dir(packsDirectory)
     outputs.dir(heldOutDirectory)
 }
@@ -89,6 +100,23 @@ val languagePacks = tasks.register<JavaExec>("languagePacks") {
     inputs.property("ngrams", ngrams)
     inputs.property("packs", which)
     outputs.dir(languagePacksDirectory)
+}
+
+// The folder to upload as one release's assets: every downloadable pack, catalogue.json and
+// en_US.mkd (docs/dictionaries/pack-catalogue.md). Uploading is manual; nothing here publishes.
+val packReleaseDirectory = layout.buildDirectory.dir("pack-release")
+tasks.register<JavaExec>("packRelease") {
+    group = "distribution"
+    description = "Writes catalogue.json and every pack into build/pack-release, ready to upload as release assets."
+    dependsOn(dictionaryPacks, languagePacks)
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.makeeb.tools.dictionaries.PackRelease")
+    args(
+        "--packs", languagePacksDirectory.get().asFile.absolutePath,
+        "--bundled", packsDirectory.get().asFile.absolutePath,
+        "--out", packReleaseDirectory.get().asFile.absolutePath,
+    )
+    outputs.dir(packReleaseDirectory)
 }
 
 // What app/android resolves to package the packs as assets.
