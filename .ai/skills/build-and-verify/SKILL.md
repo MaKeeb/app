@@ -31,7 +31,17 @@ Known, harmless: the linker warns that Skia's `libicu.icudtl_dat.o` in `MaKeebCo
 
 ## Running on a physical Android device
 
-Only when the user asks. `adb devices -l` may list a Car Thing (`<car-thing-serial>`, Linux, not Android): never target it. The real serials and addresses are in `.ai/local/devices.md`, which is never committed. For the user's Pixel (`<pixel-serial>`), save `settings get secure default_input_method` first and `ime set` it back when done. MaKeeb stays installed and enabled; the user switches keyboards with the navigation-bar switcher.
+Test Android on the user's Pixel 6 Pro whenever it is connected; the emulator is the fallback. `adb devices -l` may list a Car Thing (`<car-thing-serial>`, Linux, not Android): never target it. The real serials and addresses are in `.ai/local/devices.md`, which is never committed. For the user's Pixel (`<pixel-serial>`), save `settings get secure default_input_method` first and `ime set` it back when done. MaKeeb stays installed and enabled; the user switches keyboards with the navigation-bar switcher.
+
+The Pixel is usually on ADB over Wi-Fi, as `<pixel-ip>:5555` (a DHCP address; if it changes, `adb devices -l` shows `model:Pixel_6_Pro`, and `getprop ro.serialno` is `<pixel-serial>`). TCP mode lasts until the phone reboots. To restore it, plug it in once and run:
+
+```
+adb -s <pixel-serial> tcpip 5555
+adb -s <pixel-serial> shell ip -f inet addr show wlan0   # its Wi-Fi address
+adb connect <address>:5555
+```
+
+While it is plugged in as well, it is listed twice; either serial reaches the same phone. Over Wi-Fi, installs and screenshots are slower, so allow longer pauses.
 
 ## Running on the Android emulator
 
