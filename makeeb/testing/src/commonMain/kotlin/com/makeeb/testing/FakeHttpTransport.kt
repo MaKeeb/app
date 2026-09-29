@@ -50,7 +50,9 @@ class FakeHttpTransport : HttpTransport {
                 while (at < response.bytes.size) {
                     val limit = pauseAfter
                     if (limit != null && at >= limit) {
-                        gate = CompletableDeferred<Unit>().also { it.await() }
+                        val held = CompletableDeferred<Unit>()
+                        gate = held
+                        held.await()
                     }
                     val length = minOf(chunkSize, response.bytes.size - at)
                     sink.write(response.bytes, at, length)

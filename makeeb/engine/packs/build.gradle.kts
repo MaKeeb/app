@@ -8,6 +8,12 @@ plugins {
 // the network.
 kotlin {
     sourceSets {
+        commonMain.dependencies {
+            // InstalledPack and PackFiles appear in the installer's state and constructor.
+            api(project(":engine:dictionary"))
+            api(project(":platform:network"))
+            implementation(project(":core:common"))
+        }
         commonTest.dependencies {
             implementation(project(":testing"))
         }

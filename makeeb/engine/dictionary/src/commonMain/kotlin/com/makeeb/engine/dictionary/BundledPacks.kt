@@ -1,14 +1,16 @@
 package com.makeeb.engine.dictionary
 
 /**
- * The dictionary packs inside the apps. Other languages come as downloaded packs (board card
- * APP-37); until then these are the only languages with a full lexicon, which is what
- * autocorrect needs before it replaces a word.
+ * The dictionary pack inside the apps. Every other language is a downloaded pack
+ * ([InstalledPack]); which languages have a full lexicon is English plus those.
  */
 object BundledPacks {
     /** Built by :tools:dictionaries; an APK asset on Android, in the extension bundle on iOS. */
     const val EN_US = "en_US.mkd"
 
-    /** Language subtags that have a full lexicon. */
-    val languages: Set<String> = setOf("en")
+    /** The language subtag the bundled pack serves: English, whatever the region. */
+    const val LANGUAGE = "en"
+
+    /** Language subtags that have a full lexicon without downloads. */
+    val languages: Set<String> = setOf(LANGUAGE)
 }
