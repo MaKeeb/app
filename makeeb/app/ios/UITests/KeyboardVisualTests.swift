@@ -736,6 +736,58 @@ final class KeyboardVisualTests: XCTestCase {
         XCTAssertEqual(value("Text"), "I want 🍕 ")
     }
 
+    /// A snippet added in the companion's Settings (typed with MaKeeb) shows as a chip in the
+    /// keyboard's clipboard panel and types itself when tapped. Removes it again afterwards.
+    func test20_snippets() {
+        openTab("Settings")
+        let search = app.descendants(matching: .any).matching(identifier: "settings-search").firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        tap(CGPoint(x: search.frame.midX, y: search.frame.midY), pause: 1.2)
+        assertMaKeebVisible("SN-search")
+        type("snip")
+        let draft = app.descendants(matching: .any).matching(identifier: "snippet-draft").firstMatch
+        XCTAssertTrue(draft.waitForExistence(timeout: 5), "the snippets editor")
+        tap(CGPoint(x: draft.frame.midX, y: draft.frame.midY), pause: 1.2)
+        type("see you soon")
+        save("I-SNIPPET-draft")
+        app.buttons["Add"].firstMatch.tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        let added = app.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] %@", "see you soon")).firstMatch
+        results["SN-added"] = added.waitForExistence(timeout: 3) ? "yes" : "no"
+        save("I-SNIPPET-settings")
+        // The keyboard covers the tab bar; dragging the list hides it (dismissKeyboardOnDrag).
+        results["SN-settings-drag-hides-keyboard"] = dragHidesKeyboard() ? "yes" : "no"
+
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("SN")
+        tap(point("strip-clipboard", or: CGPoint(x: 30, y: keyboardBottom - 220 - strip / 2)), pause: 2.0)
+        let chip = app.descendants(matching: .any).matching(identifier: "snippet-0").firstMatch
+        results["SN-chip"] = chip.waitForExistence(timeout: 5) ? (chip.label) : "missing"
+        save("I-SNIPPET-panel")
+        if chip.exists { chip.tap() }
+        Thread.sleep(forTimeInterval: 1.0)
+        results["SN-field"] = value("Text")
+        XCTAssertEqual(value("Text").lowercased(), "see you soon")
+        results["SN-tryit-drag-hides-keyboard"] = dragHidesKeyboard() ? "yes" : "no"
+
+        openTab("Settings")
+        let remove = app.buttons["Remove"].firstMatch
+        if remove.waitForExistence(timeout: 5) { remove.tap() }
+        Thread.sleep(forTimeInterval: 1.0)
+    }
+
+    /** Drags the companion's list a little upwards; true when that took the keyboard down. */
+    func dragHidesKeyboard() -> Bool {
+        coordinate(CGPoint(x: 200, y: 420)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 200, y: 340)))
+        let deadline = Date().addingTimeInterval(4)
+        while Date() < deadline {
+            if !makeebShowing(numberRow: false) && !stockKeyboardShowing { return true }
+            Thread.sleep(forTimeInterval: 0.3)
+        }
+        return false
+    }
+
     func test08_companion() {
         openTab("Setup")
         save("I-VT-30-setup")

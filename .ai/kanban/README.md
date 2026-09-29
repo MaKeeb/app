@@ -7,14 +7,13 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 6 |
-| [In progress](doing/_doing.md) | 2 |
-| [In review](review/_review.md) | 58 |
+| [In progress](doing/_doing.md) | 1 |
+| [In review](review/_review.md) | 59 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
 
 - [APP-35](doing/035-autocorrect.md): Autocorrect
-- [APP-64](doing/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 
 ## In review
 
@@ -67,6 +66,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-42](review/042-emoji-suggestions.md): Emoji suggestions
 - [APP-59](review/059-emoji-search.md): Emoji search
 - [APP-63](review/063-clipboard-history.md): Clipboard history
+- [APP-64](review/064-pinned-clips-and-snippets.md): Pinned clips and snippets
 - [APP-66](review/066-sensitive-clip-protection.md): Sensitive clip protection
 - [APP-81](review/081-screen-reader-support.md): Screen reader support
 - [APP-122](review/122-run-the-shared-test-suite-on-the-ios-simulator.md): Run the shared test suite on the iOS simulator
