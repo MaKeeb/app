@@ -28,6 +28,9 @@ jetbrainsNavigation = "2.9.2"
 
 # Test
 junit = "4.13.2"
+androidxTestRunner = "1.7.0"
+androidxTestExtJunit = "1.3.0"
+uiautomator = "2.4.0"
 turbine = "1.2.1"
 
 [libraries]
@@ -72,6 +75,9 @@ jetbrains-navigation-compose = { group = "org.jetbrains.androidx.navigation", na
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
+androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]

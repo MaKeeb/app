@@ -14,6 +14,9 @@ android {
         applicationId = "com.makeeb"
         versionCode = 1
         versionName = "0.1.0"
+        // Instrumented tests (src/androidTest) drive the keyboard through the accessibility API.
+        // Run them on one device with am instrument, never connectedAndroidTest: .ai/skills/build-and-verify.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // Dictionary packs are memory-mapped straight out of the APK (AssetBundledFiles), which only
@@ -77,6 +80,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.savedstate)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.uiautomator)
 }
 
 /** Copies the dictionary packs built by :tools:dictionaries into a generated assets directory. */

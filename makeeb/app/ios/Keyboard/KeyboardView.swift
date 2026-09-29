@@ -266,7 +266,7 @@ final class KeyboardView: UIView {
     private func rebuildAccessibilityIfNeeded() {
         guard let render else { return }
         // Touch-state renders (pressed keys, previews) don't change what VoiceOver should read.
-        let signature = render.keys.map { "\($0.label)|\($0.icon?.name ?? "")|\($0.frame.x),\($0.frame.y)" }.joined(separator: ";")
+        let signature = render.keys.map { "\($0.spokenLabel)|\($0.icon?.name ?? "")|\($0.frame.x),\($0.frame.y)" }.joined(separator: ";")
             + "#" + render.suggestions.joined(separator: ";")
             + "#" + render.stripActions.map(\.name).joined(separator: ";") + "#\(render.panel.name)#\(render.incognito)"
         guard signature != accessibilitySignature else { return }
@@ -291,9 +291,15 @@ final class KeyboardView: UIView {
             element.accessibilityFrameInContainerSpace = frame
             elements.append(element)
         }
-        for key in render.keys {
+        for (index, key) in render.keys.enumerated() {
             let element = UIAccessibilityElement(accessibilityContainer: self)
-            element.accessibilityLabel = spokenLabel(for: key)
+            element.accessibilityLabel = key.spokenLabel
+            element.accessibilityCustomActions = key.alternates.enumerated().map { alternate, name in
+                UIAccessibilityCustomAction(name: name) { [weak self] _ in
+                    self?.bridge?.performAlternate(keyIndex: Int32(index), alternate: Int32(alternate))
+                    return true
+                }
+            }
             element.accessibilityIdentifier = "key-" + (key.icon.map { $0.name.lowercased() } ?? (key.label.isEmpty ? "space" : key.label))
             element.accessibilityTraits = .keyboardKey
             element.accessibilityFrameInContainerSpace = keyAreaRect(key.frame)
@@ -301,29 +307,6 @@ final class KeyboardView: UIView {
         }
         keyElements = elements
         UIAccessibility.post(notification: .layoutChanged, argument: nil)
-    }
-
-    private func spokenLabel(for key: RenderKey) -> String {
-        guard let icon = key.icon else {
-            return key.label.isEmpty ? "space" : key.label
-        }
-        switch icon {
-        case .shift: return "shift"
-        case .shiftactive: return "shift, on"
-        case .capslock: return "caps lock"
-        case .backspace: return "delete"
-        case .return_: return "return"
-        case .search: return "search"
-        case .send: return "send"
-        case .go: return "go"
-        case .next: return "next"
-        case .previous: return "previous"
-        case .done: return "done"
-        case .globe: return "next keyboard"
-        case .emoji: return "emoji"
-        case .space: return "space"
-        default: return key.label
-        }
     }
 
     // MARK: Touches

@@ -6,9 +6,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
-| [Ready to start](todo/_todo.md) | 7 |
+| [Ready to start](todo/_todo.md) | 6 |
 | [In progress](doing/_doing.md) | 2 |
-| [In review](review/_review.md) | 56 |
+| [In review](review/_review.md) | 57 |
 | [Done](done/_done.md) | 5 |
 
 ## In progress
@@ -67,6 +67,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-59](review/059-emoji-search.md): Emoji search
 - [APP-63](review/063-clipboard-history.md): Clipboard history
 - [APP-66](review/066-sensitive-clip-protection.md): Sensitive clip protection
+- [APP-81](review/081-screen-reader-support.md): Screen reader support
 - [APP-122](review/122-run-the-shared-test-suite-on-the-ios-simulator.md): Run the shared test suite on the iOS simulator
 - [APP-124](review/124-visual-test-plan-run-on-android-and-ios.md): Visual test plan, run on Android and iOS
 - [APP-125](review/125-native-liquid-glass-tab-bar-ios-companion.md): Native Liquid Glass tab bar (iOS companion)
@@ -83,7 +84,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 - [APP-39](todo/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
 - [APP-77](todo/077-keyboard-height-and-size.md): Keyboard height and size
-- [APP-81](todo/081-screen-reader-support.md): Screen reader support
 
 ## Next
 

@@ -194,6 +194,29 @@ class TouchController(
     }
 
     /**
+     * Types [placed] as one complete tap on its centre: a screen reader activating the key's
+     * accessibility node. Same feedback and action as a finger, so the engine can't tell them apart.
+     */
+    fun perform(placed: PlacedKey) {
+        listener.onKeyDown(placed.key)
+        listener.onTap(placed.key.action, placed.bounds.centerX, placed.bounds.centerY)
+    }
+
+    /** Types the [index]th long-press alternate of [placed], as releasing on it in the popup would. */
+    fun performAlternate(placed: PlacedKey, index: Int) {
+        val alternate = placed.key.alternates.getOrNull(index) ?: return
+        listener.onKeyDown(placed.key)
+        listener.onAction(KeyAction.Text(alternate))
+    }
+
+    /** Runs [placed]'s long-press action (the globe key's keyboard list, the number pad). */
+    fun performLongPress(placed: PlacedKey) {
+        val action = placed.key.longPressAction ?: return
+        listener.onKeyDown(placed.key)
+        listener.onAction(action)
+    }
+
+    /**
      * Fast typists land the next key before lifting the last. Keys still held as plain taps are
      * typed now, in the order they were pressed, instead of in the order the fingers lift ("hi",
      * not "ih"). Only characters and space: a held modifier (shift, a mode key) keeps waiting for

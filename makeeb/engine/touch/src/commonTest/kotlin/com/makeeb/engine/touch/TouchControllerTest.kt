@@ -310,4 +310,26 @@ class TouchControllerTest {
         assertEquals(listOf<KeyAction>(KeyAction.Text("e")), actions)
         assertEquals(listOf(e.left + 5f to e.centerY + 2f), taps)
     }
+
+    @Test
+    fun aScreenReaderClickTypesLikeATapOnTheCentre() = runTest {
+        val touch = controller()
+        val e = geometry.keyFor('e')!!
+        touch.perform(e)
+        assertEquals(listOf<KeyAction>(KeyAction.Text("e")), actions)
+        assertEquals(listOf(e.bounds.centerX to e.bounds.centerY), taps)
+        assertTrue(touch.state.value.pressed.isEmpty(), "nothing is left held")
+    }
+
+    @Test
+    fun screenReaderActionsTypeAlternatesAndLongPresses() = runTest {
+        val touch = controller()
+        val e = geometry.keyFor('e')!!
+        touch.performAlternate(e, 0)
+        touch.performAlternate(e, 99)
+        assertEquals(listOf<KeyAction>(KeyAction.Text(e.key.alternates[0])), actions)
+        actions.clear()
+        touch.performLongPress(e)
+        assertTrue(actions.isEmpty(), "a key without a long-press action does nothing")
+    }
 }

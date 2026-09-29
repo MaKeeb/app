@@ -16,6 +16,7 @@ import com.makeeb.engine.layout.KeyStyle
 import com.makeeb.engine.layout.LayoutGeometry
 import com.makeeb.engine.layout.renderIcon
 import com.makeeb.engine.layout.renderLabel
+import com.makeeb.engine.layout.spokenLabel
 import com.makeeb.engine.touch.TouchState
 
 /**
@@ -68,6 +69,10 @@ data class RenderKey(
     /** Shift key while shift or caps lock is on: drawn like a character key. */
     val isActive: Boolean,
     val pressed: Boolean,
+    /** What VoiceOver reads for the key ("Capital A", "Delete"). */
+    val spokenLabel: String = label,
+    /** Long-press alternates as shown, offered to VoiceOver as custom actions. */
+    val alternates: List<String> = emptyList(),
 )
 
 data class RenderPreview(val label: String, val frame: RenderRect)
@@ -101,6 +106,8 @@ object KeyboardRenderer {
                 isAccent = key.style == KeyStyle.Enter,
                 isActive = key.action == KeyAction.Shift && state.shift.isUppercase,
                 pressed = placed in touch.pressed,
+                spokenLabel = key.spokenLabel(state.shift, imeAction),
+                alternates = if (key.longPressAction == null) key.displayAlternates(state.shift) else emptyList(),
             )
         }
         return KeyboardRender(

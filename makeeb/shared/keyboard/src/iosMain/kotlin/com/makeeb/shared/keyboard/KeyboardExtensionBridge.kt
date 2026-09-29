@@ -111,6 +111,12 @@ class KeyboardExtensionBridge(private val controller: UIInputViewController) : K
 
     fun touchCancel(id: Long) = session.touch.cancel(id)
 
+    /** VoiceOver's custom action for a long-press alternate of the [keyIndex]th rendered key. */
+    fun performAlternate(keyIndex: Int, alternate: Int) {
+        val placed = session.touch.geometry?.keys?.getOrNull(keyIndex) ?: return
+        session.touch.performAlternate(placed, alternate)
+    }
+
     /** [stripIndex] is the position in [KeyboardRender.suggestions]. */
     fun selectSuggestion(stripIndex: Int) {
         val suggestion = session.engine.state.value.suggestions.stripSlots().getOrNull(stripIndex) ?: return

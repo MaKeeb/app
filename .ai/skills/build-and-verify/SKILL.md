@@ -59,6 +59,21 @@ adb -s emulator-5554 shell am start -n com.makeeb.debug/com.makeeb.android.MainA
 
 `-read-only` leaves the AVD untouched. Software rendering is slow: put `sleep` between `input tap`s inside one `adb shell '…'`, and check state with `uiautomator dump` before tapping on. The companion's "Try it" tab has a text field for testing. Kill the emulator with `adb -s emulator-5554 emu kill` when done.
 
+### Instrumented tests
+
+`app/android/src/androidTest` holds tests that drive the running keyboard, such as `KeyboardAccessibilityTest`, which clicks key nodes through UiAutomation the way TalkBack does. They type only into the companion's Try it field and put the current keyboard back afterwards, so they may run on the Pixel as well as the emulator. `connectedAndroidTest` runs on every connected device at once, so never use it. Install both APKs on one device and run them with `am instrument`:
+
+```
+./gradlew :app:android:assembleDebug :app:android:assembleDebugAndroidTest
+adb -s <serial> install -r app/android/build/outputs/apk/debug/android-debug.apk
+adb -s <serial> install -r app/android/build/outputs/apk/androidTest/debug/android-debug-androidTest.apk
+adb -s <serial> shell am instrument -w -e class com.makeeb.android.KeyboardAccessibilityTest com.makeeb.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+A loaded host (a freshly booted iOS simulator, parallel builds) starves the emulator into system-wide ANRs ("failed to complete startup"). Check `uptime` and rerun once the load is down; don't raise timeouts past what a quiet emulator needs.
+
+`adb shell input` events bypass TalkBack's explore-by-touch: with TalkBack on, an injected tap still reaches the keyboard's pointer handler. They cannot test screen-reader behaviour, so use the instrumented test. TalkBack's own speech can be read from logcat once its developer settings have "Log output level" set to VERBOSE (`Speaking fragment text=`).
+
 ## Running on the iOS simulator
 
 Create a throwaway device instead of using the user's: `xcrun simctl create MaKeeb-verify com.apple.CoreSimulator.SimDeviceType.iPhone-17 com.apple.CoreSimulator.SimRuntime.iOS-27-0`, then boot, `install`, `launch com.makeeb.ios`, `io <udid> screenshot`, and `delete` it afterwards. `simctl` cannot tap, so testing the keyboard extension itself needs Simulator.app or a device: Settings → General → Keyboard → Keyboards → Add → MaKeeb.

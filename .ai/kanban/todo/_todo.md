@@ -6,4 +6,3 @@
 4. [APP-121: Visual polish: parity with the platform keyboard](121-visual-polish-parity-with-the-platform-keyboard.md)
 5. [APP-39: On-device learning and forgetting](039-on-device-learning-and-forgetting.md)
 6. [APP-77: Keyboard height and size](077-keyboard-height-and-size.md)
-7. [APP-81: Screen reader support](081-screen-reader-support.md)

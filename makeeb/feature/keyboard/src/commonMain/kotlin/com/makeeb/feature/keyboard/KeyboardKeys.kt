@@ -26,6 +26,14 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -43,6 +51,8 @@ import com.makeeb.engine.layout.LayoutGeometry
 import com.makeeb.engine.layout.PlacedKey
 import com.makeeb.engine.layout.renderIcon
 import com.makeeb.engine.layout.renderLabel
+import com.makeeb.engine.layout.spokenLabel
+import com.makeeb.engine.layout.spokenLongPress
 import com.makeeb.engine.touch.AlternatesPopup
 import com.makeeb.engine.touch.KeyPreview
 import com.makeeb.engine.touch.TouchController
@@ -54,6 +64,11 @@ import kotlin.math.roundToInt
  * Draws the key area. A thin renderer: key positions come from the shared [LayoutGeometry], and
  * all touch interpretation happens in the shared [TouchController]; this only forwards pointers
  * and draws [TouchController.state].
+ *
+ * Each key is also an accessibility node, so TalkBack's explore-by-touch can find it: it reads the
+ * shared spoken label, and activating it (double tap, or lifting the finger with TalkBack's
+ * lift-to-type) types through [TouchController.perform] like a tap. Alternates and long-press
+ * actions are custom actions.
  */
 @Composable
 fun KeyboardKeys(
@@ -80,6 +95,7 @@ fun KeyboardKeys(
                 label = placed.key.renderLabel(shift, imeAction, spaceLabel),
                 pressed = placed in touchState.pressed,
                 active = placed.key.action == KeyAction.Shift && shift != ShiftState.Off,
+                modifier = Modifier.keySemantics(placed, touch, shift, imeAction),
             )
         }
         touchState.preview?.let { PreviewBubble(it) }
@@ -108,8 +124,26 @@ private suspend fun PointerInputScope.forwardPointers(touch: TouchController) {
     }
 }
 
+private fun Modifier.keySemantics(placed: PlacedKey, touch: TouchController, shift: ShiftState, imeAction: ImeAction): Modifier {
+    val key = placed.key
+    val spoken = key.spokenLabel(shift, imeAction)
+    val longPress = key.spokenLongPress(shift, imeAction)
+    val alternates = key.displayAlternates(shift)
+    return clearAndSetSemantics {
+        contentDescription = spoken
+        role = Role.Button
+        onClick(label = spoken) { touch.perform(placed); true }
+        if (longPress != null) onLongClick(label = longPress) { touch.performLongPress(placed); true }
+        if (longPress == null && alternates.isNotEmpty()) {
+            customActions = alternates.mapIndexed { index, alternate ->
+                CustomAccessibilityAction(alternate) { touch.performAlternate(placed, index); true }
+            }
+        }
+    }
+}
+
 @Composable
-private fun KeyCell(placed: PlacedKey, icon: KeyIcon?, label: String, pressed: Boolean, active: Boolean) {
+private fun KeyCell(placed: PlacedKey, icon: KeyIcon?, label: String, pressed: Boolean, active: Boolean, modifier: Modifier) {
     val colors = KeyboardTheme.colors
     val dims = KeyboardTheme.dimensions
     val key = placed.key
@@ -129,7 +163,7 @@ private fun KeyCell(placed: PlacedKey, icon: KeyIcon?, label: String, pressed: B
         else -> dims.modifierTextSize
     }
 
-    Positioned(placed.bounds) {
+    Positioned(placed.bounds, modifier) {
         Box(
             Modifier
                 .fillMaxSize()
@@ -139,7 +173,7 @@ private fun KeyCell(placed: PlacedKey, icon: KeyIcon?, label: String, pressed: B
             contentAlignment = Alignment.Center,
         ) {
             if (icon != null) {
-                Icon(icon.vector(), contentDescription = icon.description(), tint = foreground, modifier = Modifier.size(dims.iconSize))
+                Icon(icon.vector(), contentDescription = null, tint = foreground, modifier = Modifier.size(dims.iconSize))
             } else if (caption != null) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(label, color = foreground, fontSize = fontSize, lineHeight = fontSize)
@@ -210,32 +244,16 @@ private fun AlternatesBubble(popup: AlternatesPopup) {
 
 /** Places [content] at [bounds], which are in pixels relative to the key area. */
 @Composable
-private fun Positioned(bounds: KeyBounds, content: @Composable () -> Unit) {
+private fun Positioned(bounds: KeyBounds, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val density = LocalDensity.current
     val width: Dp = with(density) { bounds.width.toDp() }
     val height: Dp = with(density) { (bounds.bottom - bounds.top).toDp() }
     Box(
         Modifier
             .offset { IntOffset(bounds.left.roundToInt(), bounds.top.roundToInt()) }
-            .size(width, height),
+            .size(width, height)
+            .then(modifier),
     ) { content() }
-}
-
-private fun KeyIcon.description(): String = when (this) {
-    KeyIcon.Shift -> "Shift"
-    KeyIcon.ShiftActive -> "Shift, on"
-    KeyIcon.CapsLock -> "Caps lock"
-    KeyIcon.Backspace -> "Delete"
-    KeyIcon.Return -> "Return"
-    KeyIcon.Search -> "Search"
-    KeyIcon.Send -> "Send"
-    KeyIcon.Go -> "Go"
-    KeyIcon.Next -> "Next"
-    KeyIcon.Previous -> "Previous"
-    KeyIcon.Done -> "Done"
-    KeyIcon.Globe -> "Next keyboard"
-    KeyIcon.Emoji -> "Emoji"
-    KeyIcon.Space -> "Space"
 }
 
 private fun KeyIcon.vector(): ImageVector = when (this) {
