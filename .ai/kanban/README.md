@@ -7,13 +7,9 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | [Backlog](backlog/_backlog.md) | 60 |
 | [Next](next/_next.md) | 7 |
 | [Ready to start](todo/_todo.md) | 3 |
-| [In progress](doing/_doing.md) | 1 |
-| [In review](review/_review.md) | 62 |
+| [In progress](doing/_doing.md) | 0 |
+| [In review](review/_review.md) | 63 |
 | [Done](done/_done.md) | 5 |
-
-## In progress
-
-- [APP-39](doing/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
 
 ## In review
 
@@ -65,6 +61,7 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 - [APP-11](review/011-punctuation-conveniences.md): Punctuation conveniences
 - [APP-20](review/020-tablet-landscape-and-foldable-layouts.md): Tablet, landscape and foldable layouts
 - [APP-38](review/038-next-word-prediction.md): Next-word prediction
+- [APP-39](review/039-on-device-learning-and-forgetting.md): On-device learning and forgetting
 - [APP-42](review/042-emoji-suggestions.md): Emoji suggestions
 - [APP-59](review/059-emoji-search.md): Emoji search
 - [APP-63](review/063-clipboard-history.md): Clipboard history

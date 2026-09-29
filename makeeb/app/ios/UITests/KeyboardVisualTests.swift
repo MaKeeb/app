@@ -804,6 +804,34 @@ final class KeyboardVisualTests: XCTestCase {
         selectLanguages(["English"], name: "en")
     }
 
+    /// A new word typed twice is learned and suggested; holding it in the strip offers to forget
+    /// it, and after Forget it is no longer suggested.
+    func test22_learnedWords() {
+        openTab("Try it")
+        focus("Text")
+        assertMaKeebVisible("LW")
+        type("zorblax zorblax x zorb")
+        func suggestion(_ word: String) -> XCUIElement {
+            app.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] %@", word)).firstMatch
+        }
+        results["LW-suggested"] = suggestion("zorblax").waitForExistence(timeout: 3) ? "yes" : "no"
+        save("I-LEARN-strip")
+        let middle = CGPoint(x: screenWidth / 2, y: keyboardBottom - (54 * 4 + 4) - strip / 2)
+        coordinate(middle).press(forDuration: 0.9)
+        Thread.sleep(forTimeInterval: 0.8)
+        save("I-LEARN-prompt")
+        let forget = app.descendants(matching: .any).matching(NSPredicate(format: "label == 'Forget'")).firstMatch
+        results["LW-prompt"] = forget.waitForExistence(timeout: 3) ? "yes" : "no"
+        if forget.exists { forget.tap() }
+        Thread.sleep(forTimeInterval: 1.0)
+        type(" zorb")
+        Thread.sleep(forTimeInterval: 1.0)
+        results["LW-after-forget"] = suggestion("zorblax").exists ? "still suggested" : "gone"
+        save("I-LEARN-after")
+        XCTAssertEqual(results["LW-suggested"], "yes")
+        XCTAssertEqual(results["LW-after-forget"], "gone")
+    }
+
     /** Drags the companion's list a little upwards; true when that took the keyboard down. */
     func dragHidesKeyboard() -> Bool {
         coordinate(CGPoint(x: 200, y: 420)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 200, y: 340)))
