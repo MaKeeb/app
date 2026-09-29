@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":platform:host"))
             api(project(":platform:clipboard"))
+            api(project(":platform:storage"))
             api(project(":core:settings"))
             implementation(project(":core:common"))
         }
