@@ -131,6 +131,46 @@ fun <T> ChoiceRow(
     }
 }
 
+/**
+ * Any number of [options] at once, as chips. [selected] is in the order they were picked, which
+ * the caller may give a meaning (the first language is the primary one); [footer] says what the
+ * selection adds up to.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun <T> MultiChoiceRow(
+    title: String,
+    options: List<T>,
+    selected: List<T>,
+    label: (T) -> String,
+    onToggle: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    footer: String? = null,
+) {
+    Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        RowText(title, subtitle, Modifier.padding(bottom = 8.dp))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { option ->
+                FilterChip(
+                    selected = option in selected,
+                    onClick = { onToggle(option) },
+                    label = { Text(label(option)) },
+                    modifier = Modifier.testTag("choice-$title-${label(option)}"),
+                )
+            }
+        }
+        if (footer != null) {
+            Text(
+                footer,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp).testTag("footer-$title"),
+            )
+        }
+    }
+}
+
 @Composable
 private fun RowText(title: String, subtitle: String?, modifier: Modifier) {
     Column(modifier) {

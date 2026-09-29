@@ -21,12 +21,25 @@ class SettingsPreferencesRepositoryTest {
     }
 
     @Test
-    fun theLanguageDefaultsToEnglishAndPersists() {
+    fun languagesDefaultToThePlatformsAndPersistInOrder() {
         val store = MapSettings()
-        assertEquals("en", SettingsPreferencesRepository(store).preferences.value.languageTag)
-        SettingsPreferencesRepository(store).update { it.copy(languageTag = "de") }
-        assertEquals("de", SettingsPreferencesRepository(store).preferences.value.languageTag)
-        assertEquals("de", store.getString("layout.language", ""), "the storage key is persisted: never rename it")
+        assertEquals(listOf("en"), SettingsPreferencesRepository(store).preferences.value.languageTags)
+        val phone = KeyboardPreferences(languageTags = listOf("hu", "en"))
+        assertEquals(listOf("hu", "en"), SettingsPreferencesRepository(store, phone).preferences.value.languageTags)
+        SettingsPreferencesRepository(store, phone).update { it.copy(languageTags = listOf("en", "sv", "hu")) }
+        assertEquals(listOf("en", "sv", "hu"), SettingsPreferencesRepository(store, phone).preferences.value.languageTags)
+        assertEquals("en,sv,hu", store.getString("layout.languages", ""), "the storage key is persisted: never rename it")
+    }
+
+    @Test
+    fun theSingleLanguageOfEarlierVersionsCarriesOver() {
+        val store = MapSettings()
+        store.putString("layout.language", "de")
+        val repository = SettingsPreferencesRepository(store, KeyboardPreferences(languageTags = listOf("hu")))
+        assertEquals(listOf("de"), repository.preferences.value.languageTags, "a stored choice beats the phone's languages")
+        repository.update { it.copy(numberRow = true) }
+        assertEquals("de", store.getString("layout.languages", ""))
+        assertFalse(store.hasKey("layout.language"), "the old key goes once the list is written")
     }
 
     @Test

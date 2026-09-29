@@ -18,12 +18,17 @@ data class TouchState(
 /** The enlarged key shown above the finger while a character key is held. */
 data class KeyPreview(val key: PlacedKey, val label: String, val bounds: KeyBounds)
 
-/** Long-press alternatives, one cell per option, with the option under the finger selected. */
+/**
+ * Long-press alternatives, one cell per option, with the option under the finger selected. When
+ * they don't fit across the keyboard they wrap onto rows stacked upwards: the first row, with the
+ * most likely options, sits nearest the finger. [bounds] is the whole popup, for its background.
+ */
 data class AlternatesPopup(
     val key: PlacedKey,
     val options: List<String>,
     val cells: List<KeyBounds>,
     val selected: Int,
+    val bounds: KeyBounds,
 )
 
 /** Tuning, in the geometry's units (pixels on Android, points on iOS). */

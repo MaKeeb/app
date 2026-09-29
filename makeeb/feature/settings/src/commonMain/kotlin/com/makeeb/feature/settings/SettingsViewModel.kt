@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class SettingsViewModel(
     private val repository: PreferencesRepository,
-    layouts: LayoutProvider,
+    private val layouts: LayoutProvider,
     private val snippetsRepository: SnippetsRepository,
 ) : ViewModel() {
     val snippets: StateFlow<List<String>> = snippetsRepository.snippets
@@ -23,6 +23,9 @@ class SettingsViewModel(
     val preferences: StateFlow<KeyboardPreferences> = repository.preferences
     val letterLayouts: List<LayoutInfo> = layouts.letterLayouts
     val languages: List<LanguageInfo> = layouts.languages
+
+    /** What the long-press keys will offer for these languages, per letter. */
+    fun accents(languageTags: List<String>): Map<String, List<String>> = layouts.accents(languageTags)
 
     fun update(transform: (KeyboardPreferences) -> KeyboardPreferences) = repository.update(transform)
 

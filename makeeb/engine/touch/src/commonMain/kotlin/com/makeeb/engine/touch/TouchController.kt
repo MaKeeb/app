@@ -154,7 +154,7 @@ class TouchController(
                     pointer.slide += step
                 }
             }
-            Mode.Alternates -> popup = popup?.let { it.copy(selected = it.indexAt(x)) }
+            Mode.Alternates -> popup = popup?.let { it.copy(selected = it.indexAt(x, y)) }
             Mode.Repeating, Mode.Consumed -> Unit
         }
         publish()
@@ -267,24 +267,60 @@ class TouchController(
         publish()
     }
 
+    /**
+     * Key-sized cells from the key's left edge, kept inside the keyboard. The first option sits
+     * under the finger and the rest fan out right, then left, then right again (AOSP's order), so
+     * a key near the right edge, whose popup shifts left, still offers its likeliest option where
+     * the finger is. Options that don't fit across wrap onto evenly filled rows stacked upwards,
+     * the first row nearest the finger. The
+     * stack may reach [TouchConfig.overflowAbove] into the strip; where even that is too little
+     * (the top letter row's longest lists), the cells get shorter, so the first row still ends
+     * where the finger is.
+     */
     private fun buildPopup(placed: PlacedKey): AlternatesPopup {
         val bounds = placed.bounds
         val options = placed.key.displayAlternates(shift)
         val cellWidth = bounds.width
         val height = bounds.bottom - bounds.top
-        val width = geometry?.width ?: Float.MAX_VALUE
-        var left = bounds.left
-        if (left + cellWidth * options.size > width) left = (width - cellWidth * options.size).coerceAtLeast(0f)
-        val top = (bounds.top - height).coerceAtLeast(-config.overflowAbove)
+        val areaWidth = geometry?.width ?: Float.MAX_VALUE
+        // Tolerance: without side insets (iOS) the width is exactly ten keys, which division can
+        // put a hair under 10.
+        val fit = floor(areaWidth / cellWidth + FIT_TOLERANCE).toInt().coerceAtLeast(1)
+        val rows = (options.size + fit - 1) / fit
+        val columns = (options.size + rows - 1) / rows
+        val left = bounds.left.coerceAtMost(areaWidth - cellWidth * columns).coerceAtLeast(0f)
+        val cellHeight = minOf(height, (bounds.centerY + config.overflowAbove) / rows)
+        val top = (bounds.top - cellHeight * rows).coerceAtLeast(-config.overflowAbove)
+        val firstRowTop = top + cellHeight * (rows - 1)
+        val order = fanOut(floor((bounds.centerX - left) / cellWidth).toInt().coerceIn(0, columns - 1), columns)
         val cells = options.indices.map { i ->
-            KeyBounds(left + i * cellWidth, top, left + (i + 1) * cellWidth, top + height)
+            val cellLeft = left + order[i % columns] * cellWidth
+            val cellTop = firstRowTop - (i / columns) * cellHeight
+            KeyBounds(cellLeft, cellTop, cellLeft + cellWidth, cellTop + cellHeight)
         }
-        return AlternatesPopup(placed, options, cells, selected = 0)
+        val frame = KeyBounds(left, top, left + cellWidth * columns, top + cellHeight * rows)
+        return AlternatesPopup(placed, options, cells, selected = 0, bounds = frame)
     }
 
-    private fun AlternatesPopup.indexAt(x: Float): Int {
+    /** Columns from [start] outwards: start, right, left, two right, two left… */
+    private fun fanOut(start: Int, columns: Int): List<Int> = buildList {
+        add(start)
+        var step = 1
+        while (size < columns) {
+            if (start + step < columns) add(start + step)
+            if (start - step >= 0 && size < columns) add(start - step)
+            step++
+        }
+    }
+
+    /** The cell under ([x], [y]); outside the popup, the nearest one. */
+    private fun AlternatesPopup.indexAt(x: Float, y: Float): Int {
         val first = cells.first()
-        return floor((x - first.left) / first.width).toInt().coerceIn(0, cells.lastIndex)
+        val firstRow = cells.takeWhile { it.top == first.top }
+        // Where in the fan-out order the column under the finger comes.
+        val position = firstRow.indices.minBy { abs(firstRow[it].centerX - x) }
+        val row = floor((first.bottom - y) / (first.bottom - first.top)).toInt().coerceIn(0, cells.lastIndex / firstRow.size)
+        return (row * firstRow.size + position).coerceAtMost(cells.lastIndex)
     }
 
     private fun publish() {
@@ -316,6 +352,8 @@ class TouchController(
     }
 
     private companion object {
+        const val FIT_TOLERANCE = 0.01f
+
         /** Gboard- and iOS-like proportions: clearly larger than the key under the finger. */
         const val PREVIEW_WIDTH_SCALE = 1.4f
         const val PREVIEW_HEIGHT_SCALE = 1.25f

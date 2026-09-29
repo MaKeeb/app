@@ -2,7 +2,6 @@ package com.makeeb.engine.layout
 
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
-import com.makeeb.engine.layout.data.LanguageSpec
 import com.makeeb.engine.layout.data.LetterLayoutSpec
 
 /**
@@ -15,20 +14,21 @@ internal object BuiltInLayouts {
     private val topRowDigits = "1234567890"
 
     /**
-     * The letters page from data: the [layout]'s three character rows, with the [language]'s
-     * long-press keys, inside the frame only the engine builds (the number row, shift, backspace,
-     * the digit hints and the field's bottom row), so no data file can move a key the pages share.
+     * The letters page from data: the [layout]'s three character rows, with the selected
+     * languages' merged [accents] as long-press keys, inside the frame only the engine builds (the
+     * number row, shift, backspace, the digit hints and the field's bottom row), so no data file
+     * can move a key the pages share.
      */
-    fun letters(layout: LetterLayoutSpec, language: LanguageSpec?, options: LayoutOptions): KeyboardLayout {
+    fun letters(layout: LetterLayoutSpec, accents: Map<String, List<String>>, options: LayoutOptions): KeyboardLayout {
         val (top, middle, bottom) = layout.rows
         // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
         return keyboardLayout(layout.id, KeyboardMode.Letters, widthUnits = 10f) {
             if (options.numberRow) numberRow()
-            row { letterKeys(top, layout, language, hints = if (options.numberRow) emptyList() else topRowDigits.map(Char::toString)) }
-            row { letterKeys(middle, layout, language) }
+            row { letterKeys(top, layout, accents, hints = if (options.numberRow) emptyList() else topRowDigits.map(Char::toString)) }
+            row { letterKeys(middle, layout, accents) }
             row {
                 shift()
-                letterKeys(bottom, layout, language)
+                letterKeys(bottom, layout, accents)
                 backspace()
             }
             bottomRow(KeyboardMode.Symbols, "?123", options)
@@ -37,12 +37,12 @@ internal object BuiltInLayouts {
 
     /**
      * Each key's long-press list: its digit hint (top row, no number row), the layout's own
-     * alternates, then the language's.
+     * alternates (punctuation on a layout's extra keys, never letters), then the languages'.
      */
-    private fun RowBuilder.letterKeys(keys: List<String>, layout: LetterLayoutSpec, language: LanguageSpec?, hints: List<String> = emptyList()) {
+    private fun RowBuilder.letterKeys(keys: List<String>, layout: LetterLayoutSpec, accents: Map<String, List<String>>, hints: List<String> = emptyList()) {
         keys.forEachIndexed { index, key ->
             val hint = hints.getOrNull(index)
-            val alternates = listOfNotNull(hint) + layout.alternates[key].orEmpty() + language?.alternates?.get(key).orEmpty()
+            val alternates = listOfNotNull(hint) + layout.alternates[key].orEmpty() + accents[key].orEmpty()
             text(key, width = layout.widths[key] ?: 1f, alternates = alternates.distinct(), hint = hint)
         }
     }

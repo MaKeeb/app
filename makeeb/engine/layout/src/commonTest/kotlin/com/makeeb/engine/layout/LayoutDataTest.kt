@@ -47,7 +47,7 @@ class LayoutDataTest {
         assertEquals(bundledLanguageFiles.map { it.name }, provider.languages.map { it.tag })
         cldrMainExemplars.forEach { (tag, letters) ->
             provider.letterLayouts.forEach { layout ->
-                val page = provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout.id, languageTag = tag))
+                val page = provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout.id, languageTags = listOf(tag)))
                 val reachable = page.rows.flatMap { it.keys }
                     .flatMap { key -> listOfNotNull((key.action as? KeyAction.Text)?.text) + key.alternates }
                     .toSet()
@@ -70,6 +70,25 @@ class LayoutDataTest {
         assertEquals(LayoutData.FALLBACK_LAYOUT, broken.layout("qwerty"))
         assertNull(broken.language("en"))
         assertEquals(emptyList(), broken.layouts)
+    }
+
+    @Test
+    fun severalLanguagesSkipUnknownTagsAndFallBackToEnglishOnlyWhenNoneIsKnown() {
+        val data = LayoutData()
+        assertEquals(listOf("de", "sv"), data.languages(listOf("xx", "de-CH", "sv", "de")).map { it.tag })
+        assertEquals(listOf("en"), data.languages(listOf("xx", "ja")).map { it.tag })
+        assertEquals(listOf("en"), data.languages(emptyList()).map { it.tag })
+    }
+
+    @Test
+    fun accentsMergeInLanguageOrderWithoutRepeats() {
+        val data = LayoutData()
+        val english = data.accents(listOf("en")).getValue("o")
+        val merged = data.accents(listOf("en", "hu")).getValue("o")
+        assertEquals(english, merged.take(english.size), "the primary language's accents come first")
+        assertTrue("ő" in merged && "ő" !in english, "Hungarian adds ő")
+        assertEquals(merged.distinct(), merged)
+        assertEquals("ő", data.accents(listOf("hu", "en")).getValue("o").first { it !in listOf("ó", "ö") }, "Hungarian first puts ő early")
     }
 
     @Test
@@ -119,6 +138,7 @@ class LayoutDataTest {
         assertProblem(layoutProblems(" ".repeat(LayoutDataParser.MAX_FILE_CHARS + 1)), "at most")
         assertProblem(languageProblems(language(extra = """"bottomRow": [],""")), "bottomRow")
         assertProblem(languageProblems(language(tag = "German"), name = "German"), "language tag")
+        assertProblem(layoutProblems(layout(extra = """"keys": {"a": {"alternates": "ä ."}},""")), "accents come from the languages")
     }
 
     @Test

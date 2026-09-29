@@ -7,7 +7,7 @@ There are two kinds of file:
 - A **layout** is an arrangement of characters, independent of language: QWERTY, AZERTY, Dvorak.
 - A **language** holds what a language adds, independent of layout: long-press alternates, shifted-form exceptions and the layouts it usually uses.
 
-Long-press alternates follow the language, not the layout, so a German speaker on QWERTY gets German alternates.
+The user picks any number of languages (Settings → Languages), and the selected languages decide the character set: every letter's long-press offers the accents of all of them, on whichever layout. English, Swedish and Hungarian together put å, ö and ő on the same QWERTY. The layout only places the letters, so a layout file may not add letter alternates.
 
 ## What the data cannot say
 
@@ -61,7 +61,7 @@ To change a layout or language, edit the JSON (or the converter, for files it wr
 | `id` | yes | `[a-z0-9][a-z0-9_-]{0,31}`, the same as the file name. Stored in preferences, so never rename one |
 | `name` | yes | Shown in settings, 1–40 characters |
 | `rows` | yes | Exactly three rows: the letters page, top to bottom, in visual left-to-right order. Each row is space-separated keys. A key is the text it types, which is also its label (lower case; the engine upper-cases it under shift) |
-| `keys` | no | Per-key options, by key text: `width` in key units (0.5–2, default 1) and `alternates`, the long-press keys this arrangement adds before the language's (space-separated) |
+| `keys` | no | Per-key options, by key text: `width` in key units (0.5–2, default 1) and `alternates`, long-press keys for punctuation on a key only this arrangement has (AZERTY's apostrophe; space-separated). Letters are rejected: they come from the languages |
 | `sources` | yes | Where the data comes from and under what licence |
 
 The engine puts shift before the third row and backspace after it. Rows are ten units wide. A narrower row is centred, and a wider one narrows only its character keys: Dvorak's nine-letter third row, with shift and backspace, is 12 units.
@@ -87,7 +87,7 @@ The engine puts shift before the third row and backspace after it. Rows are ten 
 | Field | Required | Meaning |
 |---|---|---|
 | `schema` | yes | `1` |
-| `language` | yes | A BCP 47 tag (`de`, `pt-BR`, `sr-Latn`), the same as the file name. Stored in preferences as `layout.language` |
+| `language` | yes | A BCP 47 tag (`de`, `pt-BR`, `sr-Latn`), the same as the file name. The selected tags are stored in preferences as `layout.languages`, comma-separated, primary first (earlier versions kept one under `layout.language`, read once and replaced) |
 | `name`, `autonym` | yes | The English name, for search, and the language's own name, shown in settings |
 | `layouts` | yes | Bundled layout ids the language uses, most usual first. The first is its default. Not applied yet: the APP-17 card will use it. Picking a language never changes the user's layout |
 | `alternates` | no | Long-press keys per base key, most likely first (space-separated). Keys are the text of a layout key |
@@ -99,8 +99,12 @@ The engine puts shift before the third row and backspace after it. Rows are ten 
 For each character key, the engine builds the list in this order, dropping repeats:
 
 1. the digit hint, on top-row keys when the number row is off (`q` → `1`);
-2. the layout's `keys.<key>.alternates`;
-3. the language's `alternates.<key>`.
+2. the layout's `keys.<key>.alternates` (punctuation only);
+3. each selected language's `alternates.<key>`, primary first, then the others in the order they were picked.
+
+A tag without a file falls back to its base language (`de-CH` → `de`) or is skipped, so a phone language MaKeeb has no data for adds nothing; with no known language at all, English. Before the user picks, the selection is the phone's own languages.
+
+The popup shows the list starting under the finger and fanning out right, then left (AOSP's order). A list longer than fits across the keyboard wraps onto rows stacked upwards, the first row nearest the finger (`TouchController.buildPopup`).
 
 Upper case comes from `String.uppercase()` for now (see `shifted`).
 
@@ -112,7 +116,7 @@ Upper case comes from `String.uppercase()` for now (see `shifted`).
 - **JSON:** read by `JsonReader`, a small strict RFC 8259 reader in `commonMain` (kotlinx.serialization cost the iOS keyboard framework about 1 MB). No comments, trailing commas, single quotes or unquoted keys; only the standard escapes; no raw control characters in strings; no duplicate keys; nothing after the value; at most 8 levels of nesting. Unknown fields, missing fields and values of the wrong type are errors at their path (`$.keys.q.width: expected a number`). Syntax errors also give the line and column (`JsonReaderTest`).
 - **Rows:** exactly three; 1–12 keys each; at most 12 units wide, and at most 10 on the third row (so letters stay 0.7 units or wider beside shift and backspace).
 - **Keys:** 1–8 code points; no whitespace, control characters or lone surrogates; no `$` prefix (reserved for template keys); no key twice in a layout. `keys` entries must name a key in the rows.
-- **Alternates:** at most 16 per key; each a valid key; no repeats; not the key itself.
+- **Alternates:** at most 16 per key; each a valid key; no repeats; not the key itself; in a layout file, no letters.
 - **Language:** a well-formed tag; `layouts` not empty, without repeats, and every entry bundled; `shifted` keys must be base keys or alternates.
 - **Build-time only (tests):**
   - every layout × language × mode × option assembles;

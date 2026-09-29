@@ -77,7 +77,8 @@ data class RenderKey(
 
 data class RenderPreview(val label: String, val frame: RenderRect)
 
-data class RenderPopup(val options: List<String>, val cells: List<RenderRect>, val selected: Int)
+/** Long-press alternates: one cell per option (possibly on several rows) inside [frame]. */
+data class RenderPopup(val options: List<String>, val cells: List<RenderRect>, val selected: Int, val frame: RenderRect)
 
 /** Buttons in the suggestion strip while there is nothing to suggest. */
 enum class StripAction { Emoji, Clipboard, Incognito, Settings }
@@ -114,7 +115,7 @@ object KeyboardRenderer {
             keys = keys,
             suggestions = if (showingKeys && !searching) state.suggestions.stripSlots().map { it?.text.orEmpty() } else emptyList(),
             preview = touch.preview?.takeIf { showingKeys }?.let { RenderPreview(it.label, it.bounds.toRect()) },
-            popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected) },
+            popup = touch.popup?.takeIf { showingKeys }?.let { popup -> RenderPopup(popup.options, popup.cells.map { it.toRect() }, popup.selected, popup.bounds.toRect()) },
             theme = preferences.theme,
             darkFromMinute = preferences.darkFromMinute,
             darkUntilMinute = preferences.darkUntilMinute,

@@ -44,4 +44,4 @@ Offline-first Android keyboards have users download files in a browser and impor
 
 ## Progress
 
-Decided 2026-09-29: English ships in the app; other languages are packs hosted on GitHub (release assets), downloaded during setup like Gboard and later from settings. Share-alike (CC BY-SA) packs are acceptable. The MKD format and the mapped reader exist since APP-110.
+Decided 2026-09-29: English ships in the app; other languages are packs hosted on GitHub (release assets), downloaded during setup like Gboard and later from settings. Share-alike (CC BY-SA) packs are acceptable. The MKD format and the mapped reader exist since APP-110. Build size (2026-09-29): the Leipzig corpora download is 517 MB because Leipzig ships each corpus as a full research bundle (inverted word index, source URLs, co-occurrence tables); the builder reads only the sentences (~225 MB of ~1.2 GB unpacked). Plan: host the built en_US.mkd (6.5 MB) as a pinned GitHub release asset like the other packs, so normal builds skip the corpora.

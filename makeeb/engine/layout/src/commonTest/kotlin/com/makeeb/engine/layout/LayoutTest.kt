@@ -50,7 +50,7 @@ class LayoutTest {
     @Test
     fun alternatesFollowTheLanguageNotTheLayout() {
         fun alternates(layout: String, language: String, char: Char) =
-            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout, languageTag = language))
+            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout, languageTags = listOf(language)))
                 .characterKeys.getValue(char).alternates
         assertEquals("à", alternates("qwerty", "en", 'a').first())
         assertEquals("ä", alternates("qwertz", "de", 'a').first())
@@ -67,9 +67,24 @@ class LayoutTest {
         assertEquals(alternates("qwerty", "de", 'o'), alternates("qwerty", "de-AT", 'o'))
         assertEquals(alternates("qwerty", "en", 'o'), alternates("qwerty", "xx", 'o'))
         assertEquals(
-            provider.layout(KeyboardMode.Letters, LayoutOptions(languageTag = "en")),
+            provider.layout(KeyboardMode.Letters, LayoutOptions(languageTags = listOf("en"))),
             provider.layout(KeyboardMode.Letters, LayoutOptions()),
         )
+    }
+
+    @Test
+    fun severalLanguagesPutAllTheirAccentsOnOneKeyboard() {
+        fun alternates(languages: List<String>, char: Char, layout: String = "qwerty") =
+            provider.layout(KeyboardMode.Letters, LayoutOptions(letterLayoutId = layout, languageTags = languages, numberRow = true))
+                .characterKeys.getValue(char).alternates
+        val mixed = listOf("en", "sv", "hu")
+        assertTrue(listOf("ő", "ö", "ø", "ó").all { it in alternates(mixed, 'o') }, "${alternates(mixed, 'o')}")
+        assertTrue(listOf("å", "ä", "á").all { it in alternates(mixed, 'a') })
+        assertTrue("ű" in alternates(mixed, 'u'))
+        assertEquals("ó", alternates(listOf("hu", "en"), 'o').first(), "the primary language's accents come first")
+        // The layout only places the letters: the same set on any of them.
+        assertEquals(alternates(mixed, 'o'), alternates(mixed, 'o', layout = "dvorak"))
+        assertEquals(alternates(mixed, 'o'), alternates(mixed, 'o', layout = "qwertz"))
     }
 
     @Test

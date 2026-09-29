@@ -585,29 +585,40 @@ final class KeyboardVisualTests: XCTestCase {
         tap(point("panel-letters", or: CGPoint(x: screenWidth - 30, y: keyboardBottom - newKeysArea + 20)), pause: 1.0)
     }
 
-    /// Long-press alternates follow the language, not the layout: hold "e" and "a" on QWERTY with a
-    /// language picked in Settings → Language. One test per language, because a revisited tab
-    /// doesn't always re-expose its elements. Captures `LANG-<tag>-hold-{e,a}` (host-side) and
-    /// `LANG-settings-<language>`; 19d restores English.
-    func test19a_languageEnglish() { holdAlternates(language: "English", tag: "en") }
-    func test19b_languageGerman() { holdAlternates(language: "Deutsch", tag: "de") }
-    func test19c_languageFrench() { holdAlternates(language: "Français", tag: "fr") }
-    func test19d_languageRestore() { selectLanguage("English") }
+    /// Long-press accents come from the languages picked in Settings → Languages, not the layout:
+    /// hold "e", "a" and "o" on QWERTY. One test per set, because a revisited tab doesn't always
+    /// re-expose its elements. Captures `LANG-<tags>-hold-{e,a,o}` (host-side) and
+    /// `LANG-settings-<tags>`; 19d restores English alone.
+    func test19a_languageEnglish() { holdAlternates(languages: ["English"], name: "en") }
+    func test19b_languagesMixed() { holdAlternates(languages: ["English", "Svenska", "Magyar"], name: "en-sv-hu") }
+    func test19c_languageGerman() { holdAlternates(languages: ["Deutsch"], name: "de") }
+    func test19d_languageRestore() { selectLanguages(["English"], name: "en") }
 
-    func holdAlternates(language autonym: String, tag: String) {
-        selectLanguage(autonym)
+    func holdAlternates(languages: [String], name: String) {
+        selectLanguages(languages, name: name)
         openTab("Try it")
         focus("Search")
-        assertMaKeebVisible("LANG-\(tag)")
-        heldCapture("LANG-\(tag)-hold-e", at: key("e"), hold: 2.0)
-        heldCapture("LANG-\(tag)-hold-a", at: key("a"), hold: 2.0)
+        assertMaKeebVisible("LANG-\(name)")
+        heldCapture("LANG-\(name)-hold-e", at: key("e"), hold: 2.0)
+        heldCapture("LANG-\(name)-hold-a", at: key("a"), hold: 2.0)
+        heldCapture("LANG-\(name)-hold-o", at: key("o"), hold: 2.0)
     }
 
-    /// Picks a language chip in the companion's Settings → Language row, scrolling it into view.
-    func selectLanguage(_ autonym: String) {
+    /// Makes exactly [autonyms] the selected languages, in that order (the first is the primary):
+    /// adds the missing ones in order, then removes the rest, so the selection is never empty.
+    func selectLanguages(_ autonyms: [String], name: String) {
         openTab("Settings")
-        let chip = app.descendants(matching: .any).matching(identifier: "choice-Language-\(autonym)").firstMatch
+        let all = ["English", "Deutsch", "Français", "Español", "Italiano", "Português", "Magyar", "Polski", "Nederlands", "Svenska"]
+        for autonym in autonyms { setLanguage(autonym, selected: true) }
+        for autonym in all where !autonyms.contains(autonym) { setLanguage(autonym, selected: false) }
+        save("LANG-settings-\(name)")
+    }
+
+    /// Toggles one language chip until it reads [selected], scrolling it into view first.
+    func setLanguage(_ autonym: String, selected: Bool) {
+        let chip = app.descendants(matching: .any).matching(identifier: "choice-Languages-\(autonym)").firstMatch
         XCTAssertTrue(chip.waitForExistence(timeout: 10), "language \(autonym)")
+        if chip.isSelected == selected { return }
         for _ in 0..<8 {
             let f = chip.frame
             if f.minY > 140 && f.maxY < 760 { break }
@@ -615,11 +626,12 @@ final class KeyboardVisualTests: XCTestCase {
             coordinate(CGPoint(x: 380, y: 450)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 380, y: 450 + dy)))
             Thread.sleep(forTimeInterval: 0.6)
         }
-        // A tap during the scroll's fling only stops it, and choosing a chip twice is harmless.
+        // A tap during the scroll's fling only stops it: wait it out, and check before tapping again.
         Thread.sleep(forTimeInterval: 1.5)
-        tap(CGPoint(x: chip.frame.midX, y: chip.frame.midY), pause: 1.0)
-        tap(CGPoint(x: chip.frame.midX, y: chip.frame.midY), pause: 1.0)
-        save("LANG-settings-\(autonym)")
+        for _ in 0..<3 where chip.isSelected != selected {
+            tap(CGPoint(x: chip.frame.midX, y: chip.frame.midY), pause: 1.0)
+        }
+        XCTAssertEqual(chip.isSelected, selected, "\(autonym) selected")
     }
 
     /// The app icon on the home screen (the page holding MaKeeb), in the current appearance.

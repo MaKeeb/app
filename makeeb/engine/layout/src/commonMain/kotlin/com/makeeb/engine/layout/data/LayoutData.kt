@@ -18,7 +18,7 @@ internal data class LetterLayoutSpec(
     val alternates: Map<String, List<String>> = emptyMap(),
 )
 
-/** What a language adds to any layout. Alternates follow the language, not the layout. */
+/** What a language adds to any layout. Alternates follow the languages, not the layout. */
 internal data class LanguageSpec(
     val tag: String,
     val name: String,
@@ -34,7 +34,8 @@ internal data class LanguageSpec(
 /**
  * The bundled layouts and languages, each parsed and validated the first time it is needed. A file
  * that fails validation counts as missing, so the keyboard never throws on bad data: an unknown
- * layout falls back to QWERTY, an unknown language to its base language, then English.
+ * layout falls back to QWERTY, an unknown language to its base language, and a set of languages
+ * with none known to English.
  */
 internal class LayoutData(
     private val layoutFiles: List<BundledFile> = bundledLayoutFiles,
@@ -43,6 +44,7 @@ internal class LayoutData(
     private val layoutIds = layoutFiles.map { it.name }.toSet()
     private val parsedLayouts = mutableMapOf<String, LetterLayoutSpec?>()
     private val parsedLanguages = mutableMapOf<String, LanguageSpec?>()
+    private val mergedAccents = mutableMapOf<List<String>, Map<String, List<String>>>()
 
     /** Every valid layout, in bundle order. Parses them all: for settings, not the keyboard. */
     val layouts: List<LetterLayoutSpec> get() = layoutFiles.mapNotNull { layoutOrNull(it.name) }
@@ -55,6 +57,29 @@ internal class LayoutData(
     /** The language for [tag], else its language subtag (`de-CH` → `de`), else English. */
     fun language(tag: String): LanguageSpec? =
         languageOrNull(tag) ?: languageOrNull(tag.substringBefore('-')) ?: languageOrNull(DEFAULT_LANGUAGE)
+
+    /**
+     * The languages for [tags] in their order, each resolved like [language] but skipped when
+     * unknown (a phone language without data adds nothing), English when none is known.
+     */
+    fun languages(tags: List<String>): List<LanguageSpec> =
+        tags.mapNotNull { languageOrNull(it) ?: languageOrNull(it.substringBefore('-')) }.distinctBy { it.tag }
+            .ifEmpty { listOfNotNull(languageOrNull(DEFAULT_LANGUAGE)) }
+
+    /**
+     * Every base key's long-press accents across [tags]: the first language's, then each next
+     * language's that aren't there yet. Cached, since the keyboard asks on every page build.
+     */
+    fun accents(tags: List<String>): Map<String, List<String>> = mergedAccents.getOrPut(tags) {
+        val merged = LinkedHashMap<String, MutableList<String>>()
+        languages(tags).forEach { language ->
+            language.alternates.forEach { (key, alternates) ->
+                val list = merged.getOrPut(key) { mutableListOf() }
+                alternates.filterTo(list) { it !in list }
+            }
+        }
+        merged
+    }
 
     private fun layoutOrNull(id: String): LetterLayoutSpec? {
         if (id in parsedLayouts) return parsedLayouts[id]
@@ -154,7 +179,13 @@ internal object LayoutDataParser {
                 val path = "$.keys[\"$key\"]"
                 if (key !in seen) add(path, "is not a key in the rows")
                 options.width?.let { if (it !in MIN_KEY_WIDTH..MAX_KEY_WIDTH) add("$path.width", "must be $MIN_KEY_WIDTH–$MAX_KEY_WIDTH") }
-                options.alternates?.let { alternates("$path.alternates", key, it) }
+                options.alternates?.let { text ->
+                    val alternates = alternates("$path.alternates", key, text)
+                    // The selected languages decide which letters can be typed; a layout only places them.
+                    alternates.filter { alternate -> alternate.any(Char::isLetter) }.forEach {
+                        add("$path.alternates", "'$it' is a letter: accents come from the languages, not the layout")
+                    }
+                }
             }
             return result(
                 LetterLayoutSpec(

@@ -18,8 +18,15 @@ interface PreferencesRepository {
     fun reload()
 }
 
-/** [PreferencesRepository] over a key-value [Settings] store (SharedPreferences / NSUserDefaults). */
-class SettingsPreferencesRepository(private val settings: Settings) : PreferencesRepository {
+/**
+ * [PreferencesRepository] over a key-value [Settings] store (SharedPreferences / NSUserDefaults).
+ * [defaults] fill in whatever was never stored; the platform factories put the phone's own
+ * languages there.
+ */
+class SettingsPreferencesRepository(
+    private val settings: Settings,
+    private val defaults: KeyboardPreferences = KeyboardPreferences(),
+) : PreferencesRepository {
     private val state = MutableStateFlow(read())
     override val preferences: StateFlow<KeyboardPreferences> = state.asStateFlow()
 
@@ -32,7 +39,6 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
     }
 
     private fun read(): KeyboardPreferences {
-        val defaults = KeyboardPreferences()
         return KeyboardPreferences(
             autoCapitalize = settings.getBoolean(Keys.AUTO_CAPITALIZE, defaults.autoCapitalize),
             doubleSpacePeriod = settings.getBoolean(Keys.DOUBLE_SPACE_PERIOD, defaults.doubleSpacePeriod),
@@ -50,7 +56,10 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
             heightScale = settings.getFloat(Keys.HEIGHT_SCALE, defaults.heightScale)
                 .coerceIn(KeyboardPreferences.MIN_HEIGHT_SCALE, KeyboardPreferences.MAX_HEIGHT_SCALE),
             letterLayoutId = settings.getString(Keys.LETTER_LAYOUT, defaults.letterLayoutId),
-            languageTag = settings.getString(Keys.LANGUAGE, defaults.languageTag),
+            // Before several languages there was one, under its own key.
+            languageTags = (settings.getStringOrNull(Keys.LANGUAGES) ?: settings.getStringOrNull(Keys.LEGACY_LANGUAGE))
+                ?.split(',')?.map(String::trim)?.filter(String::isNotEmpty)?.distinct()?.takeIf { it.isNotEmpty() }
+                ?: defaults.languageTags,
             theme = settings.getStringOrNull(Keys.THEME)
                 ?.let { stored -> ThemeMode.entries.firstOrNull { it.name == stored } }
                 ?: defaults.theme,
@@ -75,7 +84,8 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         settings.putBoolean(Keys.NUMBER_ROW, numberRow)
         settings.putFloat(Keys.HEIGHT_SCALE, heightScale)
         settings.putString(Keys.LETTER_LAYOUT, letterLayoutId)
-        settings.putString(Keys.LANGUAGE, languageTag)
+        settings.putString(Keys.LANGUAGES, languageTags.joinToString(","))
+        settings.remove(Keys.LEGACY_LANGUAGE)
         settings.putString(Keys.THEME, theme.name)
         settings.putInt(Keys.DARK_FROM, darkFromMinute)
         settings.putInt(Keys.DARK_UNTIL, darkUntilMinute)
@@ -102,7 +112,10 @@ class SettingsPreferencesRepository(private val settings: Settings) : Preference
         const val NUMBER_ROW = "layout.number_row"
         const val HEIGHT_SCALE = "layout.height_scale"
         const val LETTER_LAYOUT = "layout.letters"
-        const val LANGUAGE = "layout.language"
+        const val LANGUAGES = "layout.languages"
+
+        /** One language, read once and replaced by [LANGUAGES]. */
+        const val LEGACY_LANGUAGE = "layout.language"
         const val THEME = "appearance.theme"
         const val DARK_FROM = "appearance.dark_from_minute"
         const val DARK_UNTIL = "appearance.dark_until_minute"

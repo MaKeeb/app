@@ -624,7 +624,7 @@ Each stage is one board task and one commit, and ends with `jvmTest` plus the pl
 
 ### 9.9 Open decisions for the user
 
-**Decided 2026-09-29:** our own JSON schema, with layouts based on AOSP; long-press alternates follow the language, not the layout; MIT licence for MaKeeb.
+**Decided 2026-09-29:** our own JSON schema, with layouts based on AOSP; long-press alternates follow the language, not the layout; MIT licence for MaKeeb. Refined the same day: the user selects any number of languages, and together they decide the character set on one keyboard.
 
 1. **Format.** Own JSON schema with converters (recommended), FUTO YAML as-is, or a Keyboard 3.0 profile?
 2. **Alternates follow the language, not the layout** (recommended). This changes behaviour for anyone on QWERTY who types German or French today, once they pick a language.

@@ -195,8 +195,7 @@ final class KeyboardView: UIView {
     }
 
     private func drawPopup(_ popup: RenderPopup, palette: KeyboardPalette) {
-        guard let first = popup.cells.first, let last = popup.cells.last else { return }
-        let outer = keyAreaRect(first).union(keyAreaRect(last))
+        let outer = keyAreaRect(popup.frame)
         withShadow {
             UIColor(argb: palette.popup).setFill()
             UIBezierPath(roundedRect: outer, cornerRadius: 8).fill()

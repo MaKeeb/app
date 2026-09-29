@@ -45,7 +45,7 @@ class LayoutParityTest {
                 val tag = legacyLanguages[options.letterLayoutId] ?: "en"
                 assertEquals(
                     LegacyBuiltInLayouts.layout(mode, options),
-                    provider.layout(mode, options.copy(languageTag = tag)),
+                    provider.layout(mode, options.copy(languageTags = listOf(tag))),
                     "$mode $options",
                 )
             }
@@ -69,7 +69,7 @@ class LayoutParityTest {
                 allOptions.forEach { options ->
                     assertEquals(
                         LegacyBuiltInLayouts.layout(mode, options, alternates),
-                        provider.layout(mode, options.copy(languageTag = language.tag)),
+                        provider.layout(mode, options.copy(languageTags = listOf(language.tag))),
                         "${language.tag} $mode $options",
                     )
                 }

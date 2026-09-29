@@ -3,7 +3,6 @@ package com.makeeb.feature.keyboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -211,32 +210,31 @@ private fun PreviewBubble(preview: KeyPreview) {
     }
 }
 
+/** The popup's background, then each option in the cell the shared controller placed it in. */
 @Composable
 private fun AlternatesBubble(popup: AlternatesPopup) {
     val colors = KeyboardTheme.colors
     val dims = KeyboardTheme.dimensions
-    val first = popup.cells.first()
-    val last = popup.cells.last()
-    Positioned(KeyBounds(first.left, first.top, last.right, last.bottom)) {
-        Row(
+    Positioned(popup.bounds) {
+        Box(
             Modifier
                 .fillMaxSize()
                 .shadow(8.dp, RoundedCornerShape(dims.keyCornerRadius))
                 .background(colors.popup, RoundedCornerShape(dims.keyCornerRadius)),
-        ) {
-            popup.options.forEachIndexed { index, option ->
-                val selected = index == popup.selected
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .padding(3.dp)
-                        .clip(RoundedCornerShape(dims.keyCornerRadius - 2.dp))
-                        .background(if (selected) colors.popupSelected else colors.popup),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(option, color = if (selected) colors.onPopupSelected else colors.onPopup, fontSize = dims.keyTextSize)
-                }
+        )
+    }
+    popup.options.forEachIndexed { index, option ->
+        val selected = index == popup.selected
+        Positioned(popup.cells[index]) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(RoundedCornerShape(dims.keyCornerRadius - 2.dp))
+                    .background(if (selected) colors.popupSelected else colors.popup),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(option, color = if (selected) colors.onPopupSelected else colors.onPopup, fontSize = dims.keyTextSize)
             }
         }
     }

@@ -33,6 +33,7 @@ import com.makeeb.core.settings.matchesSettingsSearch
 import com.makeeb.engine.layout.LanguageInfo
 import com.makeeb.engine.layout.LayoutInfo
 import com.makeeb.ui.components.ChoiceRow
+import com.makeeb.ui.components.MultiChoiceRow
 import com.makeeb.ui.components.ScrollEndSpacer
 import com.makeeb.ui.components.SettingsSection
 import com.makeeb.ui.components.SliderRow
@@ -58,6 +59,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
         viewModel::update,
         modifier,
         Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet),
+        viewModel::accents,
     )
 }
 
@@ -69,9 +71,11 @@ fun SettingsContent(
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
     modifier: Modifier = Modifier,
     snippets: Snippets? = null,
+    /** What the long-press keys offer for a set of languages ([com.makeeb.engine.layout.LayoutProvider.accents]). */
+    accents: (List<String>) -> Map<String, List<String>> = { emptyMap() },
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val sections = (settingsSections(preferences, letterLayouts, languages, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
+    val sections = (settingsSections(preferences, letterLayouts, languages, accents, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
         .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().dismissKeyboardOnDrag().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -166,8 +170,16 @@ private fun settingsSections(
     preferences: KeyboardPreferences,
     letterLayouts: List<LayoutInfo>,
     languages: List<LanguageInfo>,
+    accents: (List<String>) -> Map<String, List<String>>,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
 ): List<SettingsGroup> {
+    // As the keyboard resolves them: each tag or its base language; languages without data (a
+    // phone language MaKeeb doesn't have yet) aren't shown; none at all reads as English.
+    val selectedLanguages = preferences.languageTags
+        .mapNotNull { tag -> languages.firstOrNull { it.tag == tag } ?: languages.firstOrNull { it.tag == tag.substringBefore('-') } }
+        .distinct()
+        .ifEmpty { listOfNotNull(languages.firstOrNull { it.tag == "en" }) }
+
     fun switch(title: String, checked: Boolean, keywords: String, subtitle: String? = null, set: (KeyboardPreferences, Boolean) -> KeyboardPreferences) =
         SettingRow(title, subtitle, keywords) {
             SwitchRow(title, checked, { v -> onUpdate { set(it, v) } }, subtitle = subtitle)
@@ -200,21 +212,26 @@ private fun settingsSections(
                         onSelect = { layout -> onUpdate { it.copy(letterLayoutId = layout.id) } },
                     )
                 },
-                // Alternates follow the language on any layout; picking one leaves the layout alone.
+                // The selected languages decide the character set on any layout; the layout only
+                // places the letters.
                 SettingRow(
-                    "Language",
-                    keywords = "accents diacritics long press alternates umlaut " + languages.joinToString(" ") { "${it.name} ${it.autonym}" },
+                    "Languages",
+                    keywords = "language accents diacritics long press alternates umlaut characters " +
+                        languages.joinToString(" ") { "${it.name} ${it.autonym}" },
                 ) {
-                    ChoiceRow(
-                        title = "Language",
+                    val tags = selectedLanguages.map { it.tag }
+                    MultiChoiceRow(
+                        title = "Languages",
+                        subtitle = "Long-press a letter for the accents of every language you pick, on any layout",
                         options = languages,
-                        // As the keyboard resolves it: the tag, its base language, then English.
-                        selected = languages.firstOrNull { it.tag == preferences.languageTag }
-                            ?: languages.firstOrNull { it.tag == preferences.languageTag.substringBefore('-') }
-                            ?: languages.firstOrNull { it.tag == "en" }
-                            ?: languages.first(),
+                        selected = selectedLanguages,
                         label = { it.autonym },
-                        onSelect = { language -> onUpdate { it.copy(languageTag = language.tag) } },
+                        // Picking adds at the end, so the first stays the primary; one always stays.
+                        onToggle = { language ->
+                            val next = if (language.tag in tags) tags - language.tag else tags + language.tag
+                            if (next.isNotEmpty()) onUpdate { it.copy(languageTags = next) }
+                        },
+                        footer = accents(tags).values.joinToString("  ·  ") { it.joinToString(" ") }.ifEmpty { null },
                     )
                 },
                 switch("Number row", preferences.numberRow, "digits numbers") { p, v -> p.copy(numberRow = v) },

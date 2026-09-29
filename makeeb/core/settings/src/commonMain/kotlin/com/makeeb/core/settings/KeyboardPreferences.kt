@@ -30,10 +30,10 @@ data class KeyboardPreferences(
     val heightScale: Float = 1f,
     val letterLayoutId: String = "qwerty",
     /**
-     * The typing language (BCP 47): its long-press alternates apply on any layout. Until language
-     * switching exists (board card APP-17) there is one.
+     * The languages the user types (BCP 47), primary first. Together they decide the character
+     * set: every letter's long-press offers all their accents, whatever the layout. Never empty.
      */
-    val languageTag: String = "en",
+    val languageTags: List<String> = listOf("en"),
     // Appearance
     val theme: ThemeMode = ThemeMode.System,
     /** [ThemeMode.Scheduled]: dark from this minute of the day until [darkUntilMinute] (may wrap past midnight). */

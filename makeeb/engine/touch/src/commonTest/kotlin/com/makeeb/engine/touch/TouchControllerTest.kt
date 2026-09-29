@@ -332,4 +332,57 @@ class TouchControllerTest {
         touch.performLongPress(e)
         assertTrue(actions.isEmpty(), "a key without a long-press action does nothing")
     }
+
+    @Test
+    fun longAlternateListsWrapOntoRowsAboveTheFinger() = runTest {
+        val touch = controller()
+        // Every bundled language at once: o gets its digit hint and 10 accents, more than 10 keys across.
+        val provider = BuiltInLayoutProvider()
+        val wide = LayoutGeometry(
+            provider.layout(KeyboardMode.Letters, LayoutOptions(languageTags = provider.languages.map { it.tag })),
+            width = 1000f,
+            rowHeight = 100f,
+        )
+        touch.geometry = wide
+        val o = wide.keyFor('o')!!
+        assertTrue(o.key.alternates.size > 10, "more than fit across: ${o.key.alternates}")
+        touch.down(1, o.bounds.centerX, o.bounds.centerY)
+        advanceTimeBy(1_000)
+        runCurrent()
+        val popup = assertNotNull(touch.state.value.popup)
+        assertEquals(o.key.alternates.size, popup.cells.size)
+        assertTrue(popup.cells.all { it.left >= 0f && it.right <= 1000.5f && it.top >= -50f }, "inside the keyboard and the strip")
+        val rows = popup.cells.map { it.top }.distinct()
+        assertEquals(2, rows.size)
+        assertEquals(rows.max(), popup.cells.first().top, "the first row sits lowest")
+        assertEquals(o.bounds.centerY, popup.cells.first().bottom, absoluteTolerance = 0.5f, message = "and ends at the finger")
+
+        // Resting on the key keeps the first option; sliding up reaches the second row.
+        touch.move(1, o.bounds.centerX, o.bounds.centerY + 1f)
+        assertEquals(0, touch.state.value.popup!!.selected)
+        val upper = popup.cells.indexOfFirst { it.top == rows.min() }
+        touch.move(1, popup.cells[upper].centerX, popup.cells[upper].centerY)
+        assertEquals(upper, touch.state.value.popup!!.selected)
+        touch.up(1, popup.cells[upper].centerX, popup.cells[upper].centerY)
+        assertEquals(listOf<KeyAction>(KeyAction.Text(o.key.alternates[upper])), actions)
+    }
+
+    @Test
+    fun aListThatFillsTheWidthExactlyStaysOnOneRow() = runTest {
+        val touch = controller()
+        // iPhone width without side insets: ten keys of 40.2 pt; o has its digit and 9 accents.
+        val iphone = LayoutGeometry(
+            BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions(languageTags = listOf("en", "sv", "hu"))),
+            width = 402f,
+            rowHeight = 54f,
+        )
+        touch.geometry = iphone
+        val o = iphone.keyFor('o')!!
+        assertEquals(10, o.key.alternates.size)
+        touch.down(1, o.bounds.centerX, o.bounds.centerY)
+        advanceTimeBy(1_000)
+        runCurrent()
+        val popup = assertNotNull(touch.state.value.popup)
+        assertEquals(1, popup.cells.map { it.top }.distinct().size, "one row")
+    }
 }

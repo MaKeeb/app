@@ -17,10 +17,12 @@ data class LayoutOptions(
     /** Field-specific keys on the bottom row, which letters and both symbols pages share. */
     val variant: LetterVariant = LetterVariant.Text,
     /**
-     * The language whose long-press alternates the letters get, on any layout: a German speaker
-     * on QWERTY gets German ones. Unknown tags fall back to the base language, then English.
+     * The languages the user types, primary first. Every letter's long-press offers all their
+     * accents, the primary's first: the languages decide the character set, the layout only
+     * places the letters. A tag without data falls back to its base language or is skipped;
+     * with none left, English.
      */
-    val languageTag: String = "en",
+    val languageTags: List<String> = listOf("en"),
 )
 
 /** Bottom rows adapted to the field, like the platform keyboards do. */
@@ -40,6 +42,12 @@ interface LayoutProvider {
     /** The languages whose alternates the letters can offer. */
     val languages: List<LanguageInfo>
 
+    /**
+     * Each letter's long-press accents for [languageTags], merged as the letters page merges
+     * them and in key order: what Settings shows the user they will be able to type.
+     */
+    fun accents(languageTags: List<String>): Map<String, List<String>>
+
     fun layout(mode: KeyboardMode, options: LayoutOptions): KeyboardLayout
 }
 
@@ -56,11 +64,14 @@ class BuiltInLayoutProvider internal constructor(private val data: LayoutData) :
 
     override val languages: List<LanguageInfo> by lazy { data.languages.map { LanguageInfo(it.tag, it.name, it.autonym) } }
 
+    override fun accents(languageTags: List<String>): Map<String, List<String>> =
+        data.accents(languageTags).toList().sortedBy { it.first }.toMap()
+
     override fun layout(mode: KeyboardMode, options: LayoutOptions): KeyboardLayout =
         cache.getOrPut(mode to options) {
             when (mode) {
                 KeyboardMode.Letters ->
-                    BuiltInLayouts.letters(data.layout(options.letterLayoutId), data.language(options.languageTag), options)
+                    BuiltInLayouts.letters(data.layout(options.letterLayoutId), data.accents(options.languageTags), options)
                 KeyboardMode.Symbols -> BuiltInLayouts.symbols(options)
                 KeyboardMode.SymbolsMore -> BuiltInLayouts.symbolsMore(options)
                 KeyboardMode.Numeric -> BuiltInLayouts.numeric()
