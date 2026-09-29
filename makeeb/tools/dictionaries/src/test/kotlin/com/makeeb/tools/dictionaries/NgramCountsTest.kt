@@ -7,9 +7,7 @@ import com.makeeb.engine.dictionary.pack.MkdWord
 import com.makeeb.engine.dictionary.pack.MkdWriter
 import com.makeeb.platform.storage.ByteArrayRegion
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.zip.GZIPOutputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -82,22 +80,4 @@ class NgramCountsTest {
         assertEquals(MkdNgrams.EMPTY, ngrams.bigrams(id("on")))
         assertTrue(ngrams.bigrams(id("the")) != MkdNgrams.EMPTY)
     }
-
-    private fun tar(entries: List<Pair<String, ByteArray>>): ByteArray {
-        val out = ByteArrayOutputStream()
-        for ((name, content) in entries) {
-            val header = ByteArray(512)
-            name.encodeToByteArray().copyInto(header, 0)
-            "%011o".format(content.size).encodeToByteArray().copyInto(header, 124)
-            header[156] = '0'.code.toByte()
-            "ustar".encodeToByteArray().copyInto(header, 257)
-            out.write(header)
-            out.write(content)
-            out.write(ByteArray((512 - content.size % 512) % 512))
-        }
-        out.write(ByteArray(1024))
-        return out.toByteArray()
-    }
-
-    private fun gzip(bytes: ByteArray): ByteArray = ByteArrayOutputStream().also { GZIPOutputStream(it).use { gz -> gz.write(bytes) } }.toByteArray()
 }

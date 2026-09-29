@@ -31,7 +31,7 @@ Offline-first Android keyboards have users download files in a browser and impor
 
 ## Tasks
 
-- [ ] Build the packs from the AOSP word lists and the Leipzig corpora
+- [x] Build the packs from the AOSP word lists and the Leipzig corpora
 - [ ] A catalogue, a release folder, and English from the release
 - [ ] Ports to download packs and store them where the keyboard maps them
 - [ ] An installer that checks every pack before the keyboard can see it

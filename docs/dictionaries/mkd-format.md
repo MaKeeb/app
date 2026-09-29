@@ -3,7 +3,7 @@
 MKD packs hold a language's lexicon, and optionally its next-word statistics, in a form the keyboard can memory-map and query in place. Nothing is parsed onto the heap. The design follows [docs/research/dictionaries-autocorrect.md](../research/dictionaries-autocorrect.md) §4, §5 and §10.2. This file describes format version 1.1: 1.0 shipped with the APP-110 card (Stage 1), and 1.1 added the `NGRM` section with the APP-38 card (Stage 5).
 
 - **Codec:** `makeeb/engine/dictionary/src/commonMain/kotlin/com/makeeb/engine/dictionary/pack/`. `MkdFormat` holds the layout in KDoc, `MkdWriter` writes packs (with an `MkdNgramTable` for `NGRM`), and `MkdPack` and `MkdNgrams` read them. `MappedDictionary` answers `Dictionary` queries from a pack, and its `nextWords` answers `NextWordModel` queries.
-- **Builder:** `makeeb/tools/dictionaries` runs `./gradlew :tools:dictionaries:dictionaryPacks`, which writes `tools/dictionaries/build/packs/en_US.mkd`. `-Pmakeeb.ngrams=false` builds it without `NGRM` (no corpus download).
+- **Builder:** `makeeb/tools/dictionaries`. `./gradlew :tools:dictionaries:dictionaryPacks` writes the bundled `tools/dictionaries/build/packs/en_US.mkd`; `languagePacks` writes the downloadable packs to `build/language-packs/` (below). `-Pmakeeb.ngrams=false` builds them without `NGRM` (no corpus download, except Hungarian's, whose words come from its corpus).
 - **Reading:** `ByteRegion` from `:platform:storage`. Android maps the APK asset in place (`AssetBundledFiles`); iOS uses `mmap` on the extension bundle (`BundleFiles`); tests use `ByteArrayRegion`.
 
 ## Layout
@@ -83,6 +83,33 @@ All integers are little-endian, except the two "marker first" encodings noted be
 | Packaging | Android: a generated asset, stored uncompressed (`androidResources.noCompress += "mkd"`) so it can be mapped out of the APK. iOS: a resource of the keyboard extension only (`app/ios/project.yml`); its pre-build phase runs the Gradle task. `-Pmakeeb.dictionaries=false` builds an APK without it, and the keyboard then falls back to `StarterDictionaries` |
 
 `WORD` is the larger section because it repeats each key's text. It could store only the spellings that differ from their key, and rebuild the others from the trie path. That would save about 1.3 MB, but it only saves APK size: the pages are clean and mapped either way.
+
+## The downloadable packs
+
+Every language but English is a pack the companion app downloads (docs/dictionaries/pack-catalogue.md). `./gradlew :tools:dictionaries:languagePacks` builds them the same way as English, each from pinned sources (hashes in `THIRD_PARTY_NOTICES.md`), and checks each one's golden words, folds, completions and next words before writing it. Only this task downloads their sources: about 1 MB of AOSP list and a 190–290 MB Leipzig news corpus per language, cached in `build/downloads` with their counts: 2.1 GB of corpora in all. With the corpora downloaded, counting and building all nine takes under 3 minutes on an M-series Mac; with the counts cached too, about a minute.
+
+Built 2026-09-29:
+
+| Pack | Words | Offensive | Next words (bigrams, trigrams) | Bytes | Sections |
+|---|---|---|---|---|---|
+| `de.mkd` | 205,888 | 66 | 219,962, 120,688 | 7,500,407 | LEXI 2,535 KiB, WORD 3,537 KiB, NGRM 1,252 KiB |
+| `es.mkd` | 236,193 | 195 | 285,177, 241,438 | 8,104,171 | LEXI 2,381 KiB, WORD 3,654 KiB, NGRM 1,878 KiB |
+| `fr.mkd` | 190,113 | 251 | 291,361, 225,790 | 7,140,064 | LEXI 2,175 KiB, WORD 2,979 KiB, NGRM 1,818 KiB |
+| `it.mkd` | 172,831 | 190 | 312,933, 230,798 | 6,660,748 | LEXI 1,971 KiB, WORD 2,639 KiB, NGRM 1,894 KiB |
+| `nl.mkd` | 178,444 | 112 | 199,041, 140,947 | 6,571,586 | LEXI 2,270 KiB, WORD 2,909 KiB, NGRM 1,237 KiB |
+| `pl.mkd` | 195,099 | 124 | 282,053, 94,287 | 6,458,134 | LEXI 1,991 KiB, WORD 2,923 KiB, NGRM 1,392 KiB |
+| `pt_BR.mkd` | 170,043 | 146 | 290,156, 243,005 | 6,404,145 | LEXI 1,853 KiB, WORD 2,489 KiB, NGRM 1,911 KiB |
+| `sv.mkd` | 196,739 | 140 | 219,043, 138,079 | 6,999,578 | LEXI 2,297 KiB, WORD 3,208 KiB, NGRM 1,329 KiB |
+| `hu.mkd` | 232,189 | 32 | 348,763, 107,285 | 8,224,316 | LEXI 2,530 KiB, WORD 3,898 KiB, NGRM 1,602 KiB |
+
+- **Words:** the AOSP list at the same pinned commit as English, converted the same way (`AospWordList`). French keeps 190,113 of 190,425 entries (312 `not_a_word`); Portuguese uses the Brazilian list (`pt_BR`), since far more people type it; the European one (`pt_PT`, 218,457 words) could become a second pack for `pt`.
+- **Hungarian** has no AOSP list. `CorpusWordList` counts `hun_news_2024_1M` with the keyboard's tokeniser (`CorpusTokens`), holding out the same one sentence in 250 as the n-gram counts:
+  - Kept: words made only of the Hungarian alphabet (`aábcdeéfghiíjklmnoóöőpqrstuúüűvwxyz`, inner hyphens allowed: "EU-s", "van-e"), seen at least 3 times, at most 300,000. That leaves 232,189 of 723,689 distinct forms, covering 96.5% of the corpus's words; digits, foreign letters and the mis-encoded "õ"/"û" some sources put for "ő"/"ű" are out.
+  - Case: a word is kept capitalised ("Budapest", "NATO") when at least 90% of its uses inside a sentence are; otherwise in lower case. Sentence starts don't count.
+  - Frequency: by rank, on the curve the AOSP lists share (`RankFrequency`: their median by rank across the nine lists is 221 at rank 1, 138 at 1,000, 106 at 10,000, 55 at 100,000). The suggestion engine's costs were tuned on AOSP frequencies, so the same rank means the same thing to it.
+  - Offensive: a short list of vulgar words and slurs written for MaKeeb (`HungarianOffensiveWords`, 32 words flagged). Prefixes only where no ordinary word shares them ("fasz" would flag "faszerkezet", a wooden frame), and only lower-case words, so names stay names.
+  - Budget: agglutinative languages get 16 MB (research §10.5); `hu.mkd` is 8.2 MB.
+- **Next words:** one Leipzig news corpus per language (1M sentences, 2024; Swedish 2023, the latest), counted and pruned as for English. They are smaller than English's `NGRM` (1.2–1.9 MiB against 2.5 MiB) because English counts two corpora.
 
 ## Loading at runtime
 

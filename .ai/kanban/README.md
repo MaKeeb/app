@@ -6,10 +6,14 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 | --- | --- |
 | [Backlog](backlog/_backlog.md) | 56 |
 | [Next](next/_next.md) | 11 |
-| [Ready to start](todo/_todo.md) | 3 |
-| [In progress](doing/_doing.md) | 0 |
+| [Ready to start](todo/_todo.md) | 2 |
+| [In progress](doing/_doing.md) | 1 |
 | [In review](review/_review.md) | 64 |
 | [Done](done/_done.md) | 5 |
+
+## In progress
+
+- [APP-37](doing/037-per-language-dictionary-packs.md): Per-language dictionary packs
 
 ## In review
 
@@ -80,7 +84,6 @@ The project's tasks, one Markdown card each, kept with [kanban](https://github.c
 
 ## Ready to start
 
-- [APP-37](todo/037-per-language-dictionary-packs.md): Per-language dictionary packs
 - [APP-95](todo/095-shared-storage-between-app-and-keyboard.md): Shared storage between app and keyboard
 - [APP-121](todo/121-visual-polish-parity-with-the-platform-keyboard.md): Visual polish: parity with the platform keyboard
 

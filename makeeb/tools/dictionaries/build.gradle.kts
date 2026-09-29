@@ -11,6 +11,8 @@ plugins {
 //   assets; the iOS keyboard extension bundles them (app/ios/project.yml). The first build also
 //   downloads the next-word corpora (about 520 MB) and counts them (about a minute); the counts
 //   are cached in build/downloads. -Pmakeeb.ngrams=false builds packs without next-word data.
+// - `languagePacks` builds the packs the companion app downloads (every other language) into
+//   build/language-packs, from their own pinned sources (docs/dictionaries/mkd-format.md).
 // - `typingHarness` measures the suggestion engine on the en_US pack (src/test, since it drives
 //   the engine through the :testing fakes), including next-word predictions on sentences held
 //   out of the counts (build/heldout).
@@ -62,6 +64,31 @@ val dictionaryPacks = tasks.register<JavaExec>("dictionaryPacks") {
     inputs.property("ngrams", ngrams)
     outputs.dir(packsDirectory)
     outputs.dir(heldOutDirectory)
+}
+
+// The packs the companion app downloads (every language but English), in their own directory so
+// app/android never bundles them. Only this task downloads their sources: an AOSP word list
+// (about 1 MB) and a Leipzig news corpus (about 250 MB) per language, cached like English's.
+val languagePacksDirectory = layout.buildDirectory.dir("language-packs")
+val languagePacks = tasks.register<JavaExec>("languagePacks") {
+    group = "build"
+    description = "Builds the downloadable language packs (de, es, fr, it, nl, pl, pt_BR, sv, hu) from their pinned sources."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.makeeb.tools.dictionaries.DictionaryBuilderKt")
+    // Counting Hungarian words holds a million distinct forms before the cuts.
+    maxHeapSize = "3g"
+    // -Pmakeeb.languagePacks=hu,sv rebuilds only those (by file stem) while tuning one.
+    val which = providers.gradleProperty("makeeb.languagePacks").orNull ?: "downloadable"
+    args(
+        "--packs", which,
+        "--out", languagePacksDirectory.get().asFile.absolutePath,
+        "--cache", downloadsDirectory.get().asFile.absolutePath,
+        "--heldout", heldOutDirectory.get().asFile.absolutePath,
+        "--ngrams", ngrams.toString(),
+    )
+    inputs.property("ngrams", ngrams)
+    inputs.property("packs", which)
+    outputs.dir(languagePacksDirectory)
 }
 
 // What app/android resolves to package the packs as assets.
