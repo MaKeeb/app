@@ -506,6 +506,8 @@ class InputEngine(
             keys = letterKeys(),
             atSentenceStart = TextBoundaries.isSentenceStart(before),
             taps = composingTaps.takeIf { it.size == composing.length }.orEmpty(),
+            strength = preferences.value.autoCorrectStrength,
+            languages = preferences.value.languageTags,
         )
     }
 

@@ -1,5 +1,6 @@
 package com.makeeb.tools.dictionaries.harness
 
+import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.model.EditorAttributes
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
@@ -13,11 +14,16 @@ import com.makeeb.engine.layout.BuiltInLayoutProvider
 import com.makeeb.engine.layout.LayoutGeometry
 import com.makeeb.engine.layout.LayoutOptions
 import com.makeeb.engine.prediction.DictionarySuggestionEngine
+import com.makeeb.engine.prediction.TapPoint
 import com.makeeb.platform.storage.ByteArrayRegion
 import com.makeeb.testing.FakeKeyboardHost
 import com.makeeb.testing.FakeTextHost
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.ln
+import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeSource
@@ -49,15 +55,17 @@ class TypingHarness(
     private val substitutionRate: Double = DEFAULT_SUBSTITUTION_RATE,
     /** Passed to [DictionarySuggestionEngine]; 0 measures completions without the context boost. */
     contextWeight: Double? = null,
+    strength: AutocorrectStrength = AutocorrectStrength.Normal,
 ) {
     private val engine = InputEngine(
         layouts = BuiltInLayoutProvider(),
         suggestionEngine = if (contextWeight == null) DictionarySuggestionEngine(dictionary, user = null)
         else DictionarySuggestionEngine(dictionary, user = null, contextWeight = contextWeight),
-        preferences = MutableStateFlow(KeyboardPreferences()),
+        preferences = MutableStateFlow(KeyboardPreferences(autoCorrectStrength = strength)),
         timeSource = TestTimeSource(),
     )
     private val neighbours = keyNeighbours()
+    private val centres = letterCentres()
 
     fun run(sentences: List<String>): HarnessReport {
         val words = sentences.map(::words)
@@ -216,6 +224,59 @@ class TypingHarness(
         (word to result).takeUnless { result.equals(word, ignoreCase = true) }
     }
 
+    /**
+     * Every letter tapped where a finger would land: a Gaussian around its key's centre, [sigma]
+     * key widths across and the same physical distance down (rows are [ROW_ASPECT] times taller),
+     * typing whichever letter is nearest. Typos then come from the finger, as on a phone. Each
+     * word is typed twice, once passing the tap points to the engine (as the keyboard does) and
+     * once without, so the difference is what the tap weighting buys.
+     */
+    fun tapRun(sentences: List<String>, sigma: Double = DEFAULT_TAP_SIGMA): TapReport {
+        val random = Random(seed)
+        val plan = sentences.map { sentence -> words(sentence).map { word -> word to tapLetters(word, random, sigma) } }
+        var typos = 0
+        var clean = 0
+        val fixed = IntArray(2)
+        val changed = IntArray(2)
+        listOf(true, false).forEachIndexed { variant, useTaps ->
+            for (sentence in plan) {
+                val host = startSentence()
+                for ((word, letters) in sentence) {
+                    val start = host.text.length
+                    letters.forEach { (char, tap) -> engine.onKey(KeyAction.Text(char.toString()), tap.takeIf { useTaps }) }
+                    engine.onKey(KeyAction.Space)
+                    val result = host.text.substring(start).trim()
+                    if (letters.joinToString("") { it.first.toString() } == word.lowercase()) {
+                        if (variant == 0) clean++
+                        if (!result.equals(word, ignoreCase = true)) changed[variant]++
+                    } else {
+                        if (variant == 0) typos++
+                        if (result.equals(word, ignoreCase = true)) fixed[variant]++
+                    }
+                }
+            }
+        }
+        return TapReport(sigma, plan.sumOf { it.size }, typos, fixed[0], fixed[1], clean, changed[0], changed[1])
+    }
+
+    private fun tapLetters(word: String, random: Random, sigma: Double): List<Pair<Char, TapPoint?>> = word.lowercase().map { char ->
+        val (cx, cy) = centres[char] ?: return@map char to null
+        val x = cx + gaussian(random) * sigma
+        val y = cy + gaussian(random) * sigma / ROW_ASPECT
+        val nearest = centres.minBy { (_, c) -> (c.first - x).let { it * it } + ((c.second - y) * ROW_ASPECT).let { it * it } }.key
+        nearest to TapPoint(x.toFloat(), y.toFloat())
+    }
+
+    /** Box–Muller: a standard normal draw from two uniform ones. */
+    private fun gaussian(random: Random): Double = sqrt(-2.0 * ln(1.0 - random.nextDouble())) * cos(2.0 * PI * random.nextDouble())
+
+    /** Letter centres in key widths and rows, as the engine measures them for tap points. */
+    private fun letterCentres(): Map<Char, Pair<Double, Double>> {
+        val layout = BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions())
+        val geometry = LayoutGeometry(layout, width = layout.unitsPerRow, rowHeight = 1f)
+        return ('a'..'z').associateWith { geometry.keyFor(it)!!.bounds.let { b -> b.centerX.toDouble() to b.centerY.toDouble() } }
+    }
+
     private fun predictions(): List<Suggestion> = engine.state.value.suggestions.filter { it.kind == Suggestion.Kind.NextWord }
 
     private fun startSentence(): FakeTextHost =
@@ -248,6 +309,15 @@ class TypingHarness(
         const val DEFAULT_SEED = 20260928L
         const val DEFAULT_SUBSTITUTION_RATE = 0.05
 
+        /**
+         * Tap scatter in key widths. About 0.2 on a phone keyboard (touch-offset studies report
+         * 0.15–0.3), which puts roughly one tap in 30 on a neighbouring key.
+         */
+        const val DEFAULT_TAP_SIGMA = 0.22
+
+        /** Rows are this much taller than keys are wide (WeightedEdits' ROW_ASPECT). */
+        const val ROW_ASPECT = 1.4
+
         private val WORD = Regex("[A-Za-z]+(?:'[A-Za-z]+)*")
 
         /** Words people type that a lexicon lacks; the ones the pack knows are skipped. */
@@ -264,6 +334,24 @@ class TypingHarness(
                 ?: error("harness corpus missing")
             return stream.bufferedReader().readLines().filter { it.isNotBlank() && !it.startsWith("#") }
         }
+    }
+}
+
+/** [TypingHarness.tapRun]: finger-like taps, corrected with and without the tap points. */
+data class TapReport(
+    val sigma: Double,
+    val words: Int,
+    val typos: Int,
+    val fixedWithTaps: Int,
+    val fixedWithoutTaps: Int,
+    val cleanWords: Int,
+    val changedWithTaps: Int,
+    val changedWithoutTaps: Int,
+) {
+    fun format(): String {
+        fun pct(part: Int, whole: Int) = "%.1f%%".format(100.0 * part / whole.coerceAtLeast(1))
+        return "finger taps (σ=$sigma key widths): $typos typo words of $words; fixed ${pct(fixedWithTaps, typos)} with the tap points " +
+            "(${pct(fixedWithoutTaps, typos)} without); clean words changed $changedWithTaps of $cleanWords ($changedWithoutTaps without)"
     }
 }
 
@@ -337,6 +425,15 @@ fun main(args: Array<String>) {
     println(TypingHarness(dictionary, seed, rate).run(corpus).format())
     val withoutContext = TypingHarness(dictionary, seed, rate, contextWeight = 0.0).run(corpus)
     println("without the context boost: keystroke savings, completions only ${"%.1f%%".format(withoutContext.keystrokeSavings * 100)}")
+    println()
+    for (strength in AutocorrectStrength.entries) {
+        val report = TypingHarness(dictionary, seed, rate, strength = strength).run(corpus)
+        val taps = TypingHarness(dictionary, seed, rate, strength = strength).tapRun(corpus)
+        println(
+            "$strength: substitution typos fixed ${"%.1f%%".format(100.0 * report.typosFixed / report.typos)}, false corrections ${report.falseCorrections}, " +
+                "unknown words changed ${report.unknownChanged.size} of ${report.unknownWords} ${report.unknownChanged}; ${taps.format()}",
+        )
+    }
 
     val heldOut = options["--heldout"]?.let(::File)?.takeIf { it.isFile } ?: return
     val mapped = dictionary as? MappedDictionary ?: return

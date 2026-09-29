@@ -1,5 +1,7 @@
 package com.makeeb.core.settings
 
+import com.makeeb.core.model.AutocorrectStrength
+
 /**
  * User-facing keyboard settings. The companion app writes them all; the keyboard reads them and
  * writes only the few its quick-settings panel offers ([QuickSetting]).
@@ -9,6 +11,7 @@ data class KeyboardPreferences(
     val autoCapitalize: Boolean = true,
     val doubleSpacePeriod: Boolean = true,
     val autoCorrect: Boolean = true,
+    val autoCorrectStrength: AutocorrectStrength = AutocorrectStrength.Normal,
     val showSuggestions: Boolean = true,
     /** Offer the emoji a typed word names ("pizza" → 🍕) in the suggestion strip. */
     val emojiSuggestions: Boolean = true,

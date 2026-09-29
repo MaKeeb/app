@@ -1,5 +1,6 @@
 package com.makeeb.engine.prediction
 
+import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.model.Suggestion
 
 /** What the engine knows about the caret position when asking for suggestions. */
@@ -19,6 +20,14 @@ data class TypingContext(
     val taps: List<TapPoint?> = emptyList(),
     /** Nothing but a sentence start comes before [previousWords]. */
     val previousWordsStartSentence: Boolean = false,
+    /** How sure a correction must be before it replaces the typed word. */
+    val strength: AutocorrectStrength = AutocorrectStrength.Normal,
+    /**
+     * The languages the user types (BCP 47). Words are only replaced automatically when the
+     * dictionary covers all of them: without a Hungarian lexicon, a Hungarian word looks like an
+     * English typo. Empty means the dictionary's own language.
+     */
+    val languages: List<String> = emptyList(),
 )
 
 /** A tap on the letters layout, in key widths across and rows down (the [KeyPositions] units). */

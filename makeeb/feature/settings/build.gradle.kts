@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":core:settings"))
             implementation(project(":engine:layout"))
+            implementation(project(":engine:dictionary"))
             implementation(project(":ui:components"))
             implementation(libs.jetbrains.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.lifecycle.runtime.compose)

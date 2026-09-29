@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.settings.KeyboardPreferences
 import com.makeeb.core.settings.ThemeMode
 import com.makeeb.core.settings.matchesSettingsSearch
@@ -60,6 +61,7 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
         modifier,
         Snippets(snippets, viewModel::addSnippet, viewModel::removeSnippet),
         viewModel::accents,
+        viewModel.dictionaryLanguages,
     )
 }
 
@@ -73,9 +75,11 @@ fun SettingsContent(
     snippets: Snippets? = null,
     /** What the long-press keys offer for a set of languages ([com.makeeb.engine.layout.LayoutProvider.accents]). */
     accents: (List<String>) -> Map<String, List<String>> = { emptyMap() },
+    /** Language subtags with a full lexicon; null when unknown (no autocorrect note). */
+    dictionaryLanguages: Set<String>? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val sections = (settingsSections(preferences, letterLayouts, languages, accents, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
+    val sections = (settingsSections(preferences, letterLayouts, languages, accents, dictionaryLanguages, onUpdate) + listOfNotNull(snippets?.let(::snippetsSection)))
         .mapNotNull { it.search(query) }
     Column(
         modifier.fillMaxSize().dismissKeyboardOnDrag().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -149,6 +153,17 @@ private fun SnippetsEditor(snippets: Snippets) {
     }
 }
 
+/**
+ * What autocorrect is doing: the undo hint, or, while a selected language has no full lexicon,
+ * why it only suggests (without one, that language's words look like typos).
+ */
+private fun autocorrectSubtitle(selected: List<LanguageInfo>, dictionaryLanguages: Set<String>?): String {
+    val missing = dictionaryLanguages?.let { have -> selected.filter { it.tag.substringBefore('-') !in have } }.orEmpty()
+    if (missing.isEmpty()) return "Backspace right after a correction undoes it"
+    val names = missing.joinToString(" and ") { it.autonym }
+    return "Suggests corrections without making them while $names ${if (missing.size == 1) "has" else "have"} no dictionary yet"
+}
+
 /** A group of rows on the settings screen. */
 private class SettingsGroup(val title: String, val rows: List<SettingRow>) {
     /** The rows [query] finds, or null when it finds none; a section title match counts for its rows. */
@@ -171,6 +186,7 @@ private fun settingsSections(
     letterLayouts: List<LayoutInfo>,
     languages: List<LanguageInfo>,
     accents: (List<String>) -> Map<String, List<String>>,
+    dictionaryLanguages: Set<String>?,
     onUpdate: ((KeyboardPreferences) -> KeyboardPreferences) -> Unit,
 ): List<SettingsGroup> {
     // As the keyboard resolves them: each tag or its base language; languages without data (a
@@ -190,10 +206,19 @@ private fun settingsSections(
     return listOf(
         SettingsGroup(
             "Typing",
-            listOf(
+            listOfNotNull(
                 switch("Auto-capitalization", preferences.autoCapitalize, "capital letters shift sentence caps") { p, v -> p.copy(autoCapitalize = v) },
                 switch("Double-space period", preferences.doubleSpacePeriod, "full stop dot space", "Tap space twice to end a sentence") { p, v -> p.copy(doubleSpacePeriod = v) },
-                switch("Autocorrect", preferences.autoCorrect, "spelling correction typo fix", "Backspace right after a correction undoes it") { p, v -> p.copy(autoCorrect = v) },
+                switch("Autocorrect", preferences.autoCorrect, "spelling correction typo fix", autocorrectSubtitle(selectedLanguages, dictionaryLanguages)) { p, v -> p.copy(autoCorrect = v) },
+                SettingRow("Autocorrect strength", keywords = "autocorrect aggressive modest careful spelling") {
+                    ChoiceRow(
+                        title = "Autocorrect strength",
+                        options = AutocorrectStrength.entries,
+                        selected = preferences.autoCorrectStrength,
+                        label = { it.name },
+                        onSelect = { strength -> onUpdate { it.copy(autoCorrectStrength = strength) } },
+                    )
+                }.takeIf { preferences.autoCorrect },
                 switch("Show suggestions", preferences.showSuggestions, "prediction words strip completion") { p, v -> p.copy(showSuggestions = v) },
                 switch("Emoji suggestions", preferences.emojiSuggestions, "emoji strip", "Typing pizza offers 🍕") { p, v -> p.copy(emojiSuggestions = v) },
                 switch("Slide on space by word", preferences.cursorSlideByWord, "cursor caret move spacebar", "Sliding on the space bar moves the cursor a word at a time") { p, v -> p.copy(cursorSlideByWord = v) },

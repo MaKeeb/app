@@ -1,5 +1,6 @@
 package com.makeeb.engine.prediction
 
+import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.engine.dictionary.StarterDictionaries
 import com.makeeb.engine.dictionary.UserDictionary
 import com.makeeb.engine.dictionary.WordEntry
@@ -111,5 +112,36 @@ class DictionarySuggestionEngineTest {
         val prediction = engine.suggest(TypingContext("karaoxe", keys = qwerty))
         assertNull(prediction.autoCorrection)
         assertTrue(prediction.suggestions.any { it.text == "karaoke" }, "still one tap away")
+    }
+
+    @Test
+    fun modestWantsAClearerWin() {
+        fun correct(strength: AutocorrectStrength) =
+            DictionarySuggestionEngine(lexicon("hello" to 115)).suggest(TypingContext("hwllo", keys = qwerty, strength = strength)).autoCorrection
+        // A neighbour slip into a fairly common word: Normal fixes it, Modest leaves it in the strip.
+        assertEquals("hello", correct(AutocorrectStrength.Normal))
+        assertNull(correct(AutocorrectStrength.Modest))
+    }
+
+    @Test
+    fun aggressiveReachesSlipsTheNormalSearchDoesNot() {
+        val engine = DictionarySuggestionEngine(lexicon("of" to 250, "hello" to 200))
+        fun correct(typed: String, strength: AutocorrectStrength) =
+            engine.suggest(TypingContext(typed, keys = qwerty, strength = strength)).autoCorrection
+        assertNull(correct("og", AutocorrectStrength.Normal), "two letters: no search")
+        assertEquals("of", correct("og", AutocorrectStrength.Aggressive))
+        assertNull(correct("hwlko", AutocorrectStrength.Normal), "two slips in five letters")
+        assertEquals("hello", correct("hwlko", AutocorrectStrength.Aggressive))
+    }
+
+    @Test
+    fun aSelectedLanguageTheDictionaryDoesNotCoverOnlySuggests() {
+        val engine = DictionarySuggestionEngine(lexicon("hello" to 200, "don't" to 200))
+        val mixed = engine.suggest(TypingContext("hwllo", keys = qwerty, languages = listOf("en", "hu")))
+        assertNull(mixed.autoCorrection, "without a Hungarian lexicon, a Hungarian word looks like an English typo")
+        assertEquals("hello", mixed.suggestions.first().text, "the correction stays first in the strip")
+        assertNull(engine.suggest(TypingContext("dont", languages = listOf("hu", "en"))).autoCorrection, "known typos too: Hungarian has dont")
+        assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty, languages = listOf("en-GB"))).autoCorrection, "another English is covered")
+        assertEquals("hello", engine.suggest(TypingContext("hwllo", keys = qwerty)).autoCorrection, "no languages: the dictionary's own")
     }
 }

@@ -1,5 +1,6 @@
 package com.makeeb.engine.prediction
 
+import com.makeeb.core.model.AutocorrectStrength
 import com.makeeb.core.model.Suggestion
 import com.makeeb.engine.dictionary.Dictionary
 import com.makeeb.engine.dictionary.KeyFold
@@ -77,7 +78,7 @@ class DictionarySuggestionEngine(
                     offer(entry.word, Suggestion.Kind.Completion, normalise(entry.frequency) - COMPLETION_PENALTY)
                 }
             }
-            val maxEdits = maxEditsFor(typed)
+            val maxEdits = maxEditsFor(typed, context.strength)
             if (maxEdits > 0) {
                 // Candidates within plain edits, then costed as typing errors (WeightedEdits).
                 dictionary.corrections(typed, maxEdits, CORRECTION_CANDIDATES).forEach { match ->
@@ -104,10 +105,13 @@ class DictionarySuggestionEngine(
         val refolded = exact?.word?.takeIf { !it.equals(typed, ignoreCase = true) }?.let { matchCase(it, typed) }
         // A real typo: the best candidate must beat keeping the typed word by a margin (§6.5, §6.7).
         // Only against a full lexicon: with a starter list, "not listed" doesn't mean misspelt.
-        val typo = best?.takeIf { main.isComprehensive && exact == null && mayCorrect(context) && bestCost + margin(typed, bestFrequency) < literalCost() }
-            ?.let { matchCase(it, typed) }
-        val autoCorrection = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
-        autoCorrection?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
+        val typo = best?.takeIf {
+            main.isComprehensive && exact == null && mayCorrect(context) && bestCost + margin(typed, bestFrequency, context.strength) < literalCost()
+        }?.let { matchCase(it, typed) }
+        val correction = KnownTypos.correctionFor(typed)?.let { matchCase(it, typed) } ?: refolded ?: capitalised ?: typo
+        correction?.let { offer(it, Suggestion.Kind.Correction, Double.MAX_VALUE) }
+        // With a selected language the dictionary can't judge, the correction stays one tap away.
+        val autoCorrection = correction?.takeIf { covers(context.languages) }
         val ranked = candidates.values.sortedByDescending { it.score }
         var shown = ranked.take(limit)
         // The context may raise completions past a known word as typed, which space keeps: it
@@ -138,10 +142,22 @@ class DictionarySuggestionEngine(
         user?.learn(word)
     }
 
-    private fun maxEditsFor(word: String): Int = when {
-        word.length <= 2 -> 0
-        word.length <= 5 -> 1
-        else -> 2
+    /**
+     * How far the candidate search reaches. Aggressive looks further (two-letter words, a second
+     * slip from five letters) rather than lowering the bar: in the typing harness a lower bar
+     * mostly changed names and slang, while the typos left unfixed were ones the search never
+     * reached (fixed 72.6% → 79.1%, names and slang changed 1 of 27 either way).
+     */
+    private fun maxEditsFor(word: String, strength: AutocorrectStrength): Int = when (strength) {
+        AutocorrectStrength.Aggressive -> when {
+            word.length <= 4 -> 1
+            else -> 2
+        }
+        else -> when {
+            word.length <= 2 -> 0
+            word.length <= 5 -> 1
+            else -> 2
+        }
     }
 
     private fun normalise(frequency: Int): Double = frequency / 255.0
@@ -171,10 +187,18 @@ class DictionarySuggestionEngine(
 
     /**
      * Short words need a clearer win (a slip in "if" makes many other words), and so do rare
-     * targets: people type rare words on purpose more often than they mistype them.
+     * targets: people type rare words on purpose more often than they mistype them. Modest raises
+     * the whole bar; Aggressive keeps it and searches further instead ([maxEditsFor]).
      */
-    private fun margin(typed: String, targetFrequency: Int): Float =
-        MARGIN + (if (typed.length <= 3) SHORT_WORD_MARGIN else 0f) + (if (targetFrequency < RARE_FREQUENCY) RARE_TARGET_MARGIN else 0f)
+    private fun margin(typed: String, targetFrequency: Int, strength: AutocorrectStrength): Float =
+        MARGIN + (if (typed.length <= 3) SHORT_WORD_MARGIN else 0f) + (if (targetFrequency < RARE_FREQUENCY) RARE_TARGET_MARGIN else 0f) +
+            (if (strength == AutocorrectStrength.Modest) MODEST_MARGIN else 0f)
+
+    /** Whether the main dictionary is the lexicon for every one of [languages]. */
+    private fun covers(languages: List<String>): Boolean {
+        val own = main.languageTag.substringBefore('-')
+        return languages.all { it.substringBefore('-') == own }
+    }
 
     /** The cost of a word from its frequency: 0 for the commonest, [LM_RANGE] for the rarest. */
     private fun lmCost(frequency: Int): Float = (MAX_FREQUENCY - frequency.coerceIn(0, MAX_FREQUENCY)) * LM_RANGE / MAX_FREQUENCY
@@ -201,6 +225,9 @@ class DictionarySuggestionEngine(
          */
         const val MARGIN = 0.8f
         const val SHORT_WORD_MARGIN = 0.3f
+
+        /** Modest's higher bar: in the typing harness it fixes 53.8% of typos (Normal 72.6%) and changes no name or slang. */
+        const val MODEST_MARGIN = 0.25f
         const val MIN_LEARNED_LENGTH = 2
         const val CONTEXT_WORDS = 2
 

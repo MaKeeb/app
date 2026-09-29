@@ -1,5 +1,6 @@
 package com.makeeb.shared.keyboard
 
+import com.makeeb.engine.dictionary.BundledPacks
 import com.makeeb.engine.dictionary.DeferredDictionary
 import com.makeeb.engine.dictionary.Dictionary
 import com.makeeb.engine.dictionary.MappedDictionary
@@ -76,7 +77,6 @@ class BundledDictionaryLoader(
     }
 
     companion object {
-        /** Built by :tools:dictionaries; an APK asset on Android, in the extension bundle on iOS. */
-        const val PACK = "en_US.mkd"
+        const val PACK = BundledPacks.EN_US
     }
 }

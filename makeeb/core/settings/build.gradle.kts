@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(project(":core:model"))
             api(libs.multiplatform.settings)
         }
         commonTest.dependencies {

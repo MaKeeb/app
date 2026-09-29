@@ -1,5 +1,6 @@
 package com.makeeb.core.settings
 
+import com.makeeb.core.model.AutocorrectStrength
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,9 @@ class SettingsPreferencesRepository(
             autoCapitalize = settings.getBoolean(Keys.AUTO_CAPITALIZE, defaults.autoCapitalize),
             doubleSpacePeriod = settings.getBoolean(Keys.DOUBLE_SPACE_PERIOD, defaults.doubleSpacePeriod),
             autoCorrect = settings.getBoolean(Keys.AUTO_CORRECT, defaults.autoCorrect),
+            autoCorrectStrength = settings.getStringOrNull(Keys.AUTO_CORRECT_STRENGTH)
+                ?.let { stored -> AutocorrectStrength.entries.firstOrNull { it.name == stored } }
+                ?: defaults.autoCorrectStrength,
             showSuggestions = settings.getBoolean(Keys.SHOW_SUGGESTIONS, defaults.showSuggestions),
             emojiSuggestions = settings.getBoolean(Keys.EMOJI_SUGGESTIONS, defaults.emojiSuggestions),
             holdDeleteWords = settings.getBoolean(Keys.HOLD_DELETE_WORDS, defaults.holdDeleteWords),
@@ -72,6 +76,7 @@ class SettingsPreferencesRepository(
         settings.putBoolean(Keys.AUTO_CAPITALIZE, autoCapitalize)
         settings.putBoolean(Keys.DOUBLE_SPACE_PERIOD, doubleSpacePeriod)
         settings.putBoolean(Keys.AUTO_CORRECT, autoCorrect)
+        settings.putString(Keys.AUTO_CORRECT_STRENGTH, autoCorrectStrength.name)
         settings.putBoolean(Keys.SHOW_SUGGESTIONS, showSuggestions)
         settings.putBoolean(Keys.EMOJI_SUGGESTIONS, emojiSuggestions)
         settings.putBoolean(Keys.HOLD_DELETE_WORDS, holdDeleteWords)
@@ -100,6 +105,7 @@ class SettingsPreferencesRepository(
         const val AUTO_CAPITALIZE = "typing.auto_capitalize"
         const val DOUBLE_SPACE_PERIOD = "typing.double_space_period"
         const val AUTO_CORRECT = "typing.auto_correct"
+        const val AUTO_CORRECT_STRENGTH = "typing.auto_correct_strength"
         const val SHOW_SUGGESTIONS = "typing.show_suggestions"
         const val EMOJI_SUGGESTIONS = "typing.emoji_suggestions"
         const val HOLD_DELETE_WORDS = "typing.hold_delete_words"
