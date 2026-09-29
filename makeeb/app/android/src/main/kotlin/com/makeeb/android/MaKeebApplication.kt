@@ -9,6 +9,8 @@ import com.makeeb.core.settings.androidPreferencesRepository
 import com.makeeb.core.settings.androidSnippetsRepository
 import com.makeeb.platform.storage.AssetBundledFiles
 import com.makeeb.platform.storage.BundledFiles
+import com.makeeb.platform.storage.CredentialProtectedFiles
+import com.makeeb.platform.storage.PrivateFiles
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -32,4 +34,6 @@ private val androidPlatformModule = module {
     single<SnippetsRepository> { androidSnippetsRepository(androidContext()) }
     // Dictionary packs are stored uncompressed in the APK and mapped in place (build.gradle.kts).
     single<BundledFiles> { AssetBundledFiles(androidContext().assets) }
+    // Learned words: credential-encrypted, so locked until the first unlock after a boot.
+    single<PrivateFiles> { CredentialProtectedFiles(androidContext()) }
 }

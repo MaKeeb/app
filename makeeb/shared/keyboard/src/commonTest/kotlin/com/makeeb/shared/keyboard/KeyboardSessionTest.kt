@@ -1,10 +1,13 @@
 package com.makeeb.shared.keyboard
 
+import com.makeeb.core.model.Capitalization
 import com.makeeb.core.model.EditorAttributes
 import com.makeeb.core.model.KeyAction
 import com.makeeb.core.model.KeyboardMode
 import com.makeeb.engine.clipboard.ClipboardHistory
+import com.makeeb.engine.dictionary.LearnedWordsStore
 import com.makeeb.engine.dictionary.StarterDictionaries
+import com.makeeb.engine.dictionary.UserDictionary
 import com.makeeb.engine.emoji.BundledEmojiCatalog
 import com.makeeb.engine.emoji.EmojiCategory
 import com.makeeb.engine.emoji.EmojiRecents
@@ -20,8 +23,10 @@ import com.makeeb.platform.feedback.KeyFeedbackType
 import com.makeeb.platform.feedback.SoundFeedback
 import com.makeeb.testing.FakeKeyboardHost
 import com.makeeb.testing.FakePreferencesRepository
+import com.makeeb.testing.FakePrivateFiles
 import com.makeeb.testing.FakeSystemClipboard
 import com.makeeb.testing.FakeTextHost
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -42,9 +47,10 @@ class KeyboardSessionTest {
     private fun TestScope.session(
         preferences: KeyboardPreferences = KeyboardPreferences(),
         settingsWritable: Boolean = true,
+        learnedWords: LearnedWordsStore? = null,
     ): KeyboardSession {
         prefs = FakePreferencesRepository(preferences)
-        val engine = InputEngine(BuiltInLayoutProvider(), DictionarySuggestionEngine(StarterDictionaries.english()), prefs.preferences)
+        val engine = InputEngine(BuiltInLayoutProvider(), DictionarySuggestionEngine(StarterDictionaries.english(), learnedWords), prefs.preferences)
         return KeyboardSession(
             engine, prefs, catalog, EmojiRecents(), ClipboardHistory(),
             KeyboardPorts(
@@ -54,6 +60,7 @@ class KeyboardSessionTest {
                 settingsWritable = { settingsWritable },
             ),
             backgroundScope,
+            learnedWords = learnedWords,
         )
     }
 
@@ -179,5 +186,42 @@ class KeyboardSessionTest {
         assertEquals(listOf("hu", "en-GB", "sv"), prefs.preferences.value.languageTags)
         session.selectLanguage("en")
         assertEquals(listOf("en-GB", "hu", "sv"), prefs.preferences.value.languageTags, "keeps the stored regional form")
+    }
+
+    @Test
+    fun learnedWordsAreSavedWhenTheKeyboardHides() = runTest {
+        val files = FakePrivateFiles()
+        val session = session(learnedWords = LearnedWordsStore(UserDictionary("en"), files, backgroundScope, EmptyCoroutineContext))
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes(capitalization = Capitalization.None))
+        runCurrent()
+        "zorblax ".forEach { session.onKey(if (it == ' ') KeyAction.Space else KeyAction.Text(it.toString())) }
+        runCurrent()
+        assertEquals(0, files.writes, "nothing written while typing")
+        session.stop()
+        runCurrent()
+        assertEquals(1, files.writes)
+    }
+
+    @Test
+    fun afterABootTheFirstFieldAfterTheUnlockReadsTheSavedWords() = runTest {
+        val files = FakePrivateFiles()
+        val saved = LearnedWordsStore(UserDictionary("en"), files, backgroundScope, EmptyCoroutineContext)
+        saved.load()
+        runCurrent()
+        saved.learn("zorblax")
+        saved.flush()
+        runCurrent()
+
+        files.locked = true
+        val store = LearnedWordsStore(UserDictionary("en"), files, backgroundScope, EmptyCoroutineContext)
+        val session = session(learnedWords = store)
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        runCurrent()
+        assertFalse(store.isLearned("zorblax"), "locked: the keyboard types without them")
+        session.stop()
+        files.locked = false
+        session.start(FakeTextHost(), FakeKeyboardHost(), EditorAttributes())
+        runCurrent()
+        assertTrue(store.isLearned("zorblax"))
     }
 }

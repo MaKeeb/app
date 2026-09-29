@@ -14,7 +14,7 @@ touches (Compose / UIKit)
   → InputEngine (:engine:input)            shift, modes, composing word, autocorrect, suggestions, learning
   → TextHost (:platform:host)              InputConnection / UITextDocumentProxy
 
-InputEngine ⇄ SuggestionEngine (:engine:prediction) ⇄ Dictionary + UserDictionary (:engine:dictionary)
+InputEngine ⇄ SuggestionEngine (:engine:prediction) ⇄ Dictionary + LearnedWordsStore/UserDictionary (:engine:dictionary)
 KeyboardSession (:shared:keyboard) wires it together, plays feedback, and exposes the state flows renderers draw
 ```
 
@@ -37,7 +37,7 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 - **Revert**: Backspace straight after an autocorrection restores the original word (`pendingRevert`). Any other key, a cursor move, or an external change that no longer ends with the correction cancels the pending revert.
 - **Double-space period**: a second space within 800 ms after a letter or digit becomes ". ".
 - **Shift**: Off → OneShot, and a double tap within 350 ms goes to Locked. Auto-capitalisation sets OneShot according to `Capitalization`, and typing a character clears OneShot.
-- **Learning** goes only through `learn()`, which checks `editor.incognito`. Never call `suggestionEngine.learn` directly. Password fields are always incognito.
+- **Learning** goes only through `learn()`, which skips incognito fields (the field's flag or the user's toggle; password fields always are) and fields that turn autocorrection off (user names, codes, addresses; iOS has no other no-learning hint). Never call `suggestionEngine.learn` directly. `DictionarySuggestionEngine.learn` then keeps only words the main dictionary lacks.
 - **Panels** (emoji, clipboard) commit through `commitRawText`: no shift, no autocorrect.
 - Timing constants use the injected `TimeSource`, never the wall clock.
 
@@ -50,7 +50,8 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
   - Predictions follow the shift key like letters do: a one-shot shift capitalises them, caps lock upper-cases them.
   - Tapping one inserts it with a space; punctuation typed next takes that space (`suggestionSpace`).
   - The builder tokenises its corpora by the same rules as `wordsBefore` (`CorpusTokens`); keep the two in step (`NgramCountsTest`).
-- The main dictionary is a `MappedDictionary` over the bundled MKD pack `en_US.mkd` (160k words from AOSP LatinIME), read in place through `ByteRegion` (`:platform:storage`). `BundledDictionaryLoader` (`:shared:keyboard`) maps it off the main thread. Until then, or if the pack is missing, `DeferredDictionary` serves `StarterDictionaries`, a tiny in-code list that tests also use. `UserDictionary` is an in-heap `TrieDictionary`. The format and its reasoning are in docs/dictionaries/mkd-format.md.
+- The main dictionary is a `MappedDictionary` over the bundled MKD pack `en_US.mkd` (160k words from AOSP LatinIME), read in place through `ByteRegion` (`:platform:storage`). `BundledDictionaryLoader` (`:shared:keyboard`) maps it off the main thread. Until then, or if the pack is missing, `DeferredDictionary` serves `StarterDictionaries`, a tiny in-code list that tests also use. The format and its reasoning are in docs/dictionaries/mkd-format.md.
+- Learned words: `UserDictionary` holds them on the heap, compactly (sorted folded keys plus a map, about 150 bytes a word; a trie cost 1.3 KB), capped at 3,000 words with the least useful evicted (use count halved every 1,000 words learned since; time is counted in learned words, never read from a clock). Case alone doesn't make a new word, and lower case wins. `LearnedWordsStore` wraps it and persists it through the `PrivateFiles` port (`:platform:storage`): it reads the file off the main thread when the keyboard is created, saves changes in 5-second batches and when the keyboard hides (`KeyboardSession.stop` → `flush`), and never writes before a successful load, so a locked device (Android direct boot) can't overwrite saved words; what is learned meanwhile merges in once the load succeeds. The file format is `LearnedWordsFile` (magic, version, varints, CRC-32).
 - `suggest` runs on the main thread on every keystroke. Its cost must be bounded and must not grow with dictionary size, and it should allocate little.
   - `MappedDictionary.completions` is a best-first search, about 1 µs per query on the JVM.
   - `corrections` is the unweighted edit-distance walk. It costs 12–16k DP rows for a 6+ letter word with two allowed edits, and dominates per-key cost on the Pixel. Stage 3 replaces it with a bounded beam search (docs/research/dictionaries-autocorrect.md §6).
@@ -72,5 +73,6 @@ Both adapters (`InputConnectionTextHost`, `TextDocumentProxyTextHost`) and `Fake
 
 - Every behaviour change gets a `commonTest` case in the module that owns it. Run `./gradlew jvmTest`, or a single module such as `:engine:input:jvmTest`.
 - `InputEngineTest` shows the pattern: the real `BuiltInLayoutProvider`, `DictionarySuggestionEngine(StarterDictionaries.english(), UserDictionary("en"))`, a `FakeTextHost`, a `FakeKeyboardHost`, a `TestTimeSource` passed as `timeSource`, and a `type("...")` helper. Assert on `host.text` or `host.toString()` (`|` marks the caret) and on `engine.state.value`.
+- Persistence tests use `FakePrivateFiles` (`locked` plays direct boot, `failWrites` a full disk) with `runTest`: pass `backgroundScope` as the store's scope and a `StandardTestDispatcher(testScheduler)` (or `EmptyCoroutineContext`) as its `io` (`LearnedWordsStoreTest`).
 - For time, advance the `TestTimeSource` for double-space and double-tap, and use `runTest` virtual time for `TouchController` timers (`TouchControllerTest`). Never use real delays.
 - Cover the iOS shape (no editor actions) and the external-change path (`host.placeCursor(n)` then `engine.onExternalChange()`).

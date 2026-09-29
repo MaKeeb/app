@@ -6,9 +6,9 @@ package com.makeeb.engine.dictionary
  * transposition ("teh" → "the") costs one edit. Branches are pruned once they cannot get back
  * under the limit.
  *
- * Fine for bundled starter lists and the user dictionary. Full language dictionaries will need a
- * compact memory-mapped format to fit the iOS extension memory budget (board:
- * APP-37).
+ * Fine for the bundled starter lists and tests. Full language dictionaries are memory-mapped
+ * ([MappedDictionary]), and learned words live in the smaller [UserDictionary], to fit the iOS
+ * extension's memory budget.
  */
 open class TrieDictionary(
     override val languageTag: String,
@@ -27,16 +27,12 @@ open class TrieDictionary(
     }
 
     /** Adds [entry], or updates the frequency of the same spelling. */
-    protected fun insert(entry: WordEntry) {
+    private fun insert(entry: WordEntry) {
         var node = root
         KeyFold.fold(entry.word).forEach { char -> node = node.children.getOrPut(char) { Node() } }
         val same = node.entries.indexOfFirst { it.word == entry.word }
         if (same >= 0) node.entries[same] = entry else node.entries += entry
         node.entries.sortByDescending { it.frequency }
-    }
-
-    protected fun remove(word: String) {
-        find(KeyFold.fold(word))?.entries?.removeAll { it.word.equals(word, ignoreCase = true) }
     }
 
     /** The spelling typed exactly when it exists, otherwise the most frequent one under the key. */
@@ -81,16 +77,7 @@ open class TrieDictionary(
         maxEdits: Int,
         out: MutableList<WordMatch>,
     ) {
-        val row = IntArray(target.length + 1)
-        row[0] = previousRow[0] + 1
-        for (i in 1..target.length) {
-            val substitution = previousRow[i - 1] + if (target[i - 1] == char) 0 else 1
-            var best = minOf(row[i - 1] + 1, previousRow[i] + 1, substitution)
-            if (rowBeforePrevious != null && i > 1 && target[i - 1] == previousChar && target[i - 2] == char) {
-                best = minOf(best, rowBeforePrevious[i - 2] + 1)
-            }
-            row[i] = best
-        }
+        val row = nextDistanceRow(target, previousRow, rowBeforePrevious, char, previousChar)
         val distance = row[target.length]
         if (distance <= maxEdits) node.entries.forEach { out += WordMatch(it, distance) }
         if (row.min() <= maxEdits) {
@@ -111,20 +98,21 @@ open class TrieDictionary(
 }
 
 /**
- * Words the user typed. Learning never happens in incognito fields; that gate lives in the
- * input engine, which is the only caller of [learn].
+ * One step of the optimal-string-alignment distance from [target]: the row for a key one letter
+ * ([char]) longer than the key [previousRow] is for. [rowBeforePrevious] and [previousChar] (null
+ * for the first letter) let an adjacent transposition cost one edit. Walks that share prefixes
+ * (a trie's, [UserDictionary]'s sorted keys) compute each prefix's row once.
  */
-class UserDictionary(languageTag: String) : TrieDictionary(languageTag), MutableDictionary {
-    override fun learn(word: String) {
-        if (word.isBlank()) return
-        val current = lookup(word)?.frequency ?: LEARNED_BASE_FREQUENCY
-        insert(WordEntry(word, (current + 1).coerceAtMost(MAX_FREQUENCY)))
+internal fun nextDistanceRow(target: String, previousRow: IntArray, rowBeforePrevious: IntArray?, char: Char, previousChar: Char?): IntArray {
+    val row = IntArray(target.length + 1)
+    row[0] = previousRow[0] + 1
+    for (i in 1..target.length) {
+        val substitution = previousRow[i - 1] + if (target[i - 1] == char) 0 else 1
+        var best = minOf(row[i - 1] + 1, previousRow[i] + 1, substitution)
+        if (rowBeforePrevious != null && i > 1 && target[i - 1] == previousChar && target[i - 2] == char) {
+            best = minOf(best, rowBeforePrevious[i - 2] + 1)
+        }
+        row[i] = best
     }
-
-    override fun forget(word: String) = remove(word)
-
-    private companion object {
-        const val LEARNED_BASE_FREQUENCY = 120
-        const val MAX_FREQUENCY = 255
-    }
+    return row
 }

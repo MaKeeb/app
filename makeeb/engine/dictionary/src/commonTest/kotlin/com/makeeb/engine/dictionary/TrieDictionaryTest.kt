@@ -29,13 +29,4 @@ class TrieDictionaryTest {
         assertEquals(1, matches.first().edits) // a transposition is one edit
         assertTrue(dictionary.corrections("thete", maxEdits = 1, limit = 3).any { it.entry.word == "there" })
     }
-
-    @Test
-    fun userDictionaryLearnsAndForgets() {
-        val user = UserDictionary("en")
-        user.learn("MaKeeb")
-        assertEquals("MaKeeb", user.lookup("makeeb")?.word)
-        user.forget("makeeb")
-        assertNull(user.lookup("makeeb"))
-    }
 }

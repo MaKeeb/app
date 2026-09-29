@@ -137,9 +137,16 @@ class DictionarySuggestionEngine(
         return Following(model, previous, fromSentenceStart, words).also { following = it }
     }
 
+    /** Only words the main dictionary lacks: it knows the rest already, and they would crowd out the new ones. */
     override fun learn(word: String) {
-        if (word.length < MIN_LEARNED_LENGTH) return
+        if (word.length < MIN_LEARNED_LENGTH || main.lookup(word) != null) return
         user?.learn(word)
+    }
+
+    override fun isLearned(word: String): Boolean = user?.isLearned(word) == true && main.lookup(word) == null
+
+    override fun forget(word: String) {
+        if (isLearned(word)) user?.forget(word)
     }
 
     /**

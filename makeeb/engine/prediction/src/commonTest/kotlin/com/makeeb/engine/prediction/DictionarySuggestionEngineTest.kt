@@ -7,6 +7,7 @@ import com.makeeb.engine.dictionary.WordEntry
 import com.makeeb.engine.dictionary.TrieDictionary
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -56,6 +57,23 @@ class DictionarySuggestionEngineTest {
     fun learnedWordsBecomeSuggestions() {
         engine.learn("MaKeeb")
         assertTrue(engine.suggest(TypingContext("MaK")).suggestions.any { it.text == "MaKeeb" })
+    }
+
+    @Test
+    fun onlyWordsTheDictionaryLacksAreLearnedAndForgettable() {
+        val user = UserDictionary("en")
+        val engine = DictionarySuggestionEngine(StarterDictionaries.english(), user)
+        engine.learn("hello")
+        engine.learn("zorblax")
+        assertEquals(listOf("zorblax"), user.words().map { it.word }, "the dictionary knows hello already")
+        assertTrue(engine.isLearned("Zorblax"))
+        assertFalse(engine.isLearned("hello"))
+
+        engine.forget("hello")
+        assertTrue(engine.suggest(TypingContext("hell")).suggestions.any { it.text == "hello" }, "dictionary words can't be forgotten")
+        engine.forget("ZORBLAX")
+        assertFalse(engine.isLearned("zorblax"))
+        assertTrue(engine.suggest(TypingContext("zorb")).suggestions.none { it.text == "zorblax" })
     }
 
     @Test

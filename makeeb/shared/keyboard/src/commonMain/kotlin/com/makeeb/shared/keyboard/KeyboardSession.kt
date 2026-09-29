@@ -10,6 +10,7 @@ import com.makeeb.core.settings.QuickSetting
 import com.makeeb.core.settings.SnippetsRepository
 import com.makeeb.engine.clipboard.ClipboardEntry
 import com.makeeb.engine.clipboard.ClipboardHistory
+import com.makeeb.engine.dictionary.LearnedWordsStore
 import com.makeeb.engine.emoji.Emoji
 import com.makeeb.engine.emoji.EmojiCatalog
 import com.makeeb.engine.emoji.EmojiRecents
@@ -66,6 +67,8 @@ class KeyboardSession(
     private val scope: CoroutineScope,
     /** The user's reusable texts, listed in the clipboard panel; none when not provided. */
     private val snippetsRepository: SnippetsRepository? = null,
+    /** Learned words to load when a field starts and save when the keyboard hides; none in tests that don't care. */
+    private val learnedWords: LearnedWordsStore? = null,
 ) {
     val preferences: StateFlow<KeyboardPreferences> = preferencesRepository.preferences
     val emojiRecentsState: StateFlow<List<Emoji>> = emojiRecents.recents
@@ -143,6 +146,8 @@ class KeyboardSession(
     /** [selection] is the field's selection at the start, when the platform reports one (Android). */
     fun start(textHost: TextHost, keyboardHost: KeyboardHost, attributes: EditorAttributes, selection: TextSelection? = null) {
         this.keyboardHost = keyboardHost
+        // A no-op once loaded; after a boot, the first field after the unlock reads the saved words.
+        learnedWords?.load()
         engine.startInput(textHost, keyboardHost, attributes, selection)
         clipboardHistory.expire()
         clipboardJob?.cancel()
@@ -158,6 +163,8 @@ class KeyboardSession(
         touch.cancelAll()
         engine.finishInput()
         keyboardHost = null
+        // A hidden keyboard's process may be killed at any time (iOS extensions especially).
+        learnedWords?.flush()
     }
 
     /** The renderer's key area size, in its own units (px on Android, pt on iOS). */

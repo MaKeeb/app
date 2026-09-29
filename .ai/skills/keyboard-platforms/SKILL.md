@@ -17,6 +17,7 @@ Full research with sources: `docs/research/platform-apis.md` (capability matrix 
 | Haptics / sound | `platform:feedback` | `ViewHapticFeedback`, `AudioManagerSoundFeedback` | `ImpactHapticFeedback` (Full Access), `InputClickSoundFeedback` |
 | Clipboard | `platform:clipboard` `SystemClipboard` | `AndroidSystemClipboard` | `PasteboardSystemClipboard` (Full Access, polls `changeCount`) |
 | Settings storage | `core:settings` `PreferencesRepository` | device-protected SharedPreferences | App Group `NSUserDefaults` (`group.com.makeeb`) |
+| Keyboard-private files (learned words) | `platform:storage` `PrivateFiles` | `CredentialProtectedFiles` (`noBackupFilesDir/keyboard`, locked before first unlock) | `ContainerFiles` (extension container, `Application Support/Keyboard`, excluded from backup) |
 | Keyboard surface | `shared:keyboard` `KeyboardSession` | `app/android` `MaKeebInputMethodService` + `shared:surface` `KeyboardSurface` (Compose) | `shared:keyboard` `KeyboardExtensionBridge` + `app/ios` `KeyboardView.swift` (Core Graphics) |
 | Key glyphs | `core:model` `KeyIcon` | `ui:theme` `KeyboardIcons` (Material Symbols) | SF Symbols in `KeyboardView.swift` |
 
@@ -28,7 +29,7 @@ Full research with sources: `docs/research/platform-apis.md` (capability matrix 
 - Android 10+ shows a keyboard switcher and hide button in the navigation bar under the IME: no globe key or hide button of our own (`ImeServiceKeyboardHost.needsInputMethodSwitchKey`).
 - Switching to another keyboard destroys the service, and `super.onDestroy()` calls back into `onFinishInputView`. Lifecycle moves go through `moveLifecycleTo`, which ignores anything after `DESTROYED`.
 - The soft keyboard is hidden while a hardware keyboard is attached, unless the user enables "show virtual keyboard". This is expected.
-- The IME is direct-boot aware: before first unlock, touch only device-protected storage.
+- The IME is direct-boot aware: before first unlock, touch only device-protected storage. `CredentialProtectedFiles` throws while locked, and `LearnedWordsStore` keeps learning in memory until a load succeeds.
 - The default IME may read the clipboard. Skip clips flagged `EXTRA_IS_SENSITIVE`.
 
 ## iOS

@@ -563,8 +563,15 @@ class InputEngine(
         return preferences.value.autoCorrect && editor.autoCorrect && !editor.isPassword
     }
 
+    /**
+     * All learning goes through here. Never in incognito (the field asked for it, or the user did;
+     * password fields always are), nor in fields that turn autocorrection off: user names, codes
+     * and addresses aren't vocabulary, and iOS gives no other hint that a field shouldn't be
+     * learned from.
+     */
     private fun learn(word: String) {
-        if (!state.value.incognito) suggestionEngine.learn(word)
+        val current = state.value
+        if (!current.incognito && current.editor.autoCorrect) suggestionEngine.learn(word)
     }
 
     private fun layoutFor(mode: KeyboardMode, editor: EditorAttributes): KeyboardLayout {

@@ -62,7 +62,7 @@ The Android mapping is `EditorInfoMapping.kt` and the iOS one is `InputTraitsMap
 
 ## Storage, direct boot, clipboard, feedback
 
-- The service is `directBootAware`. Before the first unlock only device-protected storage exists, which is where preferences live (`AndroidPreferences.kt`). Learned words and clipboard history belong in credential-encrypted storage and must degrade gracefully (not crash) before unlock. Test it: set a password lock on the emulator, reboot, and type on the lock screen.
+- The service is `directBootAware`. Before the first unlock only device-protected storage exists, which is where preferences live (`AndroidPreferences.kt`). Learned words and clipboard history belong in credential-encrypted storage and must degrade gracefully (not crash) before unlock. Learned words do: `CredentialProtectedFiles` (`noBackupFilesDir/keyboard`) checks `UserManager.isUserUnlocked` and throws while locked, and `LearnedWordsStore` learns in memory, never writes before a load succeeds, and merges once the storage opens (the next field or save after the unlock). Test it: set a password lock on the emulator, reboot, and type on the lock screen.
 - Clipboard: as the default IME we can read the clipboard without the Android 12+ "pasted" toast. Skip and never persist clips flagged `ClipDescription.EXTRA_IS_SENSITIVE` (API 33). Keep nothing from incognito fields.
 - Haptics: `View.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)` follows the system haptics setting (`FLAG_IGNORE_GLOBAL_SETTING` is deprecated). Sound: `AudioManager.playSoundEffect(FX_KEYPRESS_*)`.
 - Android 17's background-audio hardening may silence IME key clicks. Test with `adb -s emulator-5554 shell cmd audio set-enable-hardening throw`.

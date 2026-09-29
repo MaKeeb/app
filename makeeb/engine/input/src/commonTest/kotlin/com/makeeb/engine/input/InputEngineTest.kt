@@ -315,6 +315,17 @@ class InputEngineTest {
     }
 
     @Test
+    fun passwordFieldsAndFieldsWithoutAutocorrectNeverLearn() {
+        start(attributes = EditorAttributes(fieldType = FieldType.Password, incognito = true, capitalization = Capitalization.None))
+        type("hunter2x ")
+        start(attributes = EditorAttributes(autoCorrect = false, capitalization = Capitalization.None))
+        type("jdoe1987 ")
+        start(attributes = EditorAttributes(fieldType = FieldType.Email, autoCorrect = false, capitalization = Capitalization.None))
+        type("someone@example ")
+        assertEquals(0, userDictionary.size)
+    }
+
+    @Test
     fun globeKeyDelegatesToTheHost() {
         start()
         engine.onKey(KeyAction.NextInputMethod)

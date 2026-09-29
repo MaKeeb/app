@@ -53,4 +53,10 @@ interface SuggestionEngine {
 
     /** Record a word the user committed. Never called for incognito fields. */
     fun learn(word: String)
+
+    /** Whether [word] is one the engine learned from the user rather than a dictionary word; only those can be forgotten. */
+    fun isLearned(word: String): Boolean = false
+
+    /** Stops suggesting a learned word and drops it from what was learned. Dictionary words stay. */
+    fun forget(word: String) = Unit
 }

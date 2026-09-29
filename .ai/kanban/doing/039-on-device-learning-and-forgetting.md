@@ -28,7 +28,7 @@ Learn new words and personal word pairs locally, and let users see, remove or re
 ## Tasks
 
 - [x] A private-files port for keyboard-local data
-- [ ] Persist learned words, capped and off the typing path
+- [x] Persist learned words, capped and off the typing path
 - [ ] A word is known only on evidence
 - [ ] Long-press a learned suggestion to forget it
 - [ ] View, remove and clear learned words from the companion

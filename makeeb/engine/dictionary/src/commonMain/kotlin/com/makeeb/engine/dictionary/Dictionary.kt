@@ -40,4 +40,7 @@ interface MutableDictionary : Dictionary {
     fun learn(word: String)
 
     fun forget(word: String)
+
+    /** Whether [word], in any case, was added (unlike [lookup], which also finds other accents). */
+    fun isLearned(word: String): Boolean
 }
