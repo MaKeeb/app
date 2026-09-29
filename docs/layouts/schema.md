@@ -106,6 +106,8 @@ A tag without a file falls back to its base language (`de-CH` → `de`) or is sk
 
 The popup shows the list starting under the finger and fanning out right, then left (AOSP's order). A list longer than fits across the keyboard wraps onto rows stacked upwards, the first row nearest the finger (`TouchController.buildPopup`).
 
+With two or more languages selected, the space bar (built by the engine, not the data) shows the primary language's autonym, and its long-press lists the selected languages; choosing one makes it the primary. Only the order of the list changes: all selected languages' accents stay on the keys.
+
 Upper case comes from `String.uppercase()` for now (see `shifted`).
 
 ## Validation

@@ -17,6 +17,9 @@ sealed interface KeyAction {
 
     data object Space : KeyAction
 
+    /** Make [tag] the primary typing language: the space bar's long press. */
+    data class SelectLanguage(val tag: String) : KeyAction
+
     /** The field's editor action (Go, Search, Send…) or a newline, depending on the field. */
     data object Enter : KeyAction
 

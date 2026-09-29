@@ -19,7 +19,12 @@ internal object BuiltInLayouts {
      * number row, shift, backspace, the digit hints and the field's bottom row), so no data file
      * can move a key the pages share.
      */
-    fun letters(layout: LetterLayoutSpec, accents: Map<String, List<String>>, options: LayoutOptions): KeyboardLayout {
+    fun letters(
+        layout: LetterLayoutSpec,
+        accents: Map<String, List<String>>,
+        options: LayoutOptions,
+        spaceLanguages: List<Pair<String, String>> = emptyList(),
+    ): KeyboardLayout {
         val (top, middle, bottom) = layout.rows
         // Standard ten units; Dvorak's nine-letter bottom row is compressed to fit.
         return keyboardLayout(layout.id, KeyboardMode.Letters, widthUnits = 10f) {
@@ -31,7 +36,7 @@ internal object BuiltInLayouts {
                 letterKeys(bottom, layout, accents)
                 backspace()
             }
-            bottomRow(KeyboardMode.Symbols, "?123", options)
+            bottomRow(KeyboardMode.Symbols, "?123", options, spaceLanguages = spaceLanguages)
         }
     }
 
@@ -53,7 +58,7 @@ internal object BuiltInLayouts {
      * the same 0.8 weight), shift's slot and backspace at the same size and place, and the field's
      * bottom row. Only characters and the mode keys' labels change.
      */
-    fun symbols(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols", KeyboardMode.Symbols, widthUnits = 10f) {
+    fun symbols(options: LayoutOptions, spaceLanguages: List<Pair<String, String>> = emptyList()): KeyboardLayout = keyboardLayout("symbols", KeyboardMode.Symbols, widthUnits = 10f) {
         if (options.numberRow) {
             numberRow()
             // The digits keep their short row, which frees a row for the most used "more" symbols
@@ -70,10 +75,10 @@ internal object BuiltInLayouts {
             chars("*\"':;!?")
             backspace()
         }
-        symbolsBottomRow(options)
+        symbolsBottomRow(options, spaceLanguages)
     }
 
-    fun symbolsMore(options: LayoutOptions): KeyboardLayout = keyboardLayout("symbols-more", KeyboardMode.SymbolsMore, widthUnits = 10f) {
+    fun symbolsMore(options: LayoutOptions, spaceLanguages: List<Pair<String, String>> = emptyList()): KeyboardLayout = keyboardLayout("symbols-more", KeyboardMode.SymbolsMore, widthUnits = 10f) {
         if (options.numberRow) numberRow()
         row { chars("~`|•√π÷×¶∆") }
         row { chars("£¢€¥^°={}\\") }
@@ -82,7 +87,7 @@ internal object BuiltInLayouts {
             chars("%©®™✓[]")
             backspace()
         }
-        symbolsBottomRow(options)
+        symbolsBottomRow(options, spaceLanguages)
     }
 
     /** The optional digit row, shorter than the others; identical on every page that shows it. */
@@ -92,8 +97,8 @@ internal object BuiltInLayouts {
      * ABC back to letters. Holding it opens the number pad, as the symbols page's 1234 key did
      * (Gboard's), without a key of its own that would shift the bottom row.
      */
-    private fun LayoutBuilder.symbolsBottomRow(options: LayoutOptions) =
-        bottomRow(KeyboardMode.Letters, "ABC", options, modeLongPress = KeyAction.SwitchMode(KeyboardMode.Numeric))
+    private fun LayoutBuilder.symbolsBottomRow(options: LayoutOptions, spaceLanguages: List<Pair<String, String>>) =
+        bottomRow(KeyboardMode.Letters, "ABC", options, modeLongPress = KeyAction.SwitchMode(KeyboardMode.Numeric), spaceLanguages = spaceLanguages)
 
     fun numeric(): KeyboardLayout = keyboardLayout("numeric", KeyboardMode.Numeric) {
         row { chars("123"); text("-") }
@@ -133,25 +138,26 @@ internal object BuiltInLayouts {
         modeLabel: String,
         options: LayoutOptions,
         modeLongPress: KeyAction? = null,
+        spaceLanguages: List<Pair<String, String>> = emptyList(),
     ) = row {
         mode(modeTarget, modeLabel, longPress = modeLongPress)
         if (options.switchKey) globe() else emoji()
         when (options.variant) {
             LetterVariant.Text -> {
                 text(",", alternates = listOf(";", ":"))
-                space()
+                space(languages = spaceLanguages)
                 text(".", alternates = listOf("?", "!", "'", "\"", "-", "…"))
             }
             // The symbols pages have no comma or ellipsis of their own: in these fields they are
             // alternates of the full stop.
             LetterVariant.Email -> {
                 text("@")
-                space()
+                space(languages = spaceLanguages)
                 text(".", alternates = listOf("-", "_", ",", "…"))
             }
             LetterVariant.Url -> {
                 text("/")
-                space(width = 3f)
+                space(width = 3f, languages = spaceLanguages)
                 text(".", alternates = listOf("-", "_", ":", ",", "…"))
                 text(".com", alternates = listOf(".net", ".org", ".io", ".co.uk"))
             }

@@ -208,7 +208,9 @@ final class KeyboardView: UIView {
                 UIBezierPath(roundedRect: frame, cornerRadius: 6).fill()
             }
             let color = selected ? palette.onPopupSelected : palette.onPopup
-            drawText(popup.options[index], in: frame, size: 22, color: UIColor(argb: color))
+            // Words (the space bar's languages) a size down, so they fit their cell.
+            let option = popup.options[index]
+            drawText(option, in: frame, size: option.count > 2 ? 16 : 22, color: UIColor(argb: color))
         }
     }
 

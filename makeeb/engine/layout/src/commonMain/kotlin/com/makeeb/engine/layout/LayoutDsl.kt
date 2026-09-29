@@ -68,8 +68,23 @@ class RowBuilder {
         keys += Key(KeyAction.ShowPanel(KeyboardPanel.Emoji), "☺", width, KeyStyle.Modifier)
     }
 
-    fun space(width: Float = 4f) {
-        keys += Key(KeyAction.Space, "", width, KeyStyle.Space)
+    /**
+     * The space bar. With two or more [languages] (autonym to tag, primary first) it names the
+     * primary one, and holding it offers the others.
+     */
+    fun space(width: Float = 4f, languages: List<Pair<String, String>> = emptyList()) {
+        keys += if (languages.size < 2) {
+            Key(KeyAction.Space, "", width, KeyStyle.Space)
+        } else {
+            Key(
+                KeyAction.Space,
+                languages.first().first,
+                width,
+                KeyStyle.Space,
+                alternates = languages.map { it.first },
+                alternateActions = languages.map { KeyAction.SelectLanguage(it.second) },
+            )
+        }
     }
 
     fun enter(width: Float = 1.5f) {

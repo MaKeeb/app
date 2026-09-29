@@ -170,8 +170,9 @@ class TouchController(
                 val current = popup
                 popup = null
                 if (current != null) {
-                    // Commit the unshifted alternate: the engine applies the shift state itself.
-                    listener.onAction(KeyAction.Text(current.key.key.alternates[current.selected]))
+                    // Commit the unshifted alternate (the engine applies the shift state itself),
+                    // or the key's action for it (the space bar's languages).
+                    listener.onAction(current.key.key.alternateAction(current.selected))
                 }
             }
             Mode.Repeating, Mode.CursorSlide, Mode.Consumed -> Unit
@@ -204,9 +205,9 @@ class TouchController(
 
     /** Types the [index]th long-press alternate of [placed], as releasing on it in the popup would. */
     fun performAlternate(placed: PlacedKey, index: Int) {
-        val alternate = placed.key.alternates.getOrNull(index) ?: return
+        if (index !in placed.key.alternates.indices) return
         listener.onKeyDown(placed.key)
-        listener.onAction(KeyAction.Text(alternate))
+        listener.onAction(placed.key.alternateAction(index))
     }
 
     /** Runs [placed]'s long-press action (the globe key's keyboard list, the number pad). */
@@ -280,9 +281,11 @@ class TouchController(
     private fun buildPopup(placed: PlacedKey): AlternatesPopup {
         val bounds = placed.bounds
         val options = placed.key.displayAlternates(shift)
-        val cellWidth = bounds.width
         val height = bounds.bottom - bounds.top
         val areaWidth = geometry?.width ?: Float.MAX_VALUE
+        // A wide key's options (the space bar's languages) get cells a few keys wide, not its own width.
+        val unitWidth = geometry?.let { g -> (g.width - 2 * g.horizontalInset) / g.layout.unitsPerRow } ?: bounds.width
+        val cellWidth = minOf(bounds.width, unitWidth * MAX_CELL_UNITS)
         // Tolerance: without side insets (iOS) the width is exactly ten keys, which division can
         // put a hair under 10.
         val fit = floor(areaWidth / cellWidth + FIT_TOLERANCE).toInt().coerceAtLeast(1)
@@ -353,6 +356,9 @@ class TouchController(
 
     private companion object {
         const val FIT_TOLERANCE = 0.01f
+
+        /** Widest popup cell, in keys: room for a language's name. */
+        const val MAX_CELL_UNITS = 3f
 
         /** Gboard- and iOS-like proportions: clearly larger than the key under the finger. */
         const val PREVIEW_WIDTH_SCALE = 1.4f

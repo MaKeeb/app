@@ -31,6 +31,8 @@ People use a keyboard thousands of times a day, often one-handed, while looking 
 - The key preview shows the character above the finger, inside the keyboard's bounds. iOS can't draw above its top edge, so previews for the top row overlap the strip. That is expected.
 - No previews in password fields (APP-86), and none when `keyPopupPreview` is off.
 - Long-press alternates open after a fixed delay with the most likely alternate pre-selected. The user slides to choose, releases to commit, and slides off to cancel. Keys with alternates show a hint glyph (`RenderKey.hint`).
+- The popup starts under the finger and fans out right, then left (AOSP's order), and wraps onto rows stacked upwards when a key has more options than fit across.
+- The space bar: sliding moves the cursor. With two or more languages selected it names the primary one, and holding it offers the others (`Key.alternateActions` → `KeyAction.SelectLanguage`); choosing one makes it the primary (`KeyboardSession.selectLanguage`). The same on every page with a space bar, so nothing changes between modes.
 - Timings (long-press delay, repeat rate) live in `TouchConfig` and will become user settings (APP-83) for motor accessibility. Never hard-code a timing in a renderer.
 
 ## Suggestion strip

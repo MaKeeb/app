@@ -155,6 +155,8 @@ class InputEngine(
             is KeyAction.ShowPanel -> mutableState.update { it.copy(panel = action.panel) }
             KeyAction.NextInputMethod -> keyboardHost?.switchToNextInputMethod()
             KeyAction.ShowInputMethodPicker -> keyboardHost?.showInputMethodPicker()
+            // A settings change: KeyboardSession writes it, and the new languages arrive with the preferences.
+            is KeyAction.SelectLanguage -> Unit
             is KeyAction.MoveCursor -> {
                 host.moveCursor(action.offset)
                 pendingRevert = null
@@ -210,7 +212,7 @@ class InputEngine(
             KeyAction.Enter -> endEmojiSearch()
             is KeyAction.ShowPanel -> endEmojiSearch(action.panel)
             KeyAction.Shift, is KeyAction.MoveCursor, is KeyAction.MoveCursorByWord, KeyAction.None -> Unit
-            is KeyAction.SwitchMode, KeyAction.NextInputMethod, KeyAction.ShowInputMethodPicker -> return false
+            is KeyAction.SwitchMode, KeyAction.NextInputMethod, KeyAction.ShowInputMethodPicker, is KeyAction.SelectLanguage -> return false
         }
         return true
     }

@@ -11,7 +11,8 @@ import com.makeeb.core.model.ShiftState
  * cryptic label ("?123" is "Symbols"), and a shifted letter says "Capital A", because the glyph
  * alone sounds the same in both cases. Shared so TalkBack and VoiceOver read the same keyboard.
  */
-fun Key.spokenLabel(shift: ShiftState, imeAction: ImeAction): String = spokenLabel(action, shift, imeAction) ?: run {
+fun Key.spokenLabel(shift: ShiftState, imeAction: ImeAction): String =
+    (if (action == KeyAction.Space && label.isNotEmpty()) "Space, $label" else null) ?: spokenLabel(action, shift, imeAction) ?: run {
     val text = displayLabel(shift)
     val letter = text.singleOrNull()
     if (letter != null && letter.isLetter() && letter.isUpperCase() && letter.lowercaseChar() != letter) "Capital $text" else text
@@ -31,6 +32,7 @@ private fun spokenLabel(action: KeyAction, shift: ShiftState, imeAction: ImeActi
     KeyAction.Backspace -> "Delete"
     KeyAction.DeleteWord -> "Delete word"
     KeyAction.Space -> "Space"
+    is KeyAction.SelectLanguage -> null
     KeyAction.Enter -> imeAction.spoken()
     is KeyAction.SwitchMode -> when (action.mode) {
         KeyboardMode.Letters -> "Letters"

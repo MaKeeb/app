@@ -69,11 +69,14 @@ class BuiltInLayoutProvider internal constructor(private val data: LayoutData) :
 
     override fun layout(mode: KeyboardMode, options: LayoutOptions): KeyboardLayout =
         cache.getOrPut(mode to options) {
+            // The space bar names the primary language and switches between them; the same on
+            // every page with a space bar, so nothing moves between modes.
+            val spaceLanguages = data.languages(options.languageTags).map { it.autonym to it.tag }
             when (mode) {
                 KeyboardMode.Letters ->
-                    BuiltInLayouts.letters(data.layout(options.letterLayoutId), data.accents(options.languageTags), options)
-                KeyboardMode.Symbols -> BuiltInLayouts.symbols(options)
-                KeyboardMode.SymbolsMore -> BuiltInLayouts.symbolsMore(options)
+                    BuiltInLayouts.letters(data.layout(options.letterLayoutId), data.accents(options.languageTags), options, spaceLanguages)
+                KeyboardMode.Symbols -> BuiltInLayouts.symbols(options, spaceLanguages)
+                KeyboardMode.SymbolsMore -> BuiltInLayouts.symbolsMore(options, spaceLanguages)
                 KeyboardMode.Numeric -> BuiltInLayouts.numeric()
                 KeyboardMode.Phone -> BuiltInLayouts.phone()
             }

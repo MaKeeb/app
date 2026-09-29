@@ -234,7 +234,13 @@ private fun AlternatesBubble(popup: AlternatesPopup) {
                     .background(if (selected) colors.popupSelected else colors.popup),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(option, color = if (selected) colors.onPopupSelected else colors.onPopup, fontSize = dims.keyTextSize)
+                // Words (the space bar's languages) a size down, so they fit their cell.
+                Text(
+                    option,
+                    color = if (selected) colors.onPopupSelected else colors.onPopup,
+                    fontSize = if (option.length > 2) dims.modifierTextSize else dims.keyTextSize,
+                    maxLines = 1,
+                )
             }
         }
     }

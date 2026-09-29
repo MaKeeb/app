@@ -53,7 +53,19 @@ data class Key(
      * symbols pages' ABC key opens the number pad. Takes precedence over [alternates].
      */
     val longPressAction: KeyAction? = null,
+    /**
+     * What choosing each of [alternates] does, when not typing it: the space bar's languages.
+     * Empty (type the alternate) or the same size as [alternates].
+     */
+    val alternateActions: List<KeyAction> = emptyList(),
 ) {
+    init {
+        require(alternateActions.isEmpty() || alternateActions.size == alternates.size) { "one action per alternate" }
+    }
+
+    /** What choosing alternate [index] does: its action, or typing it. */
+    fun alternateAction(index: Int): KeyAction = alternateActions.getOrNull(index) ?: KeyAction.Text(alternates[index])
+
     /** The label to draw for the current shift state. Only letter keys change case. */
     fun displayLabel(shift: ShiftState): String =
         if (shift.isUppercase && style == KeyStyle.Character && action is KeyAction.Text) label.uppercase() else label

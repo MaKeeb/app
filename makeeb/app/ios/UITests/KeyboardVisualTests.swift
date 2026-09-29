@@ -777,6 +777,33 @@ final class KeyboardVisualTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.0)
     }
 
+    /// With two languages the space bar names the primary one; holding it and sliding to the
+    /// other makes that the primary. Restores English alone.
+    func test21_spaceLanguage() {
+        selectLanguages(["English", "Magyar"], name: "en-hu")
+        openTab("Try it")
+        focus("Search")
+        assertMaKeebVisible("SL")
+        func spaceNamed(_ name: String) -> Bool {
+            app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Space, \(name)")).firstMatch.waitForExistence(timeout: 3)
+        }
+        results["SL-space-english"] = spaceNamed("English") ? "yes" : "no"
+        save("I-SPACE-before")
+        let keyLabels = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'key-'")).allElementsBoundByIndex
+        results["SL-key-labels"] = keyLabels.map { "\($0.identifier)=\($0.label)" }.filter { $0.contains("pace") || $0.contains("English") || $0.contains("Magyar") }.joined(separator: " | ")
+        let space = key(" ")
+        let unit = (screenWidth - 2 * sideInset) / 10
+        // The popup's second cell, Magyar: three keys wide from the space bar's left edge, one row up.
+        let magyar = CGPoint(x: sideInset + 8.0 * unit, y: space.y - 54)
+        coordinate(space).press(forDuration: 1.2, thenDragTo: coordinate(magyar))
+        Thread.sleep(forTimeInterval: 1.0)
+        results["SL-space-magyar"] = spaceNamed("Magyar") ? "yes" : "no"
+        save("I-SPACE-magyar")
+        XCTAssertEqual(results["SL-space-magyar"], "yes", "the space bar names Magyar after choosing it")
+        results["SL-drag-hides-keyboard"] = dragHidesKeyboard() ? "yes" : "no"
+        selectLanguages(["English"], name: "en")
+    }
+
     /** Drags the companion's list a little upwards; true when that took the keyboard down. */
     func dragHidesKeyboard() -> Bool {
         coordinate(CGPoint(x: 200, y: 420)).press(forDuration: 0.05, thenDragTo: coordinate(CGPoint(x: 200, y: 340)))

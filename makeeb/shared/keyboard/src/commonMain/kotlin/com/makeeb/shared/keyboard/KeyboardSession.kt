@@ -82,6 +82,7 @@ class KeyboardSession(
             override fun onTap(action: KeyAction, x: Float, y: Float) = handle(action, geometry.value?.let { tapPoint(it, x, y) })
 
             private fun handle(action: KeyAction, tap: TapPoint?) {
+                if (action is KeyAction.SelectLanguage) return selectLanguage(action.tag)
                 val probe = latency
                 if (probe == null) engine.onKey(action, tap) else probe.measure { engine.onKey(action, tap) }
             }
@@ -173,6 +174,19 @@ class KeyboardSession(
     }
 
     fun onKey(action: KeyAction) = engine.onKey(action)
+
+    /**
+     * The space bar's long press: [tag] becomes the primary language (first in the list), so its
+     * accents come first. Written to the shared preferences; on iOS without Full Access the App
+     * Group is read-only, so the choice lasts until the keyboard is next shown.
+     */
+    fun selectLanguage(tag: String) {
+        val base = tag.substringBefore('-')
+        preferencesRepository.update { prefs ->
+            val stored = prefs.languageTags.firstOrNull { it.substringBefore('-') == base } ?: tag
+            prefs.copy(languageTags = listOf(stored) + prefs.languageTags.filter { it != stored })
+        }
+    }
 
     fun showPanel(panel: KeyboardPanel) = engine.onKey(KeyAction.ShowPanel(panel))
 

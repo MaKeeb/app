@@ -385,4 +385,33 @@ class TouchControllerTest {
         val popup = assertNotNull(touch.state.value.popup)
         assertEquals(1, popup.cells.map { it.top }.distinct().size, "one row")
     }
+
+    @Test
+    fun holdingTheSpaceBarPicksALanguageAndSlidingStillMovesTheCursor() = runTest {
+        val touch = controller()
+        val multi = LayoutGeometry(
+            BuiltInLayoutProvider().layout(KeyboardMode.Letters, LayoutOptions(languageTags = listOf("en", "hu"))),
+            width = 1000f,
+            rowHeight = 100f,
+        )
+        touch.geometry = multi
+        val space = multi.keys.first { it.key.action == KeyAction.Space }.bounds
+        touch.down(1, space.centerX, space.centerY)
+        advanceTimeBy(1_000)
+        runCurrent()
+        val popup = assertNotNull(touch.state.value.popup)
+        assertEquals(listOf("English", "Magyar"), popup.options)
+        assertTrue(popup.cells.all { it.width <= 300.5f }, "cells a few keys wide, not the space bar's width")
+        val magyar = popup.cells[1]
+        touch.move(1, magyar.centerX, magyar.centerY)
+        touch.up(1, magyar.centerX, magyar.centerY)
+        assertEquals(listOf<KeyAction>(KeyAction.SelectLanguage("hu")), actions)
+
+        actions.clear()
+        touch.down(2, space.centerX, space.centerY)
+        touch.move(2, space.centerX + 30f, space.centerY)
+        touch.move(2, space.centerX + 30f + 14f * 2, space.centerY)
+        touch.up(2, space.centerX + 30f + 14f * 2, space.centerY)
+        assertEquals(List<KeyAction>(2) { KeyAction.MoveCursor(1) }, actions, "a slide before the long press moves the cursor")
+    }
 }

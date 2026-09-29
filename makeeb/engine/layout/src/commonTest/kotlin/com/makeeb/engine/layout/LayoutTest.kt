@@ -181,4 +181,18 @@ class LayoutTest {
         assertEquals(listOf("<", "[", "{"), alternatesOf("("))
         assertEquals(listOf(">", "]", "}"), alternatesOf(")"))
     }
+
+    @Test
+    fun withSeveralLanguagesTheSpaceBarNamesThePrimaryAndOffersTheOthers() {
+        val options = LayoutOptions(languageTags = listOf("hu", "en", "sv"))
+        for (mode in listOf(KeyboardMode.Letters, KeyboardMode.Symbols, KeyboardMode.SymbolsMore)) {
+            val space = provider.layout(mode, options).rows.flatMap { it.keys }.single { it.action == KeyAction.Space }
+            assertEquals("Magyar", space.label, "$mode")
+            assertEquals(listOf("Magyar", "English", "Svenska"), space.alternates)
+            assertEquals(KeyAction.SelectLanguage("sv"), space.alternateAction(2))
+        }
+        val single = provider.layout(KeyboardMode.Letters, LayoutOptions(languageTags = listOf("en"))).rows.flatMap { it.keys }.single { it.action == KeyAction.Space }
+        assertEquals("", single.label, "one language: a plain space bar")
+        assertTrue(single.alternates.isEmpty())
+    }
 }

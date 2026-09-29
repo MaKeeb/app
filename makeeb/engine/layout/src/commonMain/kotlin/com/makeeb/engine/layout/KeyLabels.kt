@@ -38,7 +38,8 @@ fun Key.renderIcon(shift: ShiftState, imeAction: ImeAction): KeyIcon? = when (ac
 /** The text drawn on a key when [renderIcon] is null. */
 fun Key.renderLabel(shift: ShiftState, imeAction: ImeAction, spaceLabel: String = ""): String = when (action) {
     KeyAction.Enter -> imeAction.label()
-    KeyAction.Space -> spaceLabel
+    // The primary language's name, when more than one is selected.
+    KeyAction.Space -> label.ifEmpty { spaceLabel }
     else -> displayLabel(shift)
 }
 

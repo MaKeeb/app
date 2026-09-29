@@ -171,4 +171,13 @@ class KeyboardSessionTest {
         runCurrent()
         assertEquals(listOf("see you at noon"), session.clipboardEntries.value.map { it.text })
     }
+
+    @Test
+    fun choosingALanguageOnTheSpaceBarMakesItThePrimary() = runTest {
+        val session = session(KeyboardPreferences(languageTags = listOf("en-GB", "sv", "hu")))
+        session.selectLanguage("hu")
+        assertEquals(listOf("hu", "en-GB", "sv"), prefs.preferences.value.languageTags)
+        session.selectLanguage("en")
+        assertEquals(listOf("en-GB", "hu", "sv"), prefs.preferences.value.languageTags, "keeps the stored regional form")
+    }
 }
